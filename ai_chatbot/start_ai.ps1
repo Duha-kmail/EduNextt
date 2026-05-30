@@ -152,8 +152,8 @@ missing = []
 for name in ("fastapi", "uvicorn", "google.genai", "faiss", "sentence_transformers", "pypdf", "fitz"):
     try:
         __import__(name)
-        except Exception:
-            missing.append(name)
+    except Exception:
+        missing.append(name)
 raise SystemExit(1 if missing else 0)
 '@
 
