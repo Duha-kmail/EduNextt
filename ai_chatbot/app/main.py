@@ -72,4 +72,5 @@ async def log_requests(request: Request, call_next):
 def health():
     return {"status": "ok"}
 
-app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
+if STATIC_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")

@@ -147,7 +147,7 @@ function Ensure-Dependencies($python) {
 import sys
 from pathlib import Path
 base = Path.cwd()
-sys.path.insert(0, str(base / ".python_packages"))
+sys.path.insert(0, str(base / '.python_packages'))
 missing = []
 for name in ("fastapi", "uvicorn", "google.genai", "faiss", "sentence_transformers", "pypdf", "fitz"):
     try:

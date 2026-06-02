@@ -1,3 +1,5 @@
+import re
+
 from app.ingest import ingest_subject
 from app.core.config import PDFS_DIR, VECTOR_DB_DIR
 from app.rag.retriever import format_context, retrieve
@@ -15,6 +17,14 @@ MATH_EXAM_SOURCES = {
     "اسئلة سنوات 2020.pdf",
     "اسئلة سنوات 2022.pdf",
 }
+
+ENGLISH_EXAM_SOURCE_HINTS = (
+    "الدورة",
+    "2022",
+    "2023",
+    "2024",
+    "الاستكمالية",
+)
 
 GREETINGS = {
     "مرحبا",
@@ -42,6 +52,33 @@ EXAM_PRACTICE_KEYWORDS = {
     "practice",
     "tawjihi",
 }
+MATH_EXAM_SOURCES.update({
+    "اسئلة سنوات 2020.pdf",
+    "اسئلة سنوات 2022.pdf",
+})
+
+GREETINGS.update({
+    "مرحبا",
+    "مرحباً",
+    "السلام عليكم",
+    "اهلا",
+    "أهلا",
+    "هلا",
+})
+
+EXAM_PRACTICE_KEYWORDS.update({
+    "سنوات",
+    "اسئلة سنوات",
+    "أسئلة سنوات",
+    "امتحان",
+    "إمتحان",
+    "امتحانات",
+    "دورة",
+    "الدورة",
+    "وزاري",
+    "تدريب",
+    "تدرب",
+})
 
 
 def _is_greeting(message: str) -> bool:
@@ -52,7 +89,9 @@ def _is_greeting(message: str) -> bool:
 
 def _is_exam_practice_request(message: str) -> bool:
     normalized = message.casefold()
-    return any(keyword in normalized for keyword in EXAM_PRACTICE_KEYWORDS)
+    return any(keyword in normalized for keyword in EXAM_PRACTICE_KEYWORDS) or bool(
+        re.search(r"\b20\d{2}\b", normalized)
+    )
 
 
 def _english_retrieval_query(message: str, exam_practice: bool) -> str:
@@ -74,6 +113,7 @@ def _math_retrieval_query(message: str, exam_practice: bool) -> str:
         f"{message}\n"
         "Math Tawjihi past exam questions ministry exam practice scientific stream "
         "calculus algebra geometry probability "
+        "اسئلة سنوات 2020.pdf اسئلة سنوات 2022.pdf أسئلة سنوات 2020 2022 امتحان وزاري تدريبات "
         "اسئلة سنوات 2020.pdf اسئلة سنوات 2022.pdf "
         "أسئلة سنوات 2020 2022 امتحان وزاري تدريبات"
     )
@@ -88,8 +128,16 @@ def _retrieval_query(subject: str, message: str, exam_practice: bool) -> str:
 
 
 def _prioritize_exam_sources(results: list[dict], subject: str) -> list[dict]:
+    if subject == "english":
+        return sorted(
+            results,
+            key=lambda item: (
+                not any(hint in (item.get("source") or "") for hint in ENGLISH_EXAM_SOURCE_HINTS),
+                -float(item.get("score", 0)),
+            ),
+        )
+
     preferred_sources = {
-        "english": {"en12s.pdf"},
         "math": MATH_EXAM_SOURCES,
     }.get(subject, set())
 
