@@ -62,6 +62,7 @@ public class StudentAnalyticsService : IStudentAnalyticsService
         );
         var localWeakAreas = BuildOverallWeaknesses(examSummary, subjectScores);
         var aiInsights = await GenerateAnalyticsInsightsAsync(
+            userId,
             studentStream,
             examSummary,
             completedLessons,
@@ -129,6 +130,7 @@ public class StudentAnalyticsService : IStudentAnalyticsService
     }
 
     private async Task<AiPersonalizedRecommendationResponseDto> GenerateAnalyticsInsightsAsync(
+        Guid userId,
         string studentStream,
         StudentAnalyticsExamSummaryData examSummary,
         int completedLessons,
@@ -166,6 +168,7 @@ public class StudentAnalyticsService : IStudentAnalyticsService
             var aiResponse = await _ai.GeneratePersonalizedRecommendationAsync(
                 new AiPersonalizedRecommendationRequestDto
                 {
+                    UserId = userId,
                     ContextType = "analytics-performance",
                     Stream = studentStream,
                     CurrentLevel = GetOverallLevel(examSummary.AverageScore),

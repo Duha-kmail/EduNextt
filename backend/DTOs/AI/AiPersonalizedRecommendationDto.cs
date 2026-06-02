@@ -2,6 +2,7 @@ namespace backend.DTOs.AI;
 
 public class AiPersonalizedRecommendationRequestDto
 {
+    public Guid? UserId { get; set; }
     public string ContextType { get; set; } = "";
     public string StudentName { get; set; } = "";
     public string Stream { get; set; } = "";

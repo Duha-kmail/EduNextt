@@ -93,6 +93,7 @@ public class StudentStudyPlanService : IStudentStudyPlanService
 
         var aiResponse = await _ai.GeneratePersonalizedRecommendationAsync(new AiPersonalizedRecommendationRequestDto
         {
+            UserId = userId,
             ContextType = "study-plan",
             Stream = profile.Stream,
             CurrentLevel = profile.CurrentLevel,

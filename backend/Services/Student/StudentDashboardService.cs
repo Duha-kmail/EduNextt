@@ -195,6 +195,7 @@ public class StudentDashboardService : IStudentDashboardService
 
             var aiResponse = await _ai.GeneratePersonalizedRecommendationAsync(new AiPersonalizedRecommendationRequestDto
             {
+                UserId = userId,
                 ContextType = "dashboard",
                 StudentName = fullName,
                 Stream = studentStream,

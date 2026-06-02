@@ -331,17 +331,6 @@ public class StudentExamService : IStudentExamService
             });
         }
 
-        if (!string.IsNullOrWhiteSpace(aiResp.RecommendationText))
-        {
-            _repository.AddAiRecommendation(new ai_recommendation
-            {
-                id = Guid.NewGuid(),
-                user_id = userId,
-                recommendation_text = aiResp.RecommendationText,
-                created_at = createdAt
-            });
-        }
-
         await _repository.SaveChangesAsync();
 
         return new ExamResultDto

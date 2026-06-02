@@ -322,6 +322,7 @@ public class StudentSetupService : IStudentSetupService
 
         var aiRecommendation = await _ai.GeneratePersonalizedRecommendationAsync(new AiPersonalizedRecommendationRequestDto
         {
+            UserId = userId,
             ContextType = "onboarding",
             Stream = branch,
             CurrentLevel = level,
@@ -339,17 +340,6 @@ public class StudentSetupService : IStudentSetupService
                 RemainingLessons = 0
             }).ToList()
         });
-
-        if (!string.IsNullOrWhiteSpace(aiRecommendation.RecommendationText))
-        {
-            _repository.AddAiRecommendation(new ai_recommendation
-            {
-                id = Guid.NewGuid(),
-                user_id = userId,
-                recommendation_text = aiRecommendation.RecommendationText,
-                created_at = GetUnspecifiedNow()
-            });
-        }
 
         await _repository.SaveChangesAsync();
 
