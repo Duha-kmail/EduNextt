@@ -175,7 +175,7 @@ public class StudentDashboardService : IStudentDashboardService
     {
         var recommendations = new List<DashboardRecommendationDto>();
 
-        if (hasAnyProgress && subjectProgress.Any())
+        if (subjectProgress.Any())
         {
             var weakestSubjects = subjectProgress
                 .OrderBy(x => x.ProgressPercent)

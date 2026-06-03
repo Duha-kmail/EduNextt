@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -16,6 +16,7 @@ import {
   CircleHelp,
 } from "lucide-react";
 import logo from "../assets/EDU.svg";
+import { API_BASE_URL } from "@/config/api";
 
 const studentSidebarItems = [
   { icon: LayoutDashboard, label: "لوحة التحكم", path: "/dashboard" },
@@ -65,6 +66,7 @@ const sidebarTips = [
 const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titleIcon: TitleIcon }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);
+  const studyTimerRef = useRef({ lastSentAt: Date.now() });
   const location = useLocation();
   const navigate = useNavigate();
   const handleLogout = () => {
@@ -93,6 +95,66 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (role !== "student") {
+      return;
+    }
+
+    const getToken = () => localStorage.getItem("token") || sessionStorage.getItem("token");
+
+    const flushStudyTime = (force = false) => {
+      const token = getToken();
+      const now = Date.now();
+      const durationSeconds = Math.floor((now - studyTimerRef.current.lastSentAt) / 1000);
+
+      if (!token || durationSeconds <= 0 || (!force && durationSeconds < 45)) {
+        return;
+      }
+
+      studyTimerRef.current.lastSentAt = now;
+
+      fetch(`${API_BASE_URL}/api/student/progress/study-session`, {
+        method: "POST",
+        keepalive: force,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ durationSeconds }),
+      }).catch(() => {});
+    };
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        flushStudyTime(false);
+        return;
+      }
+
+      studyTimerRef.current.lastSentAt = Date.now();
+    }, 60000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushStudyTime(true);
+        return;
+      }
+
+      studyTimerRef.current.lastSentAt = Date.now();
+    };
+
+    const handlePageHide = () => flushStudyTime(true);
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      flushStudyTime(true);
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [role]);
 
   return (
     <div

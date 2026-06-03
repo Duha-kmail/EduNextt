@@ -164,21 +164,6 @@ public class StudentSubjectRepository : IStudentSubjectRepository
         _db.user_achievements.Add(userAchievement);
     }
 
-    public Task<bool> HasStudySessionForLessonAsync(Guid userId, Guid lessonId)
-    {
-        return _db.study_sessions
-            .AsNoTracking()
-            .AnyAsync(s =>
-                s.user_id == userId &&
-                s.lesson_id == lessonId &&
-                s.session_type == "study");
-    }
-
-    public void AddStudySession(study_session studySession)
-    {
-        _db.study_sessions.Add(studySession);
-    }
-
     public Task<List<subject>> GetSubjectsByBranchAsync(string branch)
     {
         return _db.subjects

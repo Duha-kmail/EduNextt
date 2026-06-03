@@ -251,31 +251,6 @@ public class StudentSubjectService : IStudentSubjectService
             progress.completed_at = completed ? now : null;
         }
 
-        if (completed && !wasCompletedBefore)
-        {
-            var hasStudySession = await _repository.HasStudySessionForLessonAsync(userId, lessonId);
-
-            if (!hasStudySession)
-            {
-                var durationMinutes = GetLessonStudyDurationMinutes(lesson);
-                var endedAt = now;
-                var startedAt = endedAt.AddMinutes(-durationMinutes);
-
-                _repository.AddStudySession(new study_session
-                {
-                    id = Guid.NewGuid(),
-                    user_id = userId,
-                    subject_id = subject.id,
-                    lesson_id = lesson.id,
-                    started_at = startedAt,
-                    ended_at = endedAt,
-                    duration_minutes = durationMinutes,
-                    session_type = "study",
-                    created_at = now
-                });
-            }
-        }
-
         await _repository.SaveChangesAsync();
 
         var shouldCheckAchievements = completed && !wasCompletedBefore;
@@ -409,16 +384,6 @@ public class StudentSubjectService : IStudentSubjectService
             .Select(x => x.Trim())
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .ToList();
-    }
-
-    private static int GetLessonStudyDurationMinutes(lesson lesson)
-    {
-        if (lesson.video_duration_seconds.HasValue && lesson.video_duration_seconds.Value > 0)
-        {
-            return Math.Max(1, (int)Math.Ceiling(lesson.video_duration_seconds.Value / 60.0));
-        }
-
-        return 30;
     }
 
     private static string MapSubjectColor(string name) => name switch

@@ -34,10 +34,6 @@ public interface IStudentSubjectRepository
 
     void AddUserAchievement(user_achievement userAchievement);
 
-    Task<bool> HasStudySessionForLessonAsync(Guid userId, Guid lessonId);
-
-    void AddStudySession(study_session studySession);
-
     Task<List<subject>> GetSubjectsByBranchAsync(string branch);
 
     Task SaveChangesAsync();
