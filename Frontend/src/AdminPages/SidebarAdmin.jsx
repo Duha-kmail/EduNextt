@@ -1,14 +1,13 @@
 import '../AdminStyles/SidebarAdmin.css';
-import { BookOpen, LayoutDashboard, FileText, BarChart3, CircleHelp, Users, Plus, Trophy, User } from "lucide-react";
+import { BookOpen, LayoutDashboard, FileText, BarChart3, CircleHelp, Users, Trophy, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import logo from "../assets/EDU.svg";
 
 export default function Sidebar() {
   return (
     <aside className="sidebar rtl">
       <div className="logo-section">
-        <div className="logo-icon">
-          <BookOpen size={24} />
-        </div>
+        <img className="sidebar-admin-logo-image" src={logo} alt="EduNext" />
         <div className="logo-text">
           <h1>إيديونكست</h1>
           <p>لوحة تحكم المشرف</p>

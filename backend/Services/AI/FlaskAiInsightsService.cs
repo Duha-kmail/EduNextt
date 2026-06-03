@@ -1,10 +1,6 @@
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Text.Json.Serialization;
-using backend.Data.Generated;
 using backend.DTOs.AI;
-using backend.Models.Generated;
-using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services.AI;
 
@@ -12,21 +8,12 @@ public class FlaskAiInsightsService : IAiInsightsService
 {
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
-    private readonly DbContextOptions<AppDbContext> _dbOptions;
-    private readonly ILogger<FlaskAiInsightsService> _logger;
     private readonly MockAiInsightsService _fallback = new();
 
-    public FlaskAiInsightsService(
-        HttpClient httpClient,
-        IConfiguration configuration,
-        DbContextOptions<AppDbContext> dbOptions,
-        ILogger<FlaskAiInsightsService> logger
-    )
+    public FlaskAiInsightsService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _configuration = configuration;
-        _dbOptions = dbOptions;
-        _logger = logger;
     }
 
     public async Task<AiExamAnalysisResponseDto> AnalyzeExamAsync(AiExamAnalysisRequestDto request, CancellationToken ct = default)
@@ -62,28 +49,20 @@ public class FlaskAiInsightsService : IAiInsightsService
 
             if (aiResponse == null || string.IsNullOrWhiteSpace(aiResponse.RecommendationText))
             {
-                var fallbackResponse = await _fallback.AnalyzeExamAsync(request, ct);
-                await SaveRecommendationAsync(request.UserId, fallbackResponse.RecommendationText, ct);
-                return fallbackResponse;
+                return await _fallback.AnalyzeExamAsync(request, ct);
             }
 
-            var result = new AiExamAnalysisResponseDto
+            return new AiExamAnalysisResponseDto
             {
                 StrengthAreas = CleanList(aiResponse.StrengthAreas),
                 WeakAreas = CleanList(aiResponse.WeakAreas),
                 LevelMessage = aiResponse.LevelMessage?.Trim() ?? "",
                 RecommendationText = aiResponse.RecommendationText.Trim()
             };
-
-            await SaveRecommendationAsync(request.UserId, result.RecommendationText, ct);
-
-            return result;
         }
         catch
         {
-            var fallbackResponse = await _fallback.AnalyzeExamAsync(request, ct);
-            await SaveRecommendationAsync(request.UserId, fallbackResponse.RecommendationText, ct);
-            return fallbackResponse;
+            return await _fallback.AnalyzeExamAsync(request, ct);
         }
     }
 
@@ -150,18 +129,10 @@ public class FlaskAiInsightsService : IAiInsightsService
 
             if (aiResponse == null || string.IsNullOrWhiteSpace(aiResponse.RecommendationText))
             {
-                var fallbackResponse = await _fallback.GeneratePersonalizedRecommendationAsync(request, ct);
-                await SaveRecommendationAsync(request.UserId, fallbackResponse.RecommendationText, ct);
-                await SaveSubjectAnalysesAsync(
-                    request.UserId,
-                    fallbackResponse.SubjectAnalyses,
-                    fallbackResponse.RecommendationText,
-                    ct
-                );
-                return fallbackResponse;
+                return await _fallback.GeneratePersonalizedRecommendationAsync(request, ct);
             }
 
-            var result = new AiPersonalizedRecommendationResponseDto
+            return new AiPersonalizedRecommendationResponseDto
             {
                 RecommendationText = aiResponse.RecommendationText.Trim(),
                 FocusSubjects = CleanList(aiResponse.FocusSubjects),
@@ -171,98 +142,10 @@ public class FlaskAiInsightsService : IAiInsightsService
                 WeakAreas = CleanList(aiResponse.WeakAreas),
                 SubjectAnalyses = CleanSubjectAnalyses(aiResponse.SubjectAnalyses, request.Subjects)
             };
-
-            await SaveRecommendationAsync(request.UserId, result.RecommendationText, ct);
-            await SaveSubjectAnalysesAsync(request.UserId, result.SubjectAnalyses, result.RecommendationText, ct);
-
-            return result;
         }
         catch
         {
-            var fallbackResponse = await _fallback.GeneratePersonalizedRecommendationAsync(request, ct);
-            await SaveRecommendationAsync(request.UserId, fallbackResponse.RecommendationText, ct);
-            await SaveSubjectAnalysesAsync(
-                request.UserId,
-                fallbackResponse.SubjectAnalyses,
-                fallbackResponse.RecommendationText,
-                ct
-            );
-            return fallbackResponse;
-        }
-    }
-
-    private async Task SaveRecommendationAsync(Guid? userId, string? recommendationText, CancellationToken ct)
-    {
-        if (userId == null || userId == Guid.Empty || string.IsNullOrWhiteSpace(recommendationText))
-        {
-            return;
-        }
-
-        try
-        {
-            await using var db = new AppDbContext(_dbOptions);
-
-            db.ai_recommendations.Add(new ai_recommendation
-            {
-                id = Guid.NewGuid(),
-                user_id = userId.Value,
-                recommendation_text = recommendationText.Trim(),
-                created_at = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
-            });
-
-            await db.SaveChangesAsync(ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to save AI recommendation for user {UserId}.", userId);
-        }
-    }
-
-    private async Task SaveSubjectAnalysesAsync(
-        Guid? userId,
-        IEnumerable<AiSubjectAnalysisDto>? analyses,
-        string? recommendationText,
-        CancellationToken ct
-    )
-    {
-        if (userId == null || userId == Guid.Empty || analyses == null)
-        {
-            return;
-        }
-
-        var rows = analyses
-            .Where(analysis =>
-                analysis.SubjectId != null &&
-                analysis.SubjectId != Guid.Empty &&
-                ((analysis.Strengths?.Count ?? 0) > 0 || (analysis.Weaknesses?.Count ?? 0) > 0)
-            )
-            .Select(analysis => new subject_analysis
-            {
-                id = Guid.NewGuid(),
-                user_id = userId.Value,
-                subject_id = analysis.SubjectId!.Value,
-                strengths = JsonSerializer.Serialize(analysis.Strengths ?? new List<string>()),
-                weaknesses = JsonSerializer.Serialize(analysis.Weaknesses ?? new List<string>()),
-                improvement_tip = string.IsNullOrWhiteSpace(recommendationText)
-                    ? null
-                    : recommendationText.Trim()
-            })
-            .ToList();
-
-        if (rows.Count == 0)
-        {
-            return;
-        }
-
-        try
-        {
-            await using var db = new AppDbContext(_dbOptions);
-            db.subject_analyses.AddRange(rows);
-            await db.SaveChangesAsync(ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to save AI subject analyses for user {UserId}.", userId);
+            return await _fallback.GeneratePersonalizedRecommendationAsync(request, ct);
         }
     }
 

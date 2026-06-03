@@ -27,18 +27,10 @@ public class StudentProgressController : ControllerBase
     }
 
     [HttpGet("by-subject")]
-    public async Task<ActionResult<List<SubjectProgressDto>>> GetBySubject()
-    {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var result = await _service.GetProgressBySubjectAsync(userId);
-        return Ok(result);
-    }
-
-    [HttpPost("study-session")]
-    public async Task<IActionResult> RecordStudySession([FromBody] RecordStudySessionDto dto)
-    {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        await _service.RecordStudySessionAsync(userId, dto);
-        return NoContent();
-    }
+public async Task<ActionResult<List<SubjectProgressDto>>> GetBySubject()
+{
+    var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    var result = await _service.GetProgressBySubjectAsync(userId);
+    return Ok(result);
+}
 }

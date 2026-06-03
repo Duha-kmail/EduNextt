@@ -4,6 +4,7 @@ import { ExamRecordsProvider } from "./context/ExamRecordsContext.jsx";
 
 const Login = lazy(() => import("./AdminPages/Login.jsx"));
 const Register = lazy(() => import("./AdminPages/Register.jsx"));
+const Contact = lazy(() => import("./AdminPages/Contact.jsx"));
 
 const OnboardingStep1 = lazy(() => import("./pages/OnboardingStep1.jsx"));
 const OnboardingStep2 = lazy(() => import("./pages/OnboardingStep2.jsx"));
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/contact" element={<Contact />} />
           </Route>
 
           <Route element={<OnboardingRoute />}>

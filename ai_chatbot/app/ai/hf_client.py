@@ -1,6 +1,5 @@
 import base64
 import binascii
-import logging
 import re
 
 from google import genai
@@ -8,8 +7,6 @@ from google.genai import errors, types
 
 from app.core.config import GEMINI_API_KEY
 
-
-logger = logging.getLogger("edunext-ai.gemini")
 
 MODEL_NAMES = [
     "models/gemini-2.5-flash",
@@ -89,34 +86,6 @@ def _decode_image(image_data: str, image_mime_type: str | None = None) -> tuple[
 def _client_error_status(exc: errors.ClientError) -> str:
     status = str(getattr(exc, "status_code", "") or "")
     return f"{status} {exc}"
-
-
-def _permission_error_message(error_text: str) -> str:
-    normalized = (error_text or "").casefold()
-
-    if "reported as leaked" in normalized:
-        return (
-            "مفتاح Gemini الحالي مرفوض لأنه تم الإبلاغ عنه كمفتاح مسرب. "
-            "أنشئ GEMINI_API_KEY جديدا من Google AI Studio، ضعه في ai_chatbot/.env، "
-            "ثم أعد تشغيل خدمة الشات بوت."
-        )
-
-    if "api key not valid" in normalized or "invalid api key" in normalized:
-        return (
-            "مفتاح Gemini الحالي غير صالح. تأكد من قيمة GEMINI_API_KEY في ai_chatbot/.env "
-            "ثم أعد تشغيل خدمة الشات بوت."
-        )
-
-    if "api has not been used" in normalized or "disabled" in normalized:
-        return (
-            "Gemini API غير مفعل لهذا المشروع أو عليه قيود. فعّل Gemini API للمشروع المرتبط بالمفتاح، "
-            "أو استخدم مفتاحا جديدا من مشروع مفعل."
-        )
-
-    return (
-        "يوجد مشكلة في مفتاح Gemini أو صلاحياته. "
-        "تأكد من GEMINI_API_KEY ومن تفعيل Gemini API لهذا المشروع."
-    )
 
 
 def _format_latex_matrix(match: re.Match) -> str:
@@ -201,14 +170,16 @@ def ask_llm(
             error_text = _client_error_status(exc)
             if "429" in error_text or "RESOURCE_EXHAUSTED" in error_text:
                 quota_error = True
-                logger.warning("Gemini quota exceeded (%s): %s", model_name, exc)
+                print(f"Gemini quota exceeded ({model_name}): {exc}")
                 continue
             if any(code in error_text for code in ("400", "401", "403")):
-                logger.warning("Gemini permission/client error (%s): %s", model_name, error_text)
-                return _permission_error_message(error_text)
-            logger.warning("Gemini client error (%s): %s", model_name, exc)
+                return (
+                    "يوجد مشكلة في مفتاح Gemini أو صلاحياته. "
+                    "تأكد من GEMINI_API_KEY ومن تفعيل Gemini API لهذا المشروع."
+                )
+            print(f"Gemini client error ({model_name}): {exc}")
         except Exception as exc:
-            logger.exception("Gemini model failed (%s)", model_name)
+            print(f"Gemini model failed ({model_name}): {exc}")
 
     if quota_error:
         return (

@@ -175,7 +175,7 @@ public class StudentDashboardService : IStudentDashboardService
     {
         var recommendations = new List<DashboardRecommendationDto>();
 
-        if (subjectProgress.Any())
+        if (hasAnyProgress && subjectProgress.Any())
         {
             var weakestSubjects = subjectProgress
                 .OrderBy(x => x.ProgressPercent)
@@ -195,7 +195,6 @@ public class StudentDashboardService : IStudentDashboardService
 
             var aiResponse = await _ai.GeneratePersonalizedRecommendationAsync(new AiPersonalizedRecommendationRequestDto
             {
-                UserId = userId,
                 ContextType = "dashboard",
                 StudentName = fullName,
                 Stream = studentStream,

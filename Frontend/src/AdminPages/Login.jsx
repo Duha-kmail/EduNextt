@@ -19,6 +19,7 @@ import {
   Home,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import PublicNavbar from "./PublicNavbar.jsx";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -229,6 +230,7 @@ export default function Login() {
 
   return (
     <div className="layout-wrapper" dir="rtl">
+      <PublicNavbar compact />
       <button type="button" className="auth-home-link" onClick={() => navigate("/")}>
         <Home size={18} />
         <span>العودة للرئيسية</span>

@@ -36,9 +36,14 @@ body {
 
 .layout-wrapper {
   min-height: 100vh;
+  padding-top: 72px;
   display: flex;
   flex-direction: column;
   position: relative;
+}
+
+.layout-wrapper .auth-home-link {
+  display: none;
 }
 
 .auth-home-link {
@@ -563,4 +568,73 @@ body {
 
 .space-y-4 > * + * {
   margin-top: 1rem;
+}
+
+/* EduNext public theme alignment */
+.layout-wrapper {
+  font-family: "Tajawal", "Segoe UI", sans-serif;
+  min-height: 100vh;
+  padding-top: 72px;
+  background-color: #ffffff;
+  background-image: none;
+}
+
+.card-container {
+  border: 1px solid #dfe7ef;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 24px 70px rgba(15, 43, 68, 0.11);
+  overflow: hidden;
+}
+
+.form-title {
+  color: #12304a;
+  font-weight: 800;
+}
+
+.form-input,
+.input-field,
+input,
+select {
+  border-radius: 16px !important;
+}
+
+.form-input:focus,
+.input-field:focus,
+input:focus,
+select:focus {
+  border-color: #08b7aa !important;
+  box-shadow: 0 0 0 4px rgba(8, 183, 170, 0.14) !important;
+}
+
+.submit-btn {
+  border-radius: 16px;
+  background: linear-gradient(135deg, #08b7aa, #1594d1);
+  box-shadow: 0 14px 28px rgba(8, 183, 170, 0.2);
+}
+
+.submit-btn:hover {
+  background: linear-gradient(135deg, #07998f, #117fba);
+  transform: translateY(-2px);
+}
+
+.visual-section {
+  background:
+    radial-gradient(circle at 22% 22%, rgba(255, 255, 255, 0.34), transparent 26%),
+    linear-gradient(145deg, #eafaf7 0%, #eef6ff 48%, #f3efff 100%);
+}
+
+.badge {
+  background: rgba(8, 183, 170, 0.12);
+  color: #087f78;
+  letter-spacing: 0;
+}
+
+.visual-title {
+  color: #12304a;
+}
+
+.visual-description,
+.footer-text {
+  color: #60758a;
 }

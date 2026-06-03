@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مساعد التوجيهي</title>
+  <link rel="stylesheet" href="style.css?v=4" />
+</head>
+<body>
+  <main class="app">
+    <aside class="sidebar">
+      <h1>مساعد التوجيهي</h1>
+      <button class="subject active" data-subject="math">الرياضيات</button>
+      <button class="subject" data-subject="english">اللغة الإنجليزية</button>
+    </aside>
+
+    <section class="chat">
+      <header class="header" id="title">Chatbot الرياضيات</header>
+      <div class="messages" id="chat-box"></div>
+
+      <form class="input-area" id="chat-form">
+        <label class="image-button" for="image-input" title="إرفاق صورة">
+          صورة
+        </label>
+        <input id="image-input" class="image-input" type="file" accept="image/*" />
+        <div class="composer">
+          <div class="image-preview" id="image-preview" hidden>
+            <img id="preview-img" alt="الصورة المرفقة" />
+            <button type="button" id="remove-image">إزالة</button>
+          </div>
+          <input id="msg" autocomplete="off" placeholder="اكتب سؤالك أو أرفق صورة..." />
+        </div>
+        <button type="submit">إرسال</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="script.js?v=4"></script>
+</body>
+</html>

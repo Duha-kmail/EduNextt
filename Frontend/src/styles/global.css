@@ -324,6 +324,14 @@ img {
   gap: 0.5rem;
 }
 
+.navbar-logo-image {
+  display: block;
+  width: clamp(8.5rem, 13vw, 12rem);
+  height: 3.35rem;
+  object-fit: contain;
+  object-position: right center;
+}
+
 .navbar-actions {
   display: flex;
   align-items: center;
@@ -847,6 +855,14 @@ img {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.footer-logo-image {
+  display: block;
+  width: 8.5rem;
+  height: 3rem;
+  object-fit: contain;
+  object-position: right center;
 }
 
 .footer-brand .logo-icon {

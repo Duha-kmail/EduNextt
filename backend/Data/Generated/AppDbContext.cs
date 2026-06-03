@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using backend.Models.Generated;
+using backend.Models;
 
 namespace backend.Data.Generated;
 
@@ -65,6 +66,7 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<user_achievement> user_achievements { get; set; }
 
     public virtual DbSet<user_stat> user_stats { get; set; }
+    public virtual DbSet<ContactMessage> ContactMessages { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -73,64 +75,64 @@ public partial class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("pgcrypto");
-modelBuilder.Entity<achievement>(entity =>
-{
-    entity.HasKey(e => e.id).HasName("achievements_pkey");
+        modelBuilder.Entity<achievement>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("achievements_pkey");
 
-    entity.Property(e => e.id)
-        .HasDefaultValueSql("gen_random_uuid()")
-        .HasColumnName("id");
+            entity.Property(e => e.id)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id");
 
-    entity.Property(e => e.title)
-        .HasMaxLength(100)
-        .HasColumnName("title");
+            entity.Property(e => e.title)
+                .HasMaxLength(100)
+                .HasColumnName("title");
 
-    entity.Property(e => e.description)
-        .HasColumnName("description");
+            entity.Property(e => e.description)
+                .HasColumnName("description");
 
-    entity.Property(e => e.condition_type)
-        .HasMaxLength(50)
-        .HasColumnName("condition_type");
+            entity.Property(e => e.condition_type)
+                .HasMaxLength(50)
+                .HasColumnName("condition_type");
 
-    entity.Property(e => e.condition_value)
-        .HasColumnName("condition_value");
+            entity.Property(e => e.condition_value)
+                .HasColumnName("condition_value");
 
-    entity.Property(e => e.title_ar)
-        .HasMaxLength(200)
-        .HasColumnName("title_ar");
+            entity.Property(e => e.title_ar)
+                .HasMaxLength(200)
+                .HasColumnName("title_ar");
 
-    entity.Property(e => e.title_en)
-        .HasMaxLength(200)
-        .HasColumnName("title_en");
+            entity.Property(e => e.title_en)
+                .HasMaxLength(200)
+                .HasColumnName("title_en");
 
-    entity.Property(e => e.description_ar)
-        .HasColumnName("description_ar");
+            entity.Property(e => e.description_ar)
+                .HasColumnName("description_ar");
 
-    entity.Property(e => e.description_en)
-        .HasColumnName("description_en");
+            entity.Property(e => e.description_en)
+                .HasColumnName("description_en");
 
-    entity.Property(e => e.reward_type)
-        .HasMaxLength(50)
-        .HasDefaultValueSql("'points'::character varying")
-        .HasColumnName("reward_type");
+            entity.Property(e => e.reward_type)
+                .HasMaxLength(50)
+                .HasDefaultValueSql("'points'::character varying")
+                .HasColumnName("reward_type");
 
-    entity.Property(e => e.reward_value)
-        .HasDefaultValue(0)
-        .HasColumnName("reward_value");
+            entity.Property(e => e.reward_value)
+                .HasDefaultValue(0)
+                .HasColumnName("reward_value");
 
-    entity.Property(e => e.is_active)
-        .HasDefaultValue(true)
-        .HasColumnName("is_active");
+            entity.Property(e => e.is_active)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
 
-    entity.Property(e => e.created_at)
-        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        .HasColumnType("timestamp without time zone")
-        .HasColumnName("created_at");
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
 
-    entity.Property(e => e.updated_at)
-        .HasColumnType("timestamp without time zone")
-        .HasColumnName("updated_at");
-});
+            entity.Property(e => e.updated_at)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updated_at");
+        });
 
         modelBuilder.Entity<admin_log>(entity =>
         {
@@ -622,6 +624,26 @@ modelBuilder.Entity<achievement>(entity =>
             entity.HasOne(d => d.user).WithOne(p => p.user_stat)
                 .HasForeignKey<user_stat>(d => d.user_id)
                 .HasConstraintName("user_stats_user_id_fkey");
+        });
+        modelBuilder.Entity<ContactMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_ContactMessages");
+
+            entity.ToTable("ContactMessages", "public");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()");
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(255);
+
+            entity.Property(e => e.Email)
+                .HasMaxLength(255);
+
+            entity.Property(e => e.Message);
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
         OnModelCreatingPartial(modelBuilder);

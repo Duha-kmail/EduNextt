@@ -14,12 +14,6 @@ public class StudentDashboardRepository : IStudentDashboardRepository
 
     public async Task<DashboardIdentityData?> GetIdentityAsync(Guid userId)
     {
-        var usePreferenceIdentity = true;
-        if (usePreferenceIdentity)
-        {
-            return await GetIdentityFromPreferencesAsync(userId);
-        }
-
         return await _db.users
             .AsNoTracking()
             .Where(u => u.id == userId)
@@ -52,72 +46,6 @@ public class StudentDashboardRepository : IStudentDashboardRepository
                     : new List<string>()
             })
             .FirstOrDefaultAsync();
-    }
-
-    private async Task<DashboardIdentityData?> GetIdentityFromPreferencesAsync(Guid userId)
-    {
-        var user = await _db.users
-            .AsNoTracking()
-            .Where(u => u.id == userId)
-            .Select(u => new
-            {
-                u.full_name
-            })
-            .FirstOrDefaultAsync();
-
-        if (user == null)
-        {
-            return null;
-        }
-
-        var profile = await _db.student_profiles
-            .AsNoTracking()
-            .Include(p => p.student_profile_subjects)
-            .ThenInclude(sps => sps.subject)
-            .FirstOrDefaultAsync(p => p.user_id == userId);
-
-        var preference = await _db.student_preferences
-            .AsNoTracking()
-            .Include(p => p.student_preference_difficult_subjects)
-            .ThenInclude(ps => ps.subject)
-            .Include(p => p.student_preference_learning_methods)
-            .FirstOrDefaultAsync(p => p.user_id == userId);
-
-        var preferenceDifficultSubjects = preference?.student_preference_difficult_subjects
-            .Where(ps => ps.subject != null && !string.IsNullOrWhiteSpace(ps.subject.name))
-            .Select(ps => ps.subject!.name)
-            .ToList() ?? new List<string>();
-
-        var profileDifficultSubjects = profile?.student_profile_subjects
-            .Where(sps => sps.subject != null && !string.IsNullOrWhiteSpace(sps.subject.name))
-            .Select(sps => sps.subject!.name)
-            .ToList() ?? new List<string>();
-
-        var preferenceLearningMethods = preference?.student_preference_learning_methods
-            .Where(method => !string.IsNullOrWhiteSpace(method.method_code))
-            .Select(method => method.method_code)
-            .ToList() ?? new List<string>();
-
-        return new DashboardIdentityData
-        {
-            FullName = user.full_name ?? "الطالب",
-            Stream = FirstNonEmpty(preference?.branch_code, profile?.stream),
-            CurrentLevel = FirstNonEmpty(preference?.level_code, profile?.current_grade),
-            Goal = FirstNonEmpty(preference?.goal_code, profile?.primary_goal),
-            StudyHours = FirstNonEmpty(preference?.study_hours_code, profile?.preferred_study_time),
-            ExamExperience = FirstNonEmpty(preference?.exam_experience_code, profile?.exam_experience),
-            LearningMethods = preferenceLearningMethods.Count > 0
-                ? preferenceLearningMethods
-                : profile?.learning_methods?.ToList() ?? new List<string>(),
-            DifficultSubjects = preferenceDifficultSubjects.Count > 0
-                ? preferenceDifficultSubjects
-                : profileDifficultSubjects
-        };
-    }
-
-    private static string FirstNonEmpty(params string?[] values)
-    {
-        return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))?.Trim() ?? "";
     }
 
     public async Task<List<DashboardWeeklySessionData>> GetWeeklySessionsAsync(

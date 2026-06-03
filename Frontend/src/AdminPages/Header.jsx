@@ -1,5 +1,5 @@
-import { GraduationCap } from 'lucide-react';
-import { School, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
+import logo from '../assets/EDU.svg';
 import '../AdminStyles/Header.css';
 
 
@@ -10,8 +10,7 @@ export default function Header() {
     <header className="header">
       <div className="container header-content">
         <a href="/" className="logo">
-          <School size={32} strokeWidth={2.5} />
-          <h2>EduNext</h2>
+          <img className="header-logo-image" src={logo} alt="EduNext" />
         </a>
         
         <nav className="nav">

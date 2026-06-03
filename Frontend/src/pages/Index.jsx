@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, Sparkles, GraduationCap, Users, BookOpen, Trophy,
+  ArrowLeft, Sparkles, Users, BookOpen, Trophy,
   Play, ChevronDown, Calculator, Atom, FlaskConical, Languages,
 } from "lucide-react";
+import logo from "@/assets/EDU.svg";
 import heroImg from "@/assets/hero-students.png";
 import featureAnalytics from "@/assets/feature-analytics.png";
 import featureAI from "@/assets/feature-ai.png";
@@ -65,8 +66,7 @@ const Index = () => {
       <nav className="navbar glass">
         <div className="container navbar-inner">
           <div className="navbar-brand">
-            <div className="logo-icon hero-gradient"><GraduationCap /></div>
-            <span className="logo-text">EduNext</span>
+            <img className="navbar-logo-image" src={logo} alt="EduNext" />
           </div>
           <div className="navbar-actions">
             <Link to="/login"><button className="btn btn-default btn-ghost">تسجيل الدخول</button></Link>
@@ -203,8 +203,7 @@ const Index = () => {
       <footer className="footer">
         <div className="container footer-inner">
           <div className="footer-brand">
-            <div className="logo-icon hero-gradient"><GraduationCap /></div>
-            <span>EduNext</span>
+            <img className="footer-logo-image" src={logo} alt="EduNext" />
           </div>
           <p className="footer-text">© ٢٠٢٦ EduNext — منصة تعليمية ذكية لطلاب التوجيهي في فلسطين.</p>
         </div>

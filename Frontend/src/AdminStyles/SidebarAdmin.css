@@ -44,8 +44,18 @@ body {
 .logo-section {
   display: flex;
   /* items-center: center; */
+  align-items: center;
   gap: 12px;
   margin-bottom: 32px;
+}
+
+.sidebar-admin-logo-image {
+  display: block;
+  width: 7.25rem;
+  height: 3rem;
+  object-fit: contain;
+  object-position: right center;
+  flex: 0 0 auto;
 }
 
 .logo-icon {

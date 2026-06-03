@@ -64,6 +64,21 @@ body {
   gap: 0.5rem;
 }
 
+.logo,
+.header-content .logo {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.header-logo-image {
+  display: block;
+  width: clamp(8.25rem, 13vw, 11.5rem);
+  height: 3.25rem;
+  object-fit: contain;
+  object-position: right center;
+}
+
 .logo-icon {
   width: 2.5rem;
   height: 2.5rem;

@@ -1,422 +1,496 @@
-import React from 'react';
-import Footer from './Footer';
-import '../AdminStyles/Home.css';
-import edunextLogo from '../assets/EDU.svg';
-import promoProgressDashboard from '../assets/promo/promo-progress-dashboard.png';
-import promoAiTutor from '../assets/promo/promo-ai-tutor.png';
-import promoAiTutorFeatured from '../assets/promo/promo-ai-tutor-featured.png';
-import promoStudyRecommendations from '../assets/promo/promo-study-recommendations.png';
-import promoSmartSchedules from '../assets/promo/promo-smart-schedules.png';
-import promoPlatformOverview from '../assets/promo/promo-platform-overview.png';
-import { useState, useEffect } from 'react';
-import { 
-  BarChart3, ThumbsUp, Calendar, Bot, HelpCircle, 
-  TrendingUp, Sigma, Zap, Globe, X, CheckCircle2, BookOpen, ArrowLeft, ChevronDown, ChevronUp, Sparkles
-} from 'lucide-react';
-
-// import '../App.css';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Atom,
+  BarChart3,
+  BookOpen,
+  Bot,
+  Calendar,
+  ChevronDown,
+  ClipboardCheck,
+  Database,
+  Facebook,
+  Globe2,
+  GraduationCap,
+  Instagram,
+  Layers,
+  Lightbulb,
+  LineChart,
+  Mail,
+  MapPin,
+  Menu,
+  Phone,
+  Plus,
+  School,
+  Send,
+  Sigma,
+  Smartphone,
+  Sparkles,
+  Target,
+  TrendingUp,
+  UserPlus,
+  UsersRound,
+  X,
+  Youtube,
+} from 'lucide-react';
+import '../AdminStyles/Home.css';
+import GeneralChatbot from '../components/Public_Chatbot/GeneralChatbot.jsx';
+import logo from '../assets/EDU.svg';
+import heroImage from '../assets/lovable-home/hero.png';
+import whyImage from '../assets/lovable-home/why.png';
 
-const faqData = [
+const quickFeatures = [
+  { label: 'مساعد ذكي لكل مادة', icon: Bot },
+  { label: 'خطط دراسية ذكية', icon: Calendar },
+  { label: 'تحليل الأداء', icon: LineChart },
+  { label: 'اختبارات تجريبية', icon: ClipboardCheck },
+  { label: 'توصيات مخصصة', icon: Sparkles },
+];
+
+const showcaseCards = [
+  {
+    title: 'الخطة الدراسية',
+    text: 'جدول يومي يتكيّف مع مستواك ووقتك وأهدافك.',
+    type: 'plan',
+  },
+  {
+    title: 'المساعد الذكي',
+    text: 'اسأل أي سؤال واحصل على شرح فوري ودقيق.',
+    type: 'chat',
+  },
+  {
+    title: 'لوحة التحكم',
+    text: 'تابع تقدمك وأدائك في المواد والاختبارات بسهولة.',
+    type: 'chart',
+  },
+];
+
+const toolCards = [
+  { title: 'مساعد ذكي لكل مادة', text: 'روبوت ذكي يجيب على أسئلتك ويشرحها فوراً 24/7.', icon: Bot, tone: 'teal' },
+  { title: 'خطط دراسية ذكية', text: 'جداول تتكيّف مع وقتك وأهدافك ومستواك الدراسي.', icon: Calendar, tone: 'blue' },
+  { title: 'توصيات مخصصة', text: 'محتوى ودروس مخصّصة بناءً على تحليل أدائك.', icon: Sparkles, tone: 'purple' },
+  { title: 'اختبارات تجريبية', text: 'اختبارات على نسق الامتحان الوزاري مع تصحيح فوري.', icon: ClipboardCheck, tone: 'teal' },
+  { title: 'تتبع التقدم', text: 'لوحة تحكم ذكية تعرض تطورك ونقاط قوتك وضعفك.', icon: TrendingUp, tone: 'blue' },
+];
+
+const whyItems = [
+  { title: 'تعلم مخصص', icon: BookOpen },
+  { title: 'توصيات ذكية', icon: Sparkles },
+  { title: 'مساعد ذكي', icon: Bot },
+  { title: 'متابعة التقدم', icon: TrendingUp },
+  { title: 'تنظيم الوقت', icon: Calendar },
+  { title: 'تحسين الأداء الأكاديمي', icon: GraduationCap },
+];
+
+const subjects = [
+  {
+    id: 'arabic',
+    name: 'اللغة العربية',
+    description: 'الأدب، القواعد، التعبير والبلاغة.',
+    longDescription:
+      'مادة أساسية تساعدك على إتقان النصوص والقواعد والبلاغة والتعبير، مع تدريبات مناسبة لنمط أسئلة التوجيهي.',
+    icon: BookOpen,
+    tone: 'teal',
+  },
+  {
+    id: 'english',
+    name: 'اللغة الإنجليزية',
+    description: 'القواعد والتراكم، الأدب والاستيعاب القرائي.',
+    longDescription:
+      'مراجعة مركزة للقواعد والمفردات والاستيعاب القرائي والنصوص، مع شرح مبسط وتمارين تقيس تقدمك.',
+    icon: Globe2,
+    tone: 'blue',
+  },
+  {
+    id: 'math',
+    name: 'الرياضيات',
+    description: 'التفاضل والتكامل، الجبر والإحصاء.',
+    longDescription:
+      'مسار تدريبي للرياضيات يغطي التفاضل والتكامل والجبر والإحصاء، مع تحليل للأخطاء وخطة مراجعة ذكية.',
+    icon: Sigma,
+    tone: 'purple',
+  },
+  {
+    id: 'physics',
+    name: 'الفيزياء',
+    description: 'الميكانيكا، الكهرومغناطيسية والفيزياء الحديثة.',
+    longDescription:
+      'شرح مفاهيم الفيزياء خطوة بخطوة، من الميكانيكا إلى الكهرباء والفيزياء الحديثة، مع تطبيقات وأسئلة تدريبية.',
+    icon: Atom,
+    tone: 'teal',
+  },
+];
+
+const steps = [
+  { title: 'إنشاء حساب', text: 'سجل حساباً مجانياً وابدأ رحلتك الآن.', icon: UserPlus, tone: 'teal' },
+  { title: 'اختر موادك', text: 'اختر المواد التي تريد دراستها حسب مستواك وأهدافك.', icon: Layers, tone: 'blue' },
+  { title: 'ادرس مع المساعد الذكي', text: 'احصل على شرح وحلول فورية مخصصة لكل مادة.', icon: Bot, tone: 'purple' },
+  { title: 'تابع تقدمك', text: 'راقب أداءك وحقق أهدافك بخطوات ثابتة.', icon: TrendingUp, tone: 'teal' },
+];
+
+const upcoming = [
+  { title: 'تطبيق الهاتف', text: 'تابع دراستك في أي وقت ومن أي مكان.', icon: Smartphone },
+  { title: 'مجتمع تعليمي متكامل', text: 'مجموعات دراسة، نقاشات، وتحديات بين الطلاب.', icon: UsersRound },
+  { title: 'بنك أسئلة أكبر', text: 'آلاف الأسئلة الجديدة مع تحديثات مستمرة.', icon: Database },
+  { title: 'توصيات أكثر ذكاءً', text: 'تحليل أعمق للنقاط والفرص لتعلّم أكثر دقة.', icon: Lightbulb },
+  { title: 'لوحة للمعلمين', text: 'متابعة أداء الطلاب وإدارة المهام بسهولة.', icon: School },
+  { title: 'دعم مواد إضافية', text: 'توسيع تغطية المواد والفروع المستقبلية.', icon: Plus },
+];
+
+const faqs = [
   {
     question: 'ما هي منصة EduNext؟',
-    answer: 'EduNext هي منصة تعليمية ذكية مصممة خصيصاً لطلاب التوجيهي، تقدم خططاً دراسية مخصصة، امتحانات تجريبية، وتحليلات أداء متقدمة باستخدام الذكاء الاصطناعي.'
+    answer: 'EduNext منصة تعليمية ذكية مصممة لطلاب التوجيهي، تقدم خططاً دراسية مخصصة ومساعداً ذكياً لكل مادة وتحليلات أداء دقيقة.',
   },
   {
     question: 'هل المنصة مجانية؟',
-    answer: 'نعم، يمكنك البدء مجاناً مع إمكانية الوصول إلى مجموعة واسعة من المحتوى التعليمي. كما تتوفر خطط مدفوعة للحصول على ميزات إضافية متقدمة.'
+    answer: 'يمكنك البدء مجاناً وتجربة أدوات المنصة الأساسية، ثم اختيار الميزات المناسبة لاحتياجاتك لاحقاً.',
   },
   {
     question: 'كيف يعمل الذكاء الاصطناعي في المنصة؟',
-    answer: 'يقوم الذكاء الاصطناعي بتحليل أدائك وتحديد نقاط القوة والضعف لديك، ثم يقترح خططاً دراسية مخصصة وتمارين موجهة لتحسين مستواك بشكل فعال.'
+    answer: 'يحلل أداءك وأهدافك ونمط دراستك، ثم يقترح خطة وتوصيات وأسئلة تدريبية تساعدك على تحسين نتائجك.',
   },
   {
     question: 'هل يمكنني استخدام المنصة على الهاتف؟',
-    answer: 'بالتأكيد! المنصة مصممة لتعمل بسلاسة على جميع الأجهزة بما في ذلك الهواتف الذكية والأجهزة اللوحية وأجهزة الكمبيوتر.'
-  }
-];
-
-const promoSlides = [
-  {
-    title: 'انضم الآن لحملة النجاح في التوجيهي',
-    subtitle: 'خطط دراسية مخصصة، مراجعات ذكية، ودعم فوري بالذكاء الاصطناعي.',
-    image: promoProgressDashboard,
-    badge: 'عرض محدود',
-    details: 'سجل اليوم لتحصل على إشعارات فورية بالخطة الأنسب لك وقسم دراسة جاهز خلال ثوانٍ.'
-  },
-  {
-    title: 'لوحة تحكم أكاديمية متكاملة',
-    subtitle: 'تابع جميع المواد، النتائج، والتقدّم في مكان واحد.',
-    image: promoAiTutor,
-    badge: 'مميز',
-    details: 'رؤية أدائك التطبيقي وفهم نقاط القوة والضعف بسرعة.'
-  },
-  {
-    title: 'جداول دراسية ذكية تتكيف مع وقتك',
-    subtitle: 'خطة منظمة تساعدك على الإنجاز بسرعة أكبر.',
-    image: promoAiTutorFeatured,
-    badge: 'جديد',
-    details: 'خطط تلقائية تتغير حسب جدولك الدراسي ومستواك اليومي.'
-  },
-  {
-    title: 'روبوت ذكي لكل مادة يجيب فوري',
-    subtitle: 'اسأل المادة وتلقّى شرحاً واضحاً ومحفزاً.',
-    image: promoStudyRecommendations,
-    badge: 'تجربة مجانية',
-    details: 'مساعد تفاعلي يعمل 24/7 لدعم استذكارك ومراجعاتك.'
-  },
-  {
-    title: 'تتبّع التقدّم والنتائج بسهولة',
-    subtitle: 'تعرف على معدل الطالب ونقاط الأداء الرئيسية.',
-    image: promoSmartSchedules,
-    badge: 'جديد',
-    details: 'احصل على لمحة سريعة عن أداءك وأهدافك المقرّبة في كل لحظة.'
-  },
-  {
-    title: 'EduNext',
-    subtitle: 'Personalized AI advice, unified academic dashboard, and test performance analysis.',
-    image: promoPlatformOverview,
-    badge: 'EduNext',
-    details: 'All learning tools in one visual overview.'
-  }
-];
-
-////////////////////////////////////////////
-const subjects = [
-  {
-    id: "arabic",
-    name: "اللغة العربية",
-    description: "غوص عميق في الأدب، القواعد، والتعبير البليغ.",
-    longDescription:
-      "مادة أساسية في التوجيهي الفلسطيني تهدف إلى تنمية مهارات الطالب في القراءة والتحليل والتعبير. تشمل دراسة قواعد النحو والصرف، والبلاغة، والنصوص الأدبية من مختلف العصور، بالإضافة إلى تطوير مهارات الكتابة والتعبير الإبداعي والوظيفي.",
-    icon: BookOpen,
-    iconBg: "#e6f5ec",
-    iconColor: "#2f8a55",
-    level: "كل الفروع",
-    lessonsNumber: 6,
-  },
-  {
-    id: "english",
-    name: "اللغة الإنجليزية",
-    description: "إتقان القواعد، الأدب، والاستيعاب القرائي.",
-    longDescription:
-    "مادة تهدف إلى تعزيز مهارات الطالب في اللغة الإنجليزية من قراءة وكتابة واستماع وتحدث. تشمل دراسة القواعد الأساسية والمتقدمة، وفهم النصوص، وتحليل القطع الأدبية، وتوسيع المفردات بما يتناسب مع متطلبات الامتحان الوزاري.",
-    icon: Globe,
-    iconBg: "#fdeede",
-    iconColor: "#d97a3a",
-    level: "كل الفروع",
-    lessonsNumber: 12,
-  },
-  {
-    id: "physics",
-    name: "الفيزياء",
-    description: "الميكانيكا، الكهرومغناطيسية، والفيزياء الحديثة مشروحة ببساطة.",
-    longDescription:
-      "مادة علمية تدرس القوانين التي تحكم الظواهر الطبيعية مثل الحركة، القوة، الطاقة، الكهرباء، والمغناطيسية. تساعد الطالب على فهم العالم من حوله بطريقة علمية وتطبيقية، مع التركيز على حل المسائل والتجارب النظرية.",
-    icon: Zap,
-    iconBg: "#ece6fb",
-    iconColor: "#6b46d1",
-    level: "الفرع العلمي",
-    lessonsNumber: 18,
-  },
-  {
-    id: "math",
-    name: "الرياضيات",
-    description: "التفاضل والتكامل، الجبر، والهندسة المصممة للفرع العلمي.",
-    longDescription:
-      "مادة تعتمد على التفكير المنطقي وحل المشكلات، وتشمل موضوعات مثل الجبر، التفاضل والتكامل، الهندسة، والإحصاء والاحتمالات. تهدف إلى تنمية القدرة على التحليل الرياضي وتطبيق القوانين في مسائل حياتية وأكاديمية.",
-    icon: Sigma,
-    iconBg: "#e7eefb",
-    iconColor: "#2f5fcc",
-    level: "الفرع العلمي",
-    lessonsNumber: 20,
+    answer: 'نعم، التصميم متجاوب ويعمل بسلاسة على الهاتف والتابلت والكمبيوتر.',
   },
 ];
-////////////////////////////////////////////
-export default function Home() {
-    const navigate = useNavigate();
-    const handleLogin = () => {  navigate('/login');   };
-    const handleSignup = () => { navigate('/register'); };
-    const [openFaq, setOpenFaq] = useState(null);
-    const [mobileMenu, setMobileMenu] = useState(false);
-    const [openId, setOpenId] = useState(null);
-    const [promoIndex, setPromoIndex] = useState(0);
-    const [loading, setLoading] = useState(false);
 
-    const active = subjects.find((s) => s.id === openId);
-
-    const close = () => setOpenId(null);
-
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setPromoIndex((prevIndex) => (prevIndex + 1) % promoSlides.length);
-      }, 4200);
-      return () => clearInterval(interval);
-    }, []);
-
-    const toggleFaq = (index) => {
-    setOpenFaq(openFaq === index ? null : index);
-  };
-
-    
+function BrowserMockup({ type }) {
   return (
-    <div className="appContainer">
-             {/* Navbar */}
-        <nav className="landing-navbar">
-          <div className="navbar-container">
-          <div className="navbar-logo" onClick={() => window.location.href = '/'}>
-            <img src={edunextLogo} alt="EduNext Logo" width={50} height={50}/>
-            <span>EduNext</span>
+    <div className={`mock-window ${type}`}>
+      <div className="window-dots">
+        <span />
+        <span />
+        <span />
+      </div>
+      {type === 'chart' && (
+        <div className="chart-bars" aria-hidden="true">
+          {[44, 70, 56, 82, 31, 64, 39].map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}
+        </div>
+      )}
+      {type === 'chat' && (
+        <div className="chat-lines" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+      )}
+      {type === 'plan' && (
+        <div className="plan-board" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <b />
+          <b />
+          <b />
+          <b />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Home() {
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState(0);
+  const [activeSubject, setActiveSubject] = useState(null);
+
+  const handleLogin = () => navigate('/login');
+  const handleSignup = () => navigate('/register');
+
+  return (
+    <div className="edn-home" dir="rtl">
+      <header className="edn-header">
+        <div className="edn-container edn-nav">
+          <button className="edn-brand" type="button" onClick={() => navigate('/')}>
+            <img className="edn-brand-logo" src={logo} alt="EduNext" />
+            <strong>EduNext</strong>
+          </button>
+
+          <nav className={`edn-links ${mobileOpen ? 'open' : ''}`}>
+            <a href="#hero" onClick={() => setMobileOpen(false)}>الرئيسية</a>
+            <a href="#subjects" onClick={() => setMobileOpen(false)}>المواد الدراسية</a>
+            <a href="#faq" onClick={() => setMobileOpen(false)}>الأسئلة الشائعة</a>
+            <a href="/contact" onClick={() => setMobileOpen(false)}>تواصل معنا</a>
+          </nav>
+
+          <div className="edn-actions">
+            <button className="btn btn-ghost" type="button" onClick={handleLogin}>تسجيل دخول</button>
+            <button className="btn btn-primary" type="button" onClick={handleSignup}>ابدأ مجاناً</button>
           </div>
 
-          <div className={`navbar-links ${mobileMenu ? 'active' : ''}`}>
-            <a href="#hero" onClick={() => setMobileMenu(false)}>الرئيسية</a>
-            <a href="#subjects" onClick={() => setMobileMenu(false)}>المواد الدراسية</a>
-            <a href="#faq" onClick={() => setMobileMenu(false)}>الأسئلة الشائعة</a>
-          </div>
-
-          <div className="navbar-actions">
-            <button className="btn-outline-nav" onClick={handleLogin}>تسجيل دخول</button>
-            <button className="btn-primary-nav" onClick={handleSignup}>ابدأ مجاناً</button>
-          </div>
-
-          <button className="mobile-menu-btn" onClick={() => setMobileMenu(!mobileMenu)}>
-            <div className={`hamburger ${mobileMenu ? 'open' : ''}`}>
-              <span></span><span></span><span></span>
-            </div>
+          <button className="menu-btn" type="button" onClick={() => setMobileOpen((value) => !value)} aria-label="فتح القائمة">
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
-      </nav>
-      <div className='homeContent'>
-        {/* Hero Promo */}
-        <section className="promo-banner" id="hero">
-          <div className="promo-banner-card">
-            <div className="promo-ad-badge">{promoSlides[promoIndex].badge}</div>
-            <h2>سجل الآن في EduNext وابدأ رحلة التفوق الدراسي</h2>
-            <p>كل ما يحتاجه طالب التوجيهي في مكان واحد: مواد منظمة، خطط دراسة ذكية، مساعد لكل مادة، وتحليل واضح للتقدم والاختبارات.</p>
-            <div className="promo-banner-actions">
-              <button className="btn btn-primary-hero btn-lg" onClick={handleSignup}>سجل الآن</button>
-              <button className="btn btn-secondary-hero btn-lg" onClick={handleLogin}>تسجيل دخول</button>
+      </header>
+
+      <main>
+        <section className="hero-section grid-bg" id="hero">
+          <div className="edn-container hero-grid">
+            <div className="hero-copy">
+              <span className="pill">منصة التوجيهي الذكية</span>
+              <h1>تعلّم بذكاء،<br /><mark>وتفوّق بثقة</mark></h1>
+              <p>
+                EduNext هي منصة تعليمية ذكية لطلاب التوجيهي تقدم خططاً دراسية مخصصة،
+                مساعداً ذكياً لكل مادة، وتحليلات أداء تساعدك على تحقيق أفضل النتائج.
+              </p>
+              <div className="hero-buttons">
+                <button className="btn btn-primary" type="button" onClick={handleSignup}>ابدأ مجاناً</button>
+                <button className="btn btn-ghost" type="button" onClick={handleLogin}>تسجيل الدخول</button>
+              </div>
             </div>
-            <div className="promo-banner-info">
-              <div><CheckCircle2 size={16} /> توصيات وخطط بناءً على مستواك</div>
-              <div><CheckCircle2 size={16} /> روبوت شرح ومراجعة لكل مادة</div>
-              <div><CheckCircle2 size={16} /> لوحة أداء واختبارات بقراءة سهلة</div>
+
+            <div className="hero-visual">
+              <div className="hero-image-panel">
+                <img src={heroImage} alt="طالب يستخدم منصة EduNext" />
+              </div>
+              <div className="float-card progress">
+                <span>معدل التقدم</span>
+                <strong>82%</strong>
+                <LineChart size={18} />
+              </div>
+              <div className="float-card recommend">
+                <span>توصية ذكية</span>
+                <strong>راجع الفيزياء لمدة 30 دقيقة</strong>
+                <Bot size={18} />
+              </div>
+              <div className="float-card target">
+                <span>الأهداف</span>
+                <strong>3 أهداف مكتملة هذا الأسبوع</strong>
+                <Target size={18} />
+              </div>
+              <div className="float-card exam">
+                <span>اختبار مكتمل</span>
+                <strong>رياضيات — 9/10</strong>
+                <ClipboardCheck size={18} />
+              </div>
             </div>
           </div>
-          <div className="promo-banner-visual">
-            <div className="promo-banner-image-box">
-              <img src={promoSlides[promoIndex].image} alt={promoSlides[promoIndex].title} loading="lazy" />
-            </div>
-            <div className="promo-slide-dots" aria-label="صور الإعلانات">
-              {promoSlides.map((slide, index) => (
-                <button
-                  key={slide.image}
-                  type="button"
-                  className={`promo-slide-dot ${index === promoIndex ? 'active' : ''}`}
-                  onClick={() => setPromoIndex(index)}
-                  aria-label={`عرض ${slide.title}`}
-                />
+
+          <div className="edn-container">
+            <div className="quick-strip">
+              {quickFeatures.map((item) => (
+                <div key={item.label}>
+                  <item.icon size={18} />
+                  <span>{item.label}</span>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* feature Section */}
-        <section className="featuree">
-          <div className="containerr">
-            <div className="section-header">
-              <div className="section-kicker"><Sparkles size={16} /> أدوات EduNext</div>
-              <h2>منصة واحدة تجمع التعلم، التخطيط، والقياس</h2>
-              <p>بدون تنقل مشتت: الطالب يبدأ من المواد، يراجع مع المساعد الذكي، ينظم وقته، ثم يرى تقدمه بوضوح.</p>
+        <section className="showcase-section grid-bg">
+          <div className="edn-container">
+            <div className="section-title">
+              <span className="pill">تجربة واقعية</span>
+              <h2>شاهد EduNext أثناء العمل</h2>
+              <p>اكتشف كيف تساعدك المنصة على تنظيم الدراسة وتحليل الأداء والتعلّم بذكاء.</p>
             </div>
-            
-            <div className="featuree-grid">
-              <div className="featuree-card">
-                <BarChart3 className="featuree-icon" />
-                <h3>تحليل الأداء بالذكاء الاصطناعي</h3>
-                <p>رؤى عميقة في أنماط تعلمك وتحديد فجوات المعرفة.</p>
-              </div>
-              <div className="featuree-card">
-                <ThumbsUp className="featuree-icon" />
-                <h3>توصيات دراسية مخصصة</h3>
-                <p>محتوى ودروس فيديو مصممة بناءً على نقاط ضعفك الأكاديمية المحددة.</p>
-              </div>
-              <div className="featuree-card">
-                <Calendar className="featuree-icon" />
-                <h3>خطط دراسية ذكية</h3>
-                <p>جداول تلقائية وديناميكية تتكيف مع وتيرتك اليومية وتقدمك.</p>
-              </div>
-              <div className="featuree-card">
-                <Bot className="featuree-icon" />
-                <h3>روبوت دردشة تفاعلي لكل مادة</h3>
-                <p>إجابات فورية ومعرفية بالمنهاج لكل مادة، متوفرة على مدار الساعة.</p>
-              </div>
-              <div className="featuree-card">
-                <HelpCircle className="featuree-icon" />
-                <h3>امتحانات تجريبية واختبارات</h3>
-                <p>محاكاة واقعية للامتحانات وفقاً لمعايير وزارة التربية والتعليم الفلسطينية.</p>
-              </div>
-              <div className="featuree-card">
-                <TrendingUp className="featuree-icon" />
-                <h3>تتبع تقدم الطالب</h3>
-                <p>لوحة تحكم مرئية تتبع نموك الأكاديمي طوال العام الدراسي.</p>
-              </div>
+            <div className="showcase-grid">
+              {showcaseCards.map((card) => (
+                <article className="showcase-card" key={card.title}>
+                  <BrowserMockup type={card.type} />
+                  <h3>{card.title}</h3>
+                  <p>{card.text}</p>
+                </article>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Subjects Section */}
-        <section className="subjects" id="subjects">
-          
-          <div className="container">
-            <div className="subjects-header">
-              <div>
-                <h2>استكشف موادك الدراسية</h2>
-                <p>اختر مادة لتبدأ تجربة التعلم المخصصة الخاصة بك.</p>
-              </div>
-              <a href="#" className="view-all">
-                عرض جميع المواد <ArrowLeft size={18} />
-              </a>
+        <section className="tools-section" id="tools">
+          <div className="edn-container">
+            <div className="section-title">
+              <span className="eyebrow">أدوات EduNext</span>
+              <h2>كل ما تحتاجه للتعلّم بذكاء</h2>
+              <p>أدوات متكاملة تساعدك على التعلم بتركيز وتحقق أفضل النتائج.</p>
             </div>
-            
+            <div className="tools-grid">
+              {toolCards.map((tool) => (
+                <article className={`tool-card ${tool.tone}`} key={tool.title}>
+                  <div className="icon-box"><tool.icon size={26} /></div>
+                  <h3>{tool.title}</h3>
+                  <p>{tool.text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="why-section grid-bg">
+          <div className="edn-container why-grid">
+            <div className="why-copy">
+              <span className="eyebrow">لماذا EduNext</span>
+              <h2>التوجيهي صعب بما فيه الكفاية،<br />الدراسة لا يجب أن تكون كذلك.</h2>
+              <div className="why-list">
+                {whyItems.map((item) => (
+                  <div key={item.title}>
+                    <item.icon size={18} />
+                    <span>{item.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="why-image">
+              <img src={whyImage} alt="" />
+            </div>
+          </div>
+        </section>
+
+        <section className="subjects-section" id="subjects">
+          <div className="edn-container">
+            <div className="section-title">
+              <span className="eyebrow">المواد</span>
+              <h2>استكشف موادك الدراسية</h2>
+              <p>اختر المادة وابدأ رحلتك التعليمية.</p>
+            </div>
             <div className="subjects-grid">
-              <div className="subject-card math">
-                <div className="subject-banner">
-                  <Sigma size={48} />
-                </div>
-                <div className="subject-content">
-                  <h3>الرياضيات</h3>
-                  <p>التفاضل والتكامل، الجبر، والهندسة المصممة للفرع العلمي.</p>
-                  <button className="btn-outline"
-                  onClick={() => setOpenId("math")}
-                  >استكشف المادة</button>
-                </div>
-              </div>
-              
-              <div className="subject-card physics">
-                <div className="subject-banner">
-                  <Zap size={48} />
-                </div>
-                <div className="subject-content">
-                  <h3>الفيزياء</h3>
-                  <p>الميكانيكا، الكهرومغناطيسية، والفيزياء الحديثة مشروحة ببساطة.</p>
-                  <button className="btn-outline"
-                  onClick={() => setOpenId("physics")}>استكشف المادة</button>
-                </div>
-              </div>
-              
-              <div className="subject-card english">
-                <div className="subject-banner">
-                  <Globe size={48} />
-                </div>
-                <div className="subject-content">
-                  <h3>اللغة الإنجليزية</h3>
-                  <p>إتقان القواعد، الأدب، والاستيعاب القرائي.</p>
-                  <button className="btn-outline"
-                  onClick={() => setOpenId("english")}>استكشف المادة</button>
-                </div>
-              </div>
-              
-              <div className="subject-card arabic">
-                <div className="subject-banner">
-                  <BookOpen size={48} />
-                </div>
-                <div className="subject-content">
-                  <h3>اللغة العربية</h3>
-                  <p>غوص عميق في الأدب، القواعد، والتعبير البليغ.</p>
-                  <button className="btn-outline"
-                  onClick={() => setOpenId("arabic")}>استكشف المادة</button>
-                </div>
-              </div>
+              {subjects.map((subject) => (
+                <article className={`subject-card ${subject.tone}`} key={subject.id}>
+                  <div className="icon-box"><subject.icon size={30} /></div>
+                  <h3>{subject.name}</h3>
+                  <p>{subject.description}</p>
+                  <button type="button" onClick={() => setActiveSubject(subject)}>
+                    استكشف المادة <ArrowLeft size={16} />
+                  </button>
+                </article>
+              ))}
             </div>
-          </div> 
-          {active && (
-        <div className="se-modal-overlay" onClick={close} role="presentation">
-          <div
-            className="se-modal"
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            dir="rtl"
-          >
-            <button type="button" className="se-modal-close" onClick={close} aria-label="إغلاق">
-              <X size={18} />
-            </button>
-
-            <div className="se-modal-head">
-              <div className="se-modal-icon" style={{ backgroundColor: active.iconBg }}>
-                <active.icon size={26} style={{ color: active.iconColor }} />
+            <div className="subjects-signup">
+              <div>
+                <span>مواد أكثر بانتظارك</span>
+                <h3>لتصفح باقي المواد، سجل حسابك وابدأ رحلتك معنا</h3>
+                <p>افتح كل المواد والخطط والاختبارات من حسابك الشخصي.</p>
               </div>
-              <h3>{active.name}</h3>
-            </div>
-
-            <p className="se-modal-desc">{active.longDescription}</p>
-
-            <div className="se-badges">
-              <span className="se-badge">{active.level}</span> 
-              <span className="se-badge">{active.lessonsNumber} دروس</span> 
-            </div>
-
-
-            <div className="se-modal-actions">
-              <button type="button" className="se-btn se-btn-ghost" onClick={close}>
-                إغلاق
+              <button className="btn btn-primary" type="button" onClick={handleSignup}>
+                سجل الآن <ArrowLeft size={18} />
               </button>
-              <button type="button" className="se-btn se-btn-primary" onClick={() => {
-                close();
-                handleLogin();
-              }}>
-                ابدأ التعلم
-              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="steps-section grid-bg">
+          <div className="edn-container">
+            <div className="section-title">
+              <span className="pill">الخطوات</span>
+              <h2>كيف تبدأ رحلتك مع EduNext</h2>
+            </div>
+            <div className="steps-line">
+              {steps.map((step, index) => (
+                <article className={`step-item ${step.tone}`} key={step.title}>
+                  <div className="step-icon">
+                    <step.icon size={32} />
+                    <span>{index + 1}</span>
+                  </div>
+                  <h3>{step.title}</h3>
+                  <p>{step.text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="upcoming-section grid-bg-soft">
+          <div className="edn-container">
+            <div className="section-title">
+              <span className="pill">يتم العمل عليها</span>
+              <h2>ميزات قادمة قريباً</h2>
+              <p>نعمل باستمرار على تطوير المنصة لتقديم أفضل تجربة تعليمية ممكنة.</p>
+            </div>
+            <div className="upcoming-grid">
+              {upcoming.map((item) => (
+                <article className="upcoming-card" key={item.title}>
+                  <div><item.icon size={22} /></div>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="faq-section grid-bg" id="faq">
+          <div className="edn-container">
+            <div className="section-title">
+              <span className="eyebrow">FAQ</span>
+              <h2>الأسئلة الشائعة</h2>
+            </div>
+            <div className="faq-list">
+              {faqs.map((faq, index) => (
+                <article className={`faq-item ${openFaq === index ? 'open' : ''}`} key={faq.question}>
+                  <button type="button" onClick={() => setOpenFaq(openFaq === index ? null : index)}>
+                    <span>{faq.question}</span>
+                    <ChevronDown size={20} />
+                  </button>
+                  {openFaq === index && <p>{faq.answer}</p>}
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <footer className="edn-footer">
+        <div className="edn-container footer-grid">
+          <div>
+            <div className="edn-brand footer-brand">
+              <img className="edn-brand-logo" src={logo} alt="EduNext" />
+              <strong>EduNext</strong>
+            </div>
+            <p>منصة تعليمية ذكية لطلاب التوجيهي.</p>
+            <div className="socials">
+              <Instagram size={18} />
+              <Send size={18} />
+              <Youtube size={18} />
+              <Facebook size={18} />
+            </div>
+          </div>
+          <div>
+            <h3>المواد الدراسية</h3>
+            <a href="#subjects">اللغة العربية</a>
+            <a href="#subjects">اللغة الإنجليزية</a>
+            <a href="#subjects">الرياضيات</a>
+            <a href="#subjects">الفيزياء</a>
+          </div>
+          <div>
+            <h3>المنصة</h3>
+            <button type="button" onClick={handleLogin}>تسجيل دخول</button>
+            <button type="button" onClick={handleSignup}>إنشاء حساب</button>
+            <a href="#tools">أدوات المنصة</a>
+            <a href="#faq">الأسئلة الشائعة</a>
+          </div>
+          <div>
+            <h3>تواصل معنا</h3>
+            <p><Mail size={16} /> edunext.contact@gmail.com</p>
+            <p><Phone size={16} /> 3522 895 59 970+</p>
+            <p><MapPin size={16} /> جنين، فلسطين</p>
+          </div>
+        </div>
+        <div className="edn-container copyright">جميع الحقوق محفوظة © 2026 EduNext</div>
+      </footer>
+
+      {activeSubject && (
+        <div className="subject-modal-overlay" onClick={() => setActiveSubject(null)} role="presentation">
+          <div className="subject-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
+            <button className="modal-close" type="button" onClick={() => setActiveSubject(null)} aria-label="إغلاق"><X size={18} /></button>
+            <div className={`icon-box ${activeSubject.tone}`}><activeSubject.icon size={32} /></div>
+            <h3>{activeSubject.name}</h3>
+            <p>{activeSubject.longDescription}</p>
+            <div className="modal-actions">
+              <button className="btn btn-primary" type="button" onClick={handleLogin}>ابدأ التعلم</button>
+              <button className="btn btn-ghost" type="button" onClick={() => setActiveSubject(null)}>إغلاق</button>
             </div>
           </div>
         </div>
       )}
-        </section>
-
-       {/* FAQ Section */}
-      <section className="faq-section" id="faq">
-        <div className="section-container">
-          <h2 className="section-title">الأسئلة الشائعة</h2>
-          <p className="section-subtitle">كل ما تحتاج معرفته حول المنصة.</p>
-          <div className="faq-list">
-            {faqData.map((item, i) => (
-                <div className={`faq-item ${openFaq === i ? 'open' : ''}`} key={i}>
-                <button className="faq-question" onClick={() => toggleFaq(i)}>
-                  <span>{item.question}</span>
-                  {openFaq === i ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                </button>
-                {openFaq === i && (
-                  <div className="faq-answer">
-                    <p>{item.answer}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-        </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="cta">
-          <div className="container">
-            <div className="cta-box">
-              <h2 className="cta-title">جاهز للتفوق في التوجيهي؟</h2>
-              <p className="cta-text">
-                انضم إلى آلاف الطلاب الفلسطينيين الذين يستخدمون الذكاء الاصطناعي لتأمين مستقبلهم. سجل اليوم وابدأ رحلتك.
-              </p>
-              <div className="cta-actions">
-                <button className="btn cta-primary-action" onClick={handleSignup}>أنشئ حساباً مجانياً</button>
-                <button className="btn cta-secondary-action" onClick={handleLogin}>سجل دخولك الآن</button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-      
-      <Footer />
+      <GeneralChatbot compact />
     </div>
   );
-};
-
+}

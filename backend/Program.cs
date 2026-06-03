@@ -63,6 +63,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+
 // ====================== ADMIN SERVICES ======================
 builder.Services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
@@ -112,6 +114,8 @@ builder.Services.AddScoped<IStudentStudyPlanRepository, StudentStudyPlanReposito
 builder.Services.AddScoped<IStudentStudyPlanService, StudentStudyPlanService>();
 builder.Services.AddScoped<IAdminProfileRepository, AdminProfileRepository>();
 builder.Services.AddScoped<IAdminProfileService, AdminProfileService>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IContactMessageService, ContactMessageService>();
 // JWT Configuration
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey))

@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
+import PublicNavbar from "./PublicNavbar.jsx";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -455,6 +456,7 @@ export default function Register() {
 
   return (
     <div className="layout-wrapper" dir="rtl">
+      <PublicNavbar compact />
       <button type="button" className="auth-home-link" onClick={() => navigate("/")}>
         <Home size={18} />
         <span>العودة للرئيسية</span>
