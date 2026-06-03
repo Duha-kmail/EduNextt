@@ -23,12 +23,7 @@ dotnet restore
 dotnet run --launch-profile http
 ```
 
-Local configuration can be set in `backend/appsettings.Development.json` or environment variables:
 
-```powershell
-$env:ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=edunext;Username=postgres;Password=postgres"
-$env:Jwt__Key="change-this-to-a-long-secret-at-least-32-bytes"
-```
 
 ### 2. Frontend
 
