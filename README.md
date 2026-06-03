@@ -81,7 +81,7 @@ Useful AI URLs:
 - `http://127.0.0.1:5001/health`
 
 ## GitHub Notes
-
+00
 Do not commit generated dependencies or local secrets:
 
 - `Frontend/node_modules`
