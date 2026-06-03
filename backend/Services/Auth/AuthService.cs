@@ -105,6 +105,9 @@ public class AuthService : IAuthService
             _db.users.Add(newUser);
             await _db.SaveChangesAsync();
 
+            AddInitialUserStats(newUser.id);
+            await _db.SaveChangesAsync();
+
             var token = _jwtTokenService.GenerateToken(newUser);
 
             await transaction.CommitAsync();
@@ -284,6 +287,9 @@ public async Task<AuthResult<AuthResponseDto>> GoogleLoginAsync(GoogleLoginReque
         _db.users.Add(newUser);
         await _db.SaveChangesAsync();
 
+        AddInitialUserStats(newUser.id);
+        await _db.SaveChangesAsync();
+
         await transaction.CommitAsync();
 
         var newUserResponse = await BuildAuthResponseAsync(newUser);
@@ -323,6 +329,19 @@ public async Task<AuthResult<AuthResponseDto>> GoogleLoginAsync(GoogleLoginReque
             IsOnboardingCompleted = user.onboarding_completed,
             Branch = profile?.stream
         };
+    }
+
+    private void AddInitialUserStats(Guid userId)
+    {
+        _db.user_stats.Add(new user_stat
+        {
+            user_id = userId,
+            points = 0,
+            level = 1,
+            streak_days = 0,
+            last_activity_date = null,
+            updated_at = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
+        });
     }
 
     private void ValidateRegisterFields(

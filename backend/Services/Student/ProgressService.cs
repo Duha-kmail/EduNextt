@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using backend.Data.Generated;
 using backend.DTOs.Student;
+using backend.Models.Generated;
 
 namespace backend.Services.Student;
 
@@ -90,5 +91,39 @@ public class ProgressService
         }).ToList();
 
         return result;
+    }
+
+    public async Task RecordStudySessionAsync(Guid userId, RecordStudySessionDto dto)
+    {
+        if (dto == null)
+        {
+            return;
+        }
+
+        var durationSeconds = Math.Clamp(dto.DurationSeconds, 0, 15 * 60);
+        var durationMinutes = (int)Math.Round(durationSeconds / 60.0, MidpointRounding.AwayFromZero);
+
+        if (durationMinutes <= 0)
+        {
+            return;
+        }
+
+        var endedAt = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+        var startedAt = endedAt.AddMinutes(-durationMinutes);
+
+        _db.study_sessions.Add(new study_session
+        {
+            id = Guid.NewGuid(),
+            user_id = userId,
+            subject_id = null,
+            lesson_id = null,
+            started_at = startedAt,
+            ended_at = endedAt,
+            duration_minutes = durationMinutes,
+            session_type = "app",
+            created_at = endedAt
+        });
+
+        await _db.SaveChangesAsync();
     }
 }

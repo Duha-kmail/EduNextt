@@ -317,6 +317,40 @@ public class StudentSetupService : IStudentSetupService
             });
         }
 
+        var preference = await GetOrCreatePreferenceWithDetailsAsync(userId);
+        var now = GetUnspecifiedNow();
+
+        preference.branch_code = branch;
+        preference.study_hours_code = hours;
+        preference.goal_code = goal;
+        preference.level_code = level;
+        preference.exam_experience_code = examExp;
+        preference.has_other_difficult_subject = false;
+        preference.updated_at = now;
+
+        _repository.RemovePreferenceDifficultSubjects(preference.student_preference_difficult_subjects);
+        _repository.RemovePreferenceLearningMethods(preference.student_preference_learning_methods);
+
+        foreach (var subject in matchedSubjects)
+        {
+            _repository.AddPreferenceDifficultSubject(new student_preference_difficult_subject
+            {
+                user_id = userId,
+                subject_id = subject.id,
+                created_at = now
+            });
+        }
+
+        foreach (var method in cleanMethods)
+        {
+            _repository.AddPreferenceLearningMethod(new student_preference_learning_method
+            {
+                user_id = userId,
+                method_code = method,
+                created_at = now
+            });
+        }
+
         user.onboarding_completed = true;
         user.onboarding_completed_at = GetUtcNow();
 
@@ -344,6 +378,18 @@ public class StudentSetupService : IStudentSetupService
         await _repository.SaveChangesAsync();
 
         return BuildCompletedSetupDto(user, profile, matchedSubjects);
+    }
+
+    private async Task<student_preference> GetOrCreatePreferenceWithDetailsAsync(Guid userId)
+    {
+        var preference = await _repository.GetPreferenceWithDetailsForUpdateAsync(userId);
+
+        if (preference != null)
+        {
+            return preference;
+        }
+
+        return _repository.CreatePreference(userId, GetUnspecifiedNow());
     }
 
     private async Task<student_profile> GetOrCreateProfileAsync(Guid userId)

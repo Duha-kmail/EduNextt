@@ -42,6 +42,14 @@ public class StudentSetupRepository : IStudentSetupRepository
             .FirstOrDefaultAsync(p => p.user_id == userId);
     }
 
+    public Task<student_preference?> GetPreferenceWithDetailsForUpdateAsync(Guid userId)
+    {
+        return _db.student_preferences
+            .Include(p => p.student_preference_difficult_subjects)
+            .Include(p => p.student_preference_learning_methods)
+            .FirstOrDefaultAsync(p => p.user_id == userId);
+    }
+
     public student_profile CreateProfile(Guid userId, DateTime utcNow)
     {
         var profile = new student_profile
@@ -57,6 +65,26 @@ public class StudentSetupRepository : IStudentSetupRepository
         _db.student_profiles.Add(profile);
 
         return profile;
+    }
+
+    public student_preference CreatePreference(Guid userId, DateTime now)
+    {
+        var preference = new student_preference
+        {
+            user_id = userId,
+            branch_code = string.Empty,
+            study_hours_code = string.Empty,
+            goal_code = string.Empty,
+            level_code = string.Empty,
+            exam_experience_code = string.Empty,
+            has_other_difficult_subject = false,
+            created_at = now,
+            updated_at = now
+        };
+
+        _db.student_preferences.Add(preference);
+
+        return preference;
     }
 
     public Task<List<subject>> GetSubjectsByIdsAsync(List<Guid> subjectIds)
@@ -104,6 +132,26 @@ public class StudentSetupRepository : IStudentSetupRepository
     public void AddProfileSubject(student_profile_subject profileSubject)
     {
         _db.student_profile_subjects.Add(profileSubject);
+    }
+
+    public void RemovePreferenceDifficultSubjects(IEnumerable<student_preference_difficult_subject> subjects)
+    {
+        _db.student_preference_difficult_subjects.RemoveRange(subjects);
+    }
+
+    public void AddPreferenceDifficultSubject(student_preference_difficult_subject preferenceSubject)
+    {
+        _db.student_preference_difficult_subjects.Add(preferenceSubject);
+    }
+
+    public void RemovePreferenceLearningMethods(IEnumerable<student_preference_learning_method> methods)
+    {
+        _db.student_preference_learning_methods.RemoveRange(methods);
+    }
+
+    public void AddPreferenceLearningMethod(student_preference_learning_method preferenceMethod)
+    {
+        _db.student_preference_learning_methods.Add(preferenceMethod);
     }
 
     public void AddAiRecommendation(ai_recommendation recommendation)
