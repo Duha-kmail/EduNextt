@@ -70,6 +70,27 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
   const location = useLocation();
   const navigate = useNavigate();
   const handleLogout = () => {
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+
+    if (role === "student" && token) {
+      const now = Date.now();
+      const durationSeconds = Math.floor((now - studyTimerRef.current.lastSentAt) / 1000);
+
+      if (durationSeconds > 0) {
+        studyTimerRef.current.lastSentAt = now;
+
+        fetch(`${API_BASE_URL}/api/student/progress/study-session`, {
+          method: "POST",
+          keepalive: true,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ durationSeconds }),
+        }).catch(() => {});
+      }
+    }
+
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("fullName");

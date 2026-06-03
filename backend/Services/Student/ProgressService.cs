@@ -101,6 +101,12 @@ public class ProgressService
         }
 
         var durationSeconds = Math.Clamp(dto.DurationSeconds, 0, 15 * 60);
+
+        if (durationSeconds < 30)
+        {
+            return;
+        }
+
         var durationMinutes = (int)Math.Round(durationSeconds / 60.0, MidpointRounding.AwayFromZero);
 
         if (durationMinutes <= 0)

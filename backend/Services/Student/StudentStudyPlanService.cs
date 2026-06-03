@@ -121,21 +121,41 @@ public class StudentStudyPlanService : IStudentStudyPlanService
             }).ToList()
         });
 
-        var focusSubject = subjectProgress
+        var focusSubjects = subjectProgress
             .Where(s => aiResponse.FocusSubjects.Contains(s.SubjectName))
             .OrderBy(s => s.AverageScore <= 0 ? 100 : s.AverageScore)
             .ThenBy(s => s.TotalLessons == 0 ? 100 : s.CompletedLessons * 100.0 / s.TotalLessons)
-            .FirstOrDefault()
-            ?? subjectProgress
+            .ToList();
+
+        if (focusSubjects.Count == 0)
+        {
+            focusSubjects = subjectProgress
                 .OrderBy(s => s.AverageScore <= 0 ? 100 : s.AverageScore)
                 .ThenBy(s => s.TotalLessons == 0 ? 100 : s.CompletedLessons * 100.0 / s.TotalLessons)
-                .FirstOrDefault();
+                .Take(2)
+                .ToList();
+        }
+
+        var suggestedPlans = focusSubjects
+            .Where(s => s.NextLessonId != null)
+            .Select(s => new StudyPlanSuggestedPlanDto
+            {
+                SubjectId = s.SubjectId,
+                SubjectName = s.SubjectName,
+                LessonIds = new List<Guid> { s.NextLessonId!.Value },
+                LessonTitles = string.IsNullOrWhiteSpace(s.NextLessonTitle)
+                    ? new List<string>()
+                    : new List<string> { s.NextLessonTitle! }
+            })
+            .ToList();
+
+        var firstSuggestedPlan = suggestedPlans.FirstOrDefault();
 
         var lessonIds = new List<Guid>();
 
-        if (focusSubject?.NextLessonId != null)
+        if (firstSuggestedPlan?.LessonIds.Count > 0)
         {
-            lessonIds.Add(focusSubject.NextLessonId.Value);
+            lessonIds.AddRange(firstSuggestedPlan.LessonIds);
         }
 
         return new StudyPlanSuggestionDto
@@ -144,8 +164,9 @@ public class StudentStudyPlanService : IStudentStudyPlanService
             FocusSubjects = aiResponse.FocusSubjects,
             WeeklyStudyHours = aiResponse.WeeklyStudyHours,
             LessonOrder = aiResponse.LessonOrder,
-            SubjectId = focusSubject?.SubjectId,
-            LessonIds = lessonIds
+            SubjectId = firstSuggestedPlan?.SubjectId,
+            LessonIds = lessonIds,
+            SuggestedPlans = suggestedPlans
         };
     }
 
