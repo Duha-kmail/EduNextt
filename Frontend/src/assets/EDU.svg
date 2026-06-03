@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="850" viewBox="0 0 1400 850">
+  <defs>
+    <linearGradient id="blue" x1="130" y1="120" x2="900" y2="620" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6FA0E6"/>
+      <stop offset="0.55" stop-color="#3D70BE"/>
+      <stop offset="1" stop-color="#214F9C"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="250" y1="145" x2="1190" y2="620" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE4A7"/>
+      <stop offset="0.55" stop-color="#F6C85E"/>
+      <stop offset="1" stop-color="#DFA12A"/>
+    </linearGradient>
+    <linearGradient id="aqua" x1="720" y1="600" x2="1110" y2="710" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0C4B86"/>
+      <stop offset="0.55" stop-color="#278AA8"/>
+      <stop offset="1" stop-color="#F5D585"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#0B1630" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+
+  <rect width="1400" height="850" fill="none"/>
+
+  <g filter="url(#soft)">
+    <path d="M164 247c0-54 38-91 93-91h197c55 0 92 36 92 91v33H300v73h139L300 492v80h246v34c0 54-37 91-92 91H164V247Z" fill="url(#blue)"/>
+    <path d="M255 530h291v76c0 31-25 56-56 56H196l59-59h235v-14H196l59-59Z" fill="url(#gold)"/>
+    <path d="M441 352h47v95h-142l95-95Z" fill="#213A65" opacity="0.24"/>
+    <path d="M427 456l66-66v66h-66Z" fill="url(#gold)"/>
+
+    <path d="M584 204h218c154 0 264 101 264 246 0 144-110 246-264 246H584c-37 0-67-30-67-67V271c0-37 30-67 67-67Z" fill="url(#blue)"/>
+    <path d="M592 230h205c138 0 235 89 235 220 0 130-97 220-235 220H592c-24 0-43-19-43-43V273c0-24 19-43 43-43Z" fill="#78A8EA" opacity="0.65"/>
+    <ellipse cx="780" cy="702" rx="222" ry="16" fill="#151B2D" opacity="0.18"/>
+
+    <rect x="619" y="282" width="291" height="245" rx="108" fill="#FCFAF6" stroke="#2E3B59" stroke-width="22"/>
+    <circle cx="705" cy="402" r="24" fill="#2E3B59"/>
+    <circle cx="825" cy="402" r="24" fill="#2E3B59"/>
+    <path d="M734 463c19 26 58 26 78 0" fill="none" stroke="#2E3B59" stroke-width="16" stroke-linecap="round"/>
+    <path d="M606 378c-27 0-48 22-48 48v39c0 27 21 49 48 49h14V378h-14Z" fill="#2E3B59"/>
+    <path d="M924 378c27 0 48 22 48 48v39c0 27-21 49-48 49h-14V378h14Z" fill="#2E3B59"/>
+    <path d="M763 203v-66" stroke="#2E3B59" stroke-width="16" stroke-linecap="round"/>
+    <circle cx="763" cy="119" r="30" fill="#3B578F"/>
+
+    <path d="M884 132h157c35 0 63 28 63 63v71c0 35-28 63-63 63h-31l-47 48c-14 14-38 4-38-16v-32h-41c-35 0-63-28-63-63v-71c0-35 28-63 63-63Z" fill="#8BC2F5"/>
+    <circle cx="891" cy="224" r="15" fill="#2E3B59"/>
+    <circle cx="944" cy="224" r="15" fill="#2E3B59"/>
+    <circle cx="997" cy="224" r="15" fill="#2E3B59"/>
+
+    <path d="M1117 242c0-47 32-88 78-99l61-15v208l-95 36v102c0 57-47 103-104 103s-104-46-104-103V242h164Z" fill="url(#gold)"/>
+    <path d="M953 387c73 0 132 59 132 132v18c0 22 18 40 40 40s40-18 40-40v-18c0-73 59-132 132-132v171c0 95-77 172-172 172s-172-77-172-172V387Z" fill="url(#blue)"/>
+    <path d="M953 242h164v173c-48-29-102-42-164-42V242Z" fill="#FFE2A1"/>
+    <path d="M1165 242c0-47 32-88 78-99l54-13v243c-47 0-91 12-132 36V242Z" fill="#FFE2A1"/>
+  </g>
+
+  <g transform="translate(170 646)">
+    <path d="M0 15l63-28 63 28-63 28L0 15Z" fill="#2B66B8"/>
+    <path d="M63 43v48" stroke="#2B66B8" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="63" cy="96" r="11" fill="#2B66B8"/>
+    <text x="8" y="120" font-family="Montserrat, Poppins, Segoe UI, Arial, sans-serif" font-size="112" font-weight="900" fill="#2B66B8">NEX</text>
+    <text x="298" y="120" font-family="Montserrat, Poppins, Segoe UI, Arial, sans-serif" font-size="112" font-weight="900" fill="#F5D585">T</text>
+    <path d="M344 58h42l31 31" fill="none" stroke="#2E3B59" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M344 93h35l44 44" fill="none" stroke="#F5D585" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="431" cy="89" r="13" fill="#2B66B8" stroke="#2E3B59" stroke-width="6"/>
+    <circle cx="427" cy="139" r="13" fill="#2B66B8" stroke="#2E3B59" stroke-width="6"/>
+  </g>
+
+  <text x="780" y="765" direction="rtl" unicode-bidi="bidi-override" text-anchor="middle"
+        font-family="Cairo, Tajawal, Segoe UI, Arial, sans-serif" font-size="76" font-weight="900"
+        fill="url(#aqua)">منصة تعليمية</text>
+</svg>
