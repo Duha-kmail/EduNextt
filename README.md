@@ -82,7 +82,7 @@ Useful AI URLs:
 
 
 ## GitHub Notes
-
+00
 Do not commit generated dependencies or local secrets:
 
 - `Frontend/node_modules`
