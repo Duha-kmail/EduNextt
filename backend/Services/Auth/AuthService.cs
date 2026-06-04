@@ -1,8 +1,11 @@
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using backend.Data.Generated;
 using backend.DTOs.Auth;
 using backend.Models.Generated;
+using backend.Services.Guest;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace backend.Services.Auth;
 
@@ -12,17 +15,23 @@ public class AuthService : IAuthService
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IPasswordValidator _passwordValidator;
     private readonly IGoogleTokenValidator _googleTokenValidator;
+    private readonly IEmailSender _emailSender;
+    private readonly IMemoryCache _memoryCache;
 
     public AuthService(
         AppDbContext db,
         IJwtTokenService jwtTokenService,
         IPasswordValidator passwordValidator,
-        IGoogleTokenValidator googleTokenValidator)
+        IGoogleTokenValidator googleTokenValidator,
+        IEmailSender emailSender,
+        IMemoryCache memoryCache)
     {
         _db = db;
         _jwtTokenService = jwtTokenService;
         _passwordValidator = passwordValidator;
         _googleTokenValidator = googleTokenValidator;
+        _emailSender = emailSender;
+        _memoryCache = memoryCache;
     }
 
     public async Task<AuthResult<AuthResponseDto>> RegisterAsync(RegisterRequestDto dto)
@@ -306,6 +315,85 @@ public async Task<AuthResult<AuthResponseDto>> GoogleLoginAsync(GoogleLoginReque
     }
 }
 
+    public async Task<bool> RequestPasswordResetAsync(string email)
+    {
+        var normalizedEmail = NormalizeEmail(email);
+
+        if (string.IsNullOrWhiteSpace(normalizedEmail))
+            return false;
+
+        var user = await _db.users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(user => user.email == normalizedEmail && user.is_active == true);
+
+        if (user == null)
+            return false;
+
+        var otp = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+
+        _memoryCache.Set(GetOtpCacheKey(normalizedEmail), otp, TimeSpan.FromMinutes(3));
+        _memoryCache.Remove(GetVerifiedCacheKey(normalizedEmail));
+
+        await _emailSender.SendPasswordResetOtpAsync(
+            normalizedEmail,
+            user.full_name,
+            otp,
+            CancellationToken.None
+        );
+
+        return true;
+    }
+
+    public Task<bool> VerifyOtpAsync(string email, string otp)
+    {
+        var normalizedEmail = NormalizeEmail(email);
+
+        if (
+            string.IsNullOrWhiteSpace(normalizedEmail) ||
+            string.IsNullOrWhiteSpace(otp) ||
+            !_memoryCache.TryGetValue(GetOtpCacheKey(normalizedEmail), out string? cachedOtp) ||
+            cachedOtp != otp.Trim()
+        )
+        {
+            return Task.FromResult(false);
+        }
+
+        _memoryCache.Remove(GetOtpCacheKey(normalizedEmail));
+        _memoryCache.Set(GetVerifiedCacheKey(normalizedEmail), true, TimeSpan.FromMinutes(10));
+
+        return Task.FromResult(true);
+    }
+
+    public async Task<bool> ResetPasswordAsync(string email, string newPassword)
+    {
+        var normalizedEmail = NormalizeEmail(email);
+
+        if (
+            string.IsNullOrWhiteSpace(normalizedEmail) ||
+            !_memoryCache.TryGetValue(GetVerifiedCacheKey(normalizedEmail), out bool isVerified) ||
+            !isVerified ||
+            _passwordValidator.GetPasswordSuggestions(newPassword).Any()
+        )
+        {
+            return false;
+        }
+
+        var user = await _db.users.FirstOrDefaultAsync(user =>
+            user.email == normalizedEmail &&
+            user.is_active == true
+        );
+
+        if (user == null)
+            return false;
+
+        user.password_hash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await _db.SaveChangesAsync();
+
+        _memoryCache.Remove(GetVerifiedCacheKey(normalizedEmail));
+
+        return true;
+    }
+
     private async Task<AuthResponseDto> BuildAuthResponseAsync(user user)
     {
         var profile = await _db.student_profiles
@@ -387,5 +475,20 @@ public async Task<AuthResult<AuthResponseDto>> GoogleLoginAsync(GoogleLoginReque
             errors[field] = new List<string>();
 
         errors[field].Add(message);
+    }
+
+    private static string NormalizeEmail(string? email)
+    {
+        return email?.Trim().ToLowerInvariant() ?? "";
+    }
+
+    private static string GetOtpCacheKey(string email)
+    {
+        return $"password-reset:otp:{email}";
+    }
+
+    private static string GetVerifiedCacheKey(string email)
+    {
+        return $"password-reset:verified:{email}";
     }
 }

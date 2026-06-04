@@ -5,6 +5,9 @@ import { ExamRecordsProvider } from "./context/ExamRecordsContext.jsx";
 const Login = lazy(() => import("./AdminPages/Login.jsx"));
 const Register = lazy(() => import("./AdminPages/Register.jsx"));
 const Contact = lazy(() => import("./AdminPages/Contact.jsx"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage.jsx"));
+const OtpVerificationPage = lazy(() => import("./pages/OtpVerificationPage.jsx"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage.jsx"));
 
 const OnboardingStep1 = lazy(() => import("./pages/OnboardingStep1.jsx"));
 const OnboardingStep2 = lazy(() => import("./pages/OnboardingStep2.jsx"));
@@ -46,6 +49,9 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/otp-verification" element={<OtpVerificationPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Route>
 
           <Route element={<OnboardingRoute />}>
