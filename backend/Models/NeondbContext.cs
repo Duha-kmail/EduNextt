@@ -165,6 +165,7 @@ public partial class NeondbContext : DbContext
                 .HasColumnType("timestamp without time zone");
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.Name).HasMaxLength(255);
+            entity.Property(e => e.Subject).HasMaxLength(150);
         });
 
         modelBuilder.Entity<Exam>(entity =>

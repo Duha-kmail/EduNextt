@@ -640,9 +640,13 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Email)
                 .HasMaxLength(255);
 
+            entity.Property(e => e.Subject)
+                .HasMaxLength(150);
+
             entity.Property(e => e.Message);
 
             entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp with time zone")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 

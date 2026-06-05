@@ -1,33 +1,38 @@
-import { lazy, Suspense } from "react";
+﻿import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import PageLoader from "./components/loader/PageLoader.jsx";
+import "./components/loader/PageLoader.css";
 import { ExamRecordsProvider } from "./context/ExamRecordsContext.jsx";
 
-const Login = lazy(() => import("./AdminPages/Login.jsx"));
-const Register = lazy(() => import("./AdminPages/Register.jsx"));
-const Contact = lazy(() => import("./AdminPages/Contact.jsx"));
+const Home = lazy(() => import("./pages/public/home/Home.jsx"));
+const Login = lazy(() => import("./pages/public/auth/login/Login.jsx"));
+const Register = lazy(() => import("./pages/public/auth/register/Register.jsx"));
+const Contact = lazy(() => import("./pages/public/contact/Contact.jsx"));
 
-const OnboardingStep1 = lazy(() => import("./pages/OnboardingStep1.jsx"));
-const OnboardingStep2 = lazy(() => import("./pages/OnboardingStep2.jsx"));
-const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
-const Subjects = lazy(() => import("./pages/Subjects.jsx"));
-const Exams = lazy(() => import("./pages/Exams.jsx"));
-const ExamCreate = lazy(() => import("./pages/ExamCreate.jsx"));
-const ExamTake = lazy(() => import("./pages/ExamTake.jsx"));
-const StudyPlans = lazy(() => import("./pages/StudyPlans.jsx"));
-const Analytics = lazy(() => import("./pages/Analytics.jsx"));
-const Achievements = lazy(() => import("./pages/Achievements.jsx"));
-const Profile = lazy(() => import("./pages/Profile.jsx"));
-const NotFound = lazy(() => import("./pages/NotFound.jsx"));
+const OnboardingStep1 = lazy(() => import("./pages/onboarding/step-one/OnboardingStep1.jsx"));
+const OnboardingStep2 = lazy(() => import("./pages/onboarding/step-two/OnboardingStep2.jsx"));
 
-const MainDashboard = lazy(() => import("./AdminPages/MainDashboard.jsx"));
-const Home = lazy(() => import("./AdminPages/Home"));
-const AdminSubjects = lazy(() => import("./AdminPages/AdminSubjects"));
-const AdminLessons = lazy(() => import("./AdminPages/AdminLessons"));
-const AdminExams = lazy(() => import("./AdminPages/AdminExams"));
-const AdminUsers = lazy(() => import("./AdminPages/AdminUsers"));
-const AdminAnalytics = lazy(() => import("./AdminPages/AdminAnalytics"));
-const AdminAchievements = lazy(() => import("./AdminPages/AdminAchievements"));
-const AdminProfile = lazy(() => import("./AdminPages/AdminProfile.jsx"));
+const Dashboard = lazy(() => import("./pages/student/dashboard/Dashboard.jsx"));
+const Subjects = lazy(() => import("./pages/student/subjects/Subjects.jsx"));
+const Exams = lazy(() => import("./pages/student/exams/Exams.jsx"));
+const ExamCreate = lazy(() => import("./pages/student/exam-create/ExamCreate.jsx"));
+const ExamTake = lazy(() => import("./pages/student/exam-take/ExamTake.jsx"));
+const StudyPlans = lazy(() => import("./pages/student/study-plans/StudyPlans.jsx"));
+const Analytics = lazy(() => import("./pages/student/analytics/Analytics.jsx"));
+const Achievements = lazy(() => import("./pages/student/achievements/Achievements.jsx"));
+const Profile = lazy(() => import("./pages/student/profile/Profile.jsx"));
+
+const MainDashboard = lazy(() => import("./pages/admin/dashboard/MainDashboard.jsx"));
+const AdminSubjects = lazy(() => import("./pages/admin/subjects/AdminSubjects.jsx"));
+const AdminLessons = lazy(() => import("./pages/admin/lessons/AdminLessons.jsx"));
+const AdminExams = lazy(() => import("./pages/admin/exams/AdminExams.jsx"));
+const AdminUsers = lazy(() => import("./pages/admin/users/AdminUsers.jsx"));
+const AdminMessages = lazy(() => import("./pages/admin/messages/AdminMessages.jsx"));
+const AdminAnalytics = lazy(() => import("./pages/admin/analytics/AdminAnalytics.jsx"));
+const AdminAchievements = lazy(() => import("./pages/admin/achievements/AdminAchievements.jsx"));
+const AdminProfile = lazy(() => import("./pages/admin/profile/AdminProfile.jsx"));
+
+const NotFound = lazy(() => import("./pages/not-found/NotFound.jsx"));
 
 import {
   GuestOnlyRoute,
@@ -39,7 +44,7 @@ import {
 const App = () => (
   <BrowserRouter>
     <ExamRecordsProvider>
-      <Suspense fallback={<div className="page-loading">جاري التحميل...</div>}>
+      <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route element={<GuestOnlyRoute />}>
             <Route path="/" element={<Home />} />
@@ -71,6 +76,7 @@ const App = () => (
             <Route path="/admin-lessons" element={<AdminLessons />} />
             <Route path="/admin-exams" element={<AdminExams />} />
             <Route path="/admin-users" element={<AdminUsers />} />
+            <Route path="/admin-messages" element={<AdminMessages />} />
             <Route path="/admin-analytics" element={<AdminAnalytics />} />
             <Route path="/admin-achievements" element={<AdminAchievements />} />
             <Route path="/admin-profile" element={<AdminProfile />} />
