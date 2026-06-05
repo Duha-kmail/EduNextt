@@ -18,7 +18,7 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
-import DashboardLayout from "../../../layout/DashboardLayout.jsx";
+import DashboardLayout from "../../../components/DashboardLayout";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
 

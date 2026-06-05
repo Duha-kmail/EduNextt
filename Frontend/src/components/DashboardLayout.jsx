@@ -15,6 +15,7 @@ import {
   LogOut,
   CircleHelp,
   ChevronLeft,
+  Mail,
 } from "lucide-react";
 import logo from "../assets/EDU.svg";
 
@@ -35,6 +36,7 @@ const adminSidebarItems = [
   { icon: FileText, label: "إدارة الدروس", path: "/admin-lessons" },
   { icon: CircleHelp, label: "إدارة الامتحانات", path: "/admin-exams" },
   { icon: User, label: "إدارة المستخدمين", path: "/admin-users" },
+  { icon: Mail, label: "رسائل التواصل", path: "/admin-messages" },
   { icon: BarChart3, label: "تحليلات النظام", path: "/admin-analytics" },
   { icon: Trophy, label: "إنجازات المستخدمين", path: "/admin-achievements" },
   { icon: User, label: "الملف الشخصي", path: "/admin-profile" },

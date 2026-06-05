@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import "./MainDashboard.css";
-import DashboardLayout from "../../../layout/DashboardLayout.jsx";
+import DashboardLayout from "../../../components/DashboardLayout.jsx";
 import { API_BASE_URL } from "@/config/api";
 
 const subjectIcons = [Sigma, FlaskConical, Languages, Monitor];
@@ -251,10 +251,9 @@ const MainDashboard = () => {
         (summary.completedExamsThisMonth ??
           summary.CompletedExamsThisMonth ??
           0) > 0
-          ? `+${
-              summary.completedExamsThisMonth ??
-              summary.CompletedExamsThisMonth
-            } نشاط`
+          ? `+${summary.completedExamsThisMonth ??
+          summary.CompletedExamsThisMonth
+          } نشاط`
           : "— مستقر",
       type:
         (summary.completedExamsThisMonth ??
@@ -461,9 +460,8 @@ const MainDashboard = () => {
                     {activities.map((act) => (
                       <div className="activity-item" key={act.id}>
                         <span
-                          className={`activity-badge ${
-                            badgeClassMap[act.type] || "update"
-                          }`}
+                          className={`activity-badge ${badgeClassMap[act.type] || "update"
+                            }`}
                         >
                           {badgeTextMap[act.type] || "نشاط"}
                         </span>

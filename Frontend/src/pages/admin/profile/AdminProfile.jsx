@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import DashboardLayout from "../../../layout/DashboardLayout.jsx";
+import DashboardLayout from "../../../components/DashboardLayout";
 import { motion } from "framer-motion";
 import {
   User,

@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 
-import DashboardLayout from "../../../layout/DashboardLayout.jsx";
+import DashboardLayout from "../../../components/DashboardLayout";
 import { API_BASE_URL } from "@/config/api";
 import "./AdminMessages.css";
 

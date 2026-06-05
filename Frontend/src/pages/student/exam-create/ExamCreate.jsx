@@ -15,7 +15,7 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
-import DashboardLayout from "../../../layout/DashboardLayout.jsx";
+import DashboardLayout from "../../../components/DashboardLayout";
 import { API_BASE_URL } from "@/config/api";
 
 const iconMap = {

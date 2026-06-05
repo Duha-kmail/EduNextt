@@ -26,7 +26,7 @@ import {
   Loader2,
   Check,
 } from "lucide-react";
-import DashboardLayout from "../../../layout/DashboardLayout.jsx";
+import DashboardLayout from "../../../components/DashboardLayout";
 import AchievementPopup from "../../../components/achievement-popup/AchievementPopup.jsx";
 import { downloadLessonPdf } from "../../../utils/downloadLessonPdf.js";
 import { API_BASE_URL } from "@/config/api";

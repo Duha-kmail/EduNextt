@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   Loader2,
 } from "lucide-react";
-import DashboardLayout from "../../../layout/DashboardLayout.jsx";
+import DashboardLayout from "../../../components/DashboardLayout";
 import "./Analytics.css";
 import { API_BASE_URL } from "@/config/api";
 

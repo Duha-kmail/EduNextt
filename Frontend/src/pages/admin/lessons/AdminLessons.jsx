@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import "./AdminLessons.css";
-import DashboardLayout from "../../../layout/DashboardLayout.jsx";
+import DashboardLayout from "../../../components/DashboardLayout";
 import { API_BASE_URL } from "@/config/api";
 
 const ITEMS_PER_PAGE = 4;
