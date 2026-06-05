@@ -46,6 +46,48 @@ public class SmtpEmailSender : IEmailSender
         await smtpClient.SendMailAsync(mailMessage, cancellationToken);
     }
 
+    public async Task SendPasswordResetOtpAsync(
+        string recipientEmail,
+        string recipientName,
+        string otp,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            EnsureConfigured();
+
+            using var mailMessage = new MailMessage
+            {
+                From = new MailAddress(_settings.FromEmail, _settings.FromName, Encoding.UTF8),
+                Subject = "EduNext password reset code",
+                Body = BuildPasswordResetBody(recipientName, otp),
+                IsBodyHtml = false,
+                BodyEncoding = Encoding.UTF8,
+                SubjectEncoding = Encoding.UTF8
+            };
+
+            mailMessage.To.Add(new MailAddress(recipientEmail, recipientName, Encoding.UTF8));
+
+            using var smtpClient = new SmtpClient(_settings.Host, _settings.Port)
+            {
+                EnableSsl = _settings.EnableSsl,
+                Credentials = new NetworkCredential(_settings.Username, _settings.Password)
+            };
+
+            await smtpClient.SendMailAsync(mailMessage, cancellationToken);
+        }
+        catch (Exception ex) when (
+            ex is SmtpException or
+            InvalidOperationException or
+            FormatException or
+            ArgumentException
+        )
+        {
+            throw new EmailDeliveryException("Password reset email delivery failed.", ex);
+        }
+    }
+
     private void EnsureConfigured()
     {
         if (
@@ -78,5 +120,27 @@ public class SmtpEmailSender : IEmailSender
         builder.AppendLine(message);
 
         return builder.ToString();
+    }
+
+    private static string BuildPasswordResetBody(string recipientName, string otp)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine($"Hello {recipientName},");
+        builder.AppendLine();
+        builder.AppendLine("Use this EduNext verification code to reset your password:");
+        builder.AppendLine();
+        builder.AppendLine(otp);
+        builder.AppendLine();
+        builder.AppendLine("This code is valid for 3 minutes. If you did not request a password reset, ignore this email.");
+
+        return builder.ToString();
+    }
+}
+
+public class EmailDeliveryException : Exception
+{
+    public EmailDeliveryException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }

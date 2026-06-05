@@ -225,7 +225,7 @@ export default function Login() {
 
   const handleForgotPasswordClick = (event) => {
     event.preventDefault();
-    setGeneralError("ميزة استعادة كلمة المرور سنقوم ببرمجتها في الخطوة التالية.");
+    navigate("/forgot-password");
   };
 
   return (

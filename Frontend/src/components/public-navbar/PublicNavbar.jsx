@@ -18,7 +18,6 @@ export default function PublicNavbar({ compact = false }) {
       <div className="edn-container edn-nav">
         <button className="edn-brand" type="button" onClick={() => go('/')}>
           <img className="edn-brand-logo" src={logo} alt="EduNext" />
-          <strong>EduNext</strong>
         </button>
 
         <nav className={`edn-links ${mobileOpen ? 'open' : ''}`}>

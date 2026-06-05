@@ -1,6 +1,14 @@
 /* Custom CSS for EduNext Registration Page */
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
 
 :root {
+  /* EduNext Brand Colors (Home Page Standard) */
+  --edn-teal: #08b7aa;
+  --edn-blue: #2f9be7;
+  --edn-purple: #9b75f6;
+  --edn-ink: #111827;
+
+  /* Legacy colors (kept for non-branding elements) */
   --primary: #105bf0;
   --primary-dark: #0d4bc7;
   --bg-light: #f6f6f8;
@@ -27,7 +35,7 @@
 }
 
 body {
-  font-family: "Noto Sans Arabic", "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Tajawal", "Noto Sans Arabic", "Inter", ui-sans-serif, system-ui, sans-serif;
   background-color: var(--bg-light);
   color: var(--slate-900);
   line-height: 1.5;
@@ -92,10 +100,15 @@ body {
 }
 
 .logo-text {
+  font-family: "Tajawal", system-ui, sans-serif;
   font-size: 1.25rem;
-  font-weight: 900;
-  letter-spacing: -0.025em;
-  color: var(--primary);
+  font-weight: 800;
+  letter-spacing: 0;
+  color: var(--edn-ink);
+  background: linear-gradient(135deg, var(--edn-blue), var(--edn-teal));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .nav-link {
