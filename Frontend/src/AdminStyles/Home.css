@@ -83,6 +83,26 @@ body {
   cursor: pointer;
 }
 
+.footer-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-brand-logo h2 {
+  font-family: "Tajawal", system-ui, -apple-system, sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--edn-ink);
+  background: linear-gradient(135deg, var(--edn-blue), var(--edn-teal));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
 .edn-brand strong {
   font-size: 18px;
   font-weight: 800;
@@ -505,9 +525,17 @@ body {
   border-radius: 999px;
 }
 
-.window-dots span:nth-child(1) { background: #ff6b65; }
-.window-dots span:nth-child(2) { background: #ffd34d; }
-.window-dots span:nth-child(3) { background: #58d777; }
+.window-dots span:nth-child(1) {
+  background: #ff6b65;
+}
+
+.window-dots span:nth-child(2) {
+  background: #ffd34d;
+}
+
+.window-dots span:nth-child(3) {
+  background: #58d777;
+}
 
 .chart-bars {
   position: absolute;
@@ -562,9 +590,18 @@ body {
   background: #e8f0f7;
 }
 
-.plan-board i:nth-child(1) { background: #eee3ff; }
-.plan-board i:nth-child(2) { background: #d9eaf9; }
-.plan-board i:nth-child(3) { background: #ccefeb; }
+.plan-board i:nth-child(1) {
+  background: #eee3ff;
+}
+
+.plan-board i:nth-child(2) {
+  background: #d9eaf9;
+}
+
+.plan-board i:nth-child(3) {
+  background: #ccefeb;
+}
+
 .plan-board b {
   grid-column: 4;
 }
@@ -715,8 +752,13 @@ body {
   cursor: pointer;
 }
 
-.subject-card.blue button { color: var(--edn-blue); }
-.subject-card.purple button { color: var(--edn-purple); }
+.subject-card.blue button {
+  color: var(--edn-blue);
+}
+
+.subject-card.purple button {
+  color: var(--edn-purple);
+}
 
 .subjects-signup {
   display: flex;
@@ -827,8 +869,13 @@ body {
   background: var(--edn-teal);
 }
 
-.step-item.blue .step-icon span { background: var(--edn-blue); }
-.step-item.purple .step-icon span { background: var(--edn-purple); }
+.step-item.blue .step-icon span {
+  background: var(--edn-blue);
+}
+
+.step-item.purple .step-icon span {
+  background: var(--edn-purple);
+}
 
 .upcoming-grid {
   display: grid;
@@ -1018,6 +1065,7 @@ body {
 }
 
 @media (max-width: 1080px) {
+
   .hero-grid,
   .why-grid,
   .hero-copy {
@@ -1108,10 +1156,25 @@ body {
     transform: scale(0.86);
   }
 
-  .float-card.progress { top: 32px; left: 0; }
-  .float-card.recommend { top: 48%; left: -24px; }
-  .float-card.target { right: -18px; bottom: 72px; }
-  .float-card.exam { left: 10px; bottom: 10px; }
+  .float-card.progress {
+    top: 32px;
+    left: 0;
+  }
+
+  .float-card.recommend {
+    top: 48%;
+    left: -24px;
+  }
+
+  .float-card.target {
+    right: -18px;
+    bottom: 72px;
+  }
+
+  .float-card.exam {
+    left: 10px;
+    bottom: 10px;
+  }
 
   .showcase-section,
   .tools-section,

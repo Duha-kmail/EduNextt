@@ -14,6 +14,7 @@ import {
   X,
   LogOut,
   CircleHelp,
+  ChevronLeft,
 } from "lucide-react";
 import logo from "../assets/EDU.svg";
 
@@ -31,7 +32,7 @@ const studentSidebarItems = [
 const adminSidebarItems = [
   { icon: LayoutDashboard, label: "لوحة التحكم", path: "/admin-dashboard" },
   { icon: BookOpen, label: "إدارة المواد", path: "/admin-subjects" },
-  {icon:FileText, label: "إدارة الدروس", path: "/admin-lessons"},
+  { icon: FileText, label: "إدارة الدروس", path: "/admin-lessons" },
   { icon: CircleHelp, label: "إدارة الامتحانات", path: "/admin-exams" },
   { icon: User, label: "إدارة المستخدمين", path: "/admin-users" },
   { icon: BarChart3, label: "تحليلات النظام", path: "/admin-analytics" },
@@ -64,9 +65,20 @@ const sidebarTips = [
 
 const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titleIcon: TitleIcon }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem("sidebarCollapsed");
+    return saved ? JSON.parse(saved) : false;
+  });
   const [tipIndex, setTipIndex] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const handleSidebarCollapse = () => {
+    const newState = !sidebarCollapsed;
+    setSidebarCollapsed(newState);
+    localStorage.setItem("sidebarCollapsed", JSON.stringify(newState));
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
@@ -80,9 +92,9 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
     navigate("/login");
   };
   const role = localStorage.getItem("role");
-  const sidebarItems = role === "admin" 
-  ? adminSidebarItems 
-  : studentSidebarItems;
+  const sidebarItems = role === "admin"
+    ? adminSidebarItems
+    : studentSidebarItems;
   const profilePath = role === "admin" ? "/admin-profile" : "/profile";
   const activeTip = sidebarTips[tipIndex];
 
@@ -101,12 +113,22 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
     >
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
-      <aside className={`dashboard-sidebar ${sidebarOpen ? "sidebar-mobile-open" : ""}`}>
+      <aside className={`dashboard-sidebar ${sidebarOpen ? "sidebar-mobile-open" : ""} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
         <div className="sidebar-header">
+          <div className="sidebar-header-top">
             <div className="dashboard-logo-brand">
               <img className="dashboard-logo-image" src={logo} alt="EduNext" />
             </div>
-            <span className="dashboard-logo-title">EduNext</span>
+            {!sidebarCollapsed && <span className="dashboard-logo-title">EduNext</span>}
+            <button
+              className="sidebar-collapse-btn"
+              onClick={handleSidebarCollapse}
+              title={sidebarCollapsed ? "توسيع القائمة الجانبية" : "تصغير القائمة الجانبية"}
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <ChevronLeft size={20} />
+            </button>
+          </div>
 
           <button className="sidebar-close-btn" onClick={() => setSidebarOpen(false)}>
             <X size={20} />
@@ -118,19 +140,19 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
             <Link
               key={item.label}
               to={item.path}
-              className={`sidebar-nav-item ${
-                location.pathname === item.path ? "sidebar-nav-item-active" : ""
-              }`}
+              className={`sidebar-nav-item ${location.pathname === item.path ? "sidebar-nav-item-active" : ""
+                }`}
               onClick={() => setSidebarOpen(false)}
+              title={sidebarCollapsed ? item.label : ""}
             >
               <item.icon size={20} />
-              <span>{item.label}</span>
+              {!sidebarCollapsed && <span>{item.label}</span>}
             </Link>
           ))}
         </nav>
 
         <div className="sidebar-footer-section">
-          {role !== "admin" && (
+          {role !== "admin" && !sidebarCollapsed && (
             <div className="sidebar-footer-card">
               <Sparkles size={20} style={{ color: "var(--primary)" }} />
               <p className="sidebar-footer-title" key={`tip-title-${activeTip.title}`}>{activeTip.title}</p>
@@ -140,9 +162,9 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
             </div>
           )}
 
-          <button className="sidebar-logout-btn" onClick={handleLogout} type="button">
+          <button className="sidebar-logout-btn" onClick={handleLogout} type="button" title={sidebarCollapsed ? "تسجيل الخروج" : ""}>
             <LogOut size={18} />
-            <span>تسجيل الخروج</span>
+            {!sidebarCollapsed && <span>تسجيل الخروج</span>}
           </button>
         </div>
       </aside>
