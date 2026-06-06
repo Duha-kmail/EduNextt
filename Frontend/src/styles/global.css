@@ -1803,11 +1803,6 @@ img {
   width: 16px;
   height: 16px;
 }
-
-.sidebar-logout-btn span {
-  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.35s;
-}
-
 .sidebar-footer-title {
   font-weight: 600;
   font-size: 0.875rem;
