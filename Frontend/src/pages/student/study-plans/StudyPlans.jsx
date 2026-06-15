@@ -72,6 +72,8 @@ const normalizeSubject = (s) => ({
   title: s.title || s.Title || s.name || s.Name || "",
 });
 
+const sameId = (first, second) => String(first ?? "") === String(second ?? "");
+
 const normalizeSubjectDetails = (s) => ({
   id: s.id || s.Id,
   title: s.title || s.Title || s.name || s.Name || "",
@@ -81,7 +83,7 @@ const normalizeSubjectDetails = (s) => ({
     orderNumber: u.orderNumber || u.OrderNumber || 0,
     lessons: (u.lessons || u.Lessons || []).map((l) => ({
       id: l.id || l.Id,
-      lessonId: l.lessonId || l.LessonId,
+      lessonId: l.lessonId || l.LessonId || l.id || l.Id,
       title: l.title || l.Title || "",
       duration: l.duration || l.Duration || "غير محدد",
       completed: l.completed ?? l.Completed ?? false,
@@ -331,10 +333,29 @@ const StudyPlans = () => {
     );
   };
 
+  const setLessonsForActiveSubject = (updater) => {
+    setSelectedLessons((currentLessons) => {
+      const nextLessons =
+        typeof updater === "function" ? updater(currentLessons) : updater;
+
+      if (appliedAiSubjects.length > 0 && selectedSubject) {
+        setAppliedAiSubjects((currentSubjects) =>
+          currentSubjects.map((subject) =>
+            sameId(subject.subjectId, selectedSubject)
+              ? { ...subject, lessonIds: nextLessons }
+              : subject
+          )
+        );
+      }
+
+      return nextLessons;
+    });
+  };
+
   const toggleLesson = (lessonId) => {
-    setSelectedLessons((prev) =>
-      prev.includes(lessonId)
-        ? prev.filter((id) => id !== lessonId)
+    setLessonsForActiveSubject((prev) =>
+      prev.some((id) => sameId(id, lessonId))
+        ? prev.filter((id) => !sameId(id, lessonId))
         : [...prev, lessonId]
     );
   };
@@ -345,23 +366,53 @@ const StudyPlans = () => {
 
   const isUnitFullySelected = (unit) => {
     if (!unit.lessons?.length) return false;
-    return unit.lessons.every((lesson) => selectedLessons.includes(lesson.lessonId));
+    return unit.lessons.every((lesson) =>
+      selectedLessons.some((lessonId) => sameId(lessonId, lesson.lessonId))
+    );
   };
 
   const handleToggleUnitSelection = (unit) => {
     const lessonIds = unit.lessons.map((lesson) => lesson.lessonId);
 
     if (isUnitFullySelected(unit)) {
-      setSelectedLessons((prev) => prev.filter((id) => !lessonIds.includes(id)));
+      setLessonsForActiveSubject((prev) =>
+        prev.filter((id) => !lessonIds.some((lessonId) => sameId(lessonId, id)))
+      );
       return;
     }
 
-    setSelectedLessons((prev) => [...new Set([...prev, ...lessonIds])]);
+    setLessonsForActiveSubject((prev) => [
+      ...prev,
+      ...lessonIds.filter(
+        (lessonId) => !prev.some((selectedLessonId) => sameId(selectedLessonId, lessonId))
+      ),
+    ]);
   };
 
   const selectedSubjectName = useMemo(
-    () => subjects.find((s) => s.id === selectedSubject)?.title || "",
+    () => subjects.find((s) => sameId(s.id, selectedSubject))?.title || "",
     [subjects, selectedSubject]
+  );
+
+  const selectedAiSubject = useMemo(
+    () => appliedAiSubjects.find((subject) => sameId(subject.subjectId, selectedSubject)),
+    [appliedAiSubjects, selectedSubject]
+  );
+
+  const selectedAiSubjectIndex = useMemo(
+    () => appliedAiSubjects.findIndex((subject) => sameId(subject.subjectId, selectedSubject)),
+    [appliedAiSubjects, selectedSubject]
+  );
+
+  const selectedAiLessonsCount = selectedAiSubject?.lessonIds?.length || 0;
+
+  const appliedAiLessonsTotal = useMemo(
+    () =>
+      appliedAiSubjects.reduce(
+        (total, subject) => total + (subject.lessonIds?.length || 0),
+        0
+      ),
+    [appliedAiSubjects]
   );
 
   const aiSuggestedSubjects = useMemo(() => {
@@ -376,7 +427,7 @@ const StudyPlans = () => {
         subjectId: aiSuggestion.subjectId,
         subjectName:
           aiSuggestion.focusSubjects?.[0] ||
-          subjects.find((subject) => subject.id === aiSuggestion.subjectId)?.title ||
+          subjects.find((subject) => sameId(subject.id, aiSuggestion.subjectId))?.title ||
           "",
         lessonIds: aiSuggestion.lessonIds || [],
         lessonOrder: aiSuggestion.lessonOrder || [],
@@ -389,7 +440,7 @@ const StudyPlans = () => {
       return aiSuggestedSubjects.map((subject) => ({
         subjectName:
           subject.subjectName ||
-          subjects.find((item) => item.id === subject.subjectId)?.title ||
+          subjects.find((item) => sameId(item.id, subject.subjectId))?.title ||
           "مادة",
         lessons: subject.lessonOrder?.length
           ? subject.lessonOrder
@@ -431,6 +482,15 @@ const StudyPlans = () => {
     }
 
     await fetchLessonsForSubject(value);
+  };
+
+  const handleAppliedAiSubjectSelect = async (subject) => {
+    if (!subject?.subjectId || sameId(subject.subjectId, selectedSubject)) return;
+
+    setSelectedSubject(subject.subjectId);
+    setCreateError("");
+    setSelectedLessons(subject.lessonIds || []);
+    await fetchLessonsForSubject(subject.subjectId);
   };
 
   const saveStudyPlan = async ({ subjectId, subjectName, lessonIds, isEditing = false }) => {
@@ -498,12 +558,9 @@ const StudyPlans = () => {
                   subjectId: subject.subjectId,
                   subjectName:
                     subject.subjectName ||
-                    subjects.find((item) => item.id === subject.subjectId)?.title ||
+                    subjects.find((item) => sameId(item.id, subject.subjectId))?.title ||
                     "مادة",
-                  lessonIds:
-                    subject.subjectId === selectedSubject && selectedLessons.length > 0
-                      ? selectedLessons
-                      : subject.lessonIds,
+                  lessonIds: subject.lessonIds,
                 }))
                 .filter((subject) => subject.subjectId && subject.lessonIds?.length)
             : [
@@ -550,7 +607,9 @@ const StudyPlans = () => {
 
     if (units.length > 0) {
       const firstMatchedUnit = units.find((unit) =>
-        unit.lessons.some((lesson) => lessonIds.includes(lesson.lessonId))
+        unit.lessons.some((lesson) =>
+          lessonIds.some((lessonId) => sameId(lessonId, lesson.lessonId))
+        )
       );
 
       if (firstMatchedUnit) {
@@ -562,21 +621,29 @@ const StudyPlans = () => {
   };
 
   const handleApplyAiSuggestion = async () => {
-    const firstSuggestedSubject = aiSuggestedSubjects.find((subject) => subject.subjectId);
+    const suggestedSubjects = aiSuggestedSubjects
+      .filter((subject) => subject.subjectId)
+      .map((subject) => ({
+        ...subject,
+        subjectName:
+          subject.subjectName ||
+          subjects.find((item) => sameId(item.id, subject.subjectId))?.title ||
+          "مادة",
+        lessonIds: subject.lessonIds || [],
+      }));
+
+    const firstSuggestedSubject = suggestedSubjects[0];
 
     if (!firstSuggestedSubject) return;
 
     setSelectedSubject(firstSuggestedSubject.subjectId);
-    setAppliedAiSubjects(aiSuggestedSubjects);
+    setAppliedAiSubjects(suggestedSubjects);
     setEditingPlanId(null);
     setCreateError("");
+    setSelectedLessons(firstSuggestedSubject.lessonIds || []);
     setDuration(getDurationFromWeeklyHours(aiSuggestion?.weeklyStudyHours, selectedDays.length));
 
     await fetchLessonsForSubject(firstSuggestedSubject.subjectId);
-
-    if (firstSuggestedSubject.lessonIds?.length) {
-      setSelectedLessons(firstSuggestedSubject.lessonIds);
-    }
 
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -775,6 +842,44 @@ const StudyPlans = () => {
               <div className="sp-form-group">
                 <label>اختر الوحدات والدروس</label>
 
+                {appliedAiSubjects.length > 1 && (
+                  <div className="sp-ai-subject-switcher" role="tablist" aria-label="مواد خطة الذكاء الاصطناعي">
+                    <div className="sp-ai-switcher-header">
+                      <span>راجع دروس كل مادة قبل إنشاء الخطط</span>
+                      <strong>{appliedAiLessonsTotal} درس مختار</strong>
+                    </div>
+                    <div className="sp-ai-subject-tabs">
+                      {appliedAiSubjects.map((subject, index) => {
+                        const active = sameId(subject.subjectId, selectedSubject);
+                        const lessonsCount = subject.lessonIds?.length || 0;
+
+                        return (
+                          <button
+                            key={subject.subjectId}
+                            type="button"
+                            className={`sp-ai-subject-tab ${active ? "sp-ai-subject-tab-active" : ""}`}
+                            onClick={() => handleAppliedAiSubjectSelect(subject)}
+                            disabled={creating || lessonsLoading}
+                            role="tab"
+                            aria-selected={active}
+                          >
+                            <span className="sp-ai-subject-tab-index">{index + 1}</span>
+                            <span className="sp-ai-subject-tab-text">
+                              <strong>{subject.subjectName || "مادة"}</strong>
+                              <small>{lessonsCount} درس مختار</small>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {selectedAiSubject && (
+                      <p className="sp-ai-active-note">
+                        تعدّل الآن مادة {selectedAiSubject.subjectName || "مادة"} ({selectedAiSubjectIndex + 1} من {appliedAiSubjects.length})
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {!selectedSubject ? (
                   <p className="sp-helper-text">اختر المادة أولًا</p>
                 ) : lessonsLoading ? (
@@ -829,7 +934,7 @@ const StudyPlans = () => {
                                   <div className="sp-lesson-row-main">
                                     <input
                                       type="checkbox"
-                                      checked={selectedLessons.includes(lesson.lessonId)}
+                                      checked={selectedLessons.some((lessonId) => sameId(lessonId, lesson.lessonId))}
                                       onChange={() => toggleLesson(lesson.lessonId)}
                                       disabled={creating}
                                     />
@@ -848,7 +953,7 @@ const StudyPlans = () => {
                 )}
               </div>
 
-              {selectedLessons.length > 0 && (
+              {(selectedLessons.length > 0 || appliedAiSubjects.length > 0) && (
                 <p className="sp-selected-lessons-count">
                   {appliedAiSubjects.length > 1
                     ? `سيتم إنشاء ${appliedAiSubjects.length} خطط حسب مواد الذكاء الاصطناعي`

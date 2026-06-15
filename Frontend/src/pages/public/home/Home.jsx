@@ -40,6 +40,9 @@ import logo from '../../../assets/EDU.svg';
 import heroImage from '../../../assets/lovable-home/hero.png';
 import whyImage from '../../../assets/lovable-home/why.png';
 import planVideo from '../../../assets/plan-demo.mp4';
+import chatbotVideo from '../../../assets/chatbot-demo.mp4';
+import dashboardVideo from '../../../assets/dashboard-demo.mp4';
+
 
 const quickFeatures = [
   { label: 'مساعد ذكي لكل مادة', icon: Bot },
@@ -54,16 +57,19 @@ const showcaseCards = [
     title: 'الخطة الدراسية',
     text: 'جدول يومي يتكيّف مع مستواك ووقتك وأهدافك.',
     type: 'plan',
+    video: planVideo,
   },
   {
     title: 'المساعد الذكي',
     text: 'اسأل أي سؤال واحصل على شرح فوري ودقيق.',
     type: 'chat',
+    video: chatbotVideo,
   },
   {
-    title: 'لوحة التحكم',
+    title: 'لوحة تحليل الأداء',
     text: 'تابع تقدمك وأدائك في المواد والاختبارات بسهولة.',
     type: 'chart',
+    video: dashboardVideo,
   },
 ];
 
@@ -210,7 +216,7 @@ const faqs = [
   },
 ];
 
-function BrowserMockup({ type, onVideoClick }) {
+function BrowserMockup({ type, video, onVideoClick }) {
   return (
     <div className={`mock-window ${type}`}>
       <div className="window-dots">
@@ -218,31 +224,17 @@ function BrowserMockup({ type, onVideoClick }) {
         <span />
         <span />
       </div>
-      {type === 'chart' && (
-        <div className="chart-bars" aria-hidden="true">
-          {[44, 70, 56, 82, 31, 64, 39].map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}
-        </div>
-      )}
-      {type === 'chat' && (
-        <div className="chat-lines" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-          <i />
-          <i />
-        </div>
-      )}
-      {type === 'plan' && (
-        <div className="plan-video-wrapper" onClick={onVideoClick} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onVideoClick()} aria-label="تكبير الفيديو">
+      {video && (
+        <div className="showcase-video-wrapper" onClick={onVideoClick} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onVideoClick()} aria-label="تكبير الفيديو">
           <video
-            className="plan-video"
-            src={planVideo}
+            className="showcase-video"
+            src={video}
             autoPlay
             muted
             loop
             playsInline
           />
-          <div className="plan-video-overlay">
+          <div className="showcase-video-overlay">
             <span>🔍</span>
           </div>
         </div>
@@ -265,7 +257,7 @@ export default function Home() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
   const [activeSubject, setActiveSubject] = useState(null);
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [activeVideo, setActiveVideo] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
 
@@ -439,7 +431,7 @@ export default function Home() {
             <div className="showcase-grid">
               {showcaseCards.map((card) => (
                 <article className="showcase-card" key={card.title}>
-                  <BrowserMockup type={card.type} onVideoClick={card.type === 'plan' ? () => setVideoModalOpen(true) : undefined} />
+                  <BrowserMockup type={card.type} video={card.video} onVideoClick={() => setActiveVideo(card.video)} />
                   <h3>{card.title}</h3>
                   <p>{card.text}</p>
                 </article>
@@ -634,13 +626,13 @@ export default function Home() {
           </div>
         </div>
       )}
-      {videoModalOpen && (
-        <div className="video-modal-overlay" onClick={() => setVideoModalOpen(false)} role="presentation">
+      {activeVideo && (
+        <div className="video-modal-overlay" onClick={() => setActiveVideo(null)} role="presentation">
           <div className="video-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-            <button className="modal-close" type="button" onClick={() => setVideoModalOpen(false)} aria-label="إغلاق"><X size={18} /></button>
+            <button className="modal-close" type="button" onClick={() => setActiveVideo(null)} aria-label="إغلاق"><X size={18} /></button>
             <video
               className="video-modal-player"
-              src={planVideo}
+              src={activeVideo}
               autoPlay
               muted
               loop
