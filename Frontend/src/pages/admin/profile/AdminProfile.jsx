@@ -38,12 +38,12 @@ const readResponseBody = async (res) => {
   try { return JSON.parse(raw); } catch { return { message: raw }; }
 };
 
-const normalizePhone = (value) =>
+const normalizeInternationalPhone = (value) =>
   String(value || "").replace(/[^\d+]/g, "").replace(/(?!^)\+/g, "");
 
-const isValidPhone = (value) => {
+const isValidInternationalPhone = (value) => {
   if (!value) return true;
-  return /^\+?\d{7,15}$/.test(value);
+  return /^\+[1-9]\d{7,14}$/.test(value);
 };
 
 /* ── Design tokens (match Home page) ── */
@@ -113,9 +113,9 @@ const Profile = () => {
   const activityHistory = useMemo(() => profileData?.activityHistory || [], [profileData]);
 
   const handlePhoneChange = (value) => {
-    const cleaned = normalizePhone(value);
+    const cleaned = normalizeInternationalPhone(value);
     setFormData((prev) => ({ ...prev, phone: cleaned }));
-    setPhoneError(cleaned && !isValidPhone(cleaned) ? "رقم الهاتف يجب أن يحتوي على أرقام فقط ويمكن أن يبدأ بـ +." : "");
+    setPhoneError(cleaned && !isValidInternationalPhone(cleaned) ? "رقم الهاتف يجب أن يكون بصيغة دولية مثل: +970599123456" : "");
   };
 
   /* ── fetch ── */
@@ -139,15 +139,16 @@ const Profile = () => {
   /* ── save profile ── */
   const handleSaveProfile = async () => {
     if (!formData.fullName.trim()) { setPageError("الاسم مطلوب."); return; }
+    if (!isValidInternationalPhone(formData.phone)) { setPhoneError("رقم الهاتف يجب أن يكون بصيغة دولية مثل: +970599123456"); return; }
     try {
-      setSavingProfile(true); setPageError(""); setProfileSaved(false);
-      const res = await fetch(PROFILE_ENDPOINT, { method: "PUT", headers: authHeaders, body: JSON.stringify({ fullName: formData.fullName.trim(), phone: formData.phone?.trim() || "" }) });
+      setSavingProfile(true); setPageError(""); setPhoneError(""); setProfileSaved(false);
+      const res = await fetch(PROFILE_ENDPOINT, { method: "PUT", headers: authHeaders, body: JSON.stringify({ fullName: formData.fullName.trim(), phone: formData.phone?.trim() || null }) });
       const data = await readResponseBody(res);
       if (res.status === 401 || res.status === 403) { localStorage.removeItem("token"); navigate("/login"); return; }
       if (!res.ok) { setPageError(data?.message || "فشل تحديث البيانات"); return; }
       const u = normalizeProfile(data || {});
-      setProfileData((p) => p ? { ...p, fullName: u.fullName || formData.fullName.trim(), phone: u.phone || formData.phone } : p);
-      setFormData((p) => ({ ...p, fullName: u.fullName || formData.fullName.trim(), phone: u.phone || formData.phone }));
+      setProfileData((p) => p ? { ...p, fullName: u.fullName || formData.fullName.trim(), phone: u.phone } : p);
+      setFormData((p) => ({ ...p, fullName: u.fullName || formData.fullName.trim(), phone: u.phone }));
       localStorage.setItem("fullName", u.fullName || formData.fullName.trim());
       setEditing(false); setShowPassFields(false); setProfileSaved(true);
       setTimeout(() => setProfileSaved(false), 2200);
@@ -157,7 +158,7 @@ const Profile = () => {
 
   const handleCancelEdit = () => {
     if (profileData) setFormData({ fullName: profileData.fullName || "", email: profileData.email || "", phone: profileData.phone || "" });
-    setEditing(false); setShowPassFields(false); setPageError(""); setPasswordError(""); setPassData({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
+    setEditing(false); setShowPassFields(false); setPageError(""); setPhoneError(""); setPasswordError(""); setPassData({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
   };
 
   /* ── change password ── */
@@ -245,7 +246,7 @@ const Profile = () => {
               {editing && <button style={btnO} onClick={handleCancelEdit} disabled={savingProfile}>إلغاء</button>}
               <button
                 style={editing ? btnP : btnO}
-                onClick={() => { if (editing) { handleSaveProfile(); } else { setEditing(true); setPageError(""); setProfileSaved(false); } }}
+                onClick={() => { if (editing) { handleSaveProfile(); } else { setEditing(true); setPageError(""); setPhoneError(""); setProfileSaved(false); } }}
                 disabled={savingProfile}
               >
                 {savingProfile ? <><Loader2 size={14} className="animate-spin" /> حفظ...</>
@@ -275,12 +276,22 @@ const Profile = () => {
               <div key={field} style={{ paddingBottom: "1.5rem", marginBottom: idx < arr.length - 1 ? "0" : "0", borderBottom: idx < arr.length - 1 ? `1px solid ${C.border}` : "none" }}>
                 <label style={lbl}>{icon}{label}</label>
                 {editing && editable
-                  ? <input style={inp} value={formData[field]} placeholder={ph}
-                    onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                  ? <input
+                    style={field === "phone" ? { ...inp, paddingLeft: "14px", textAlign: "left" } : inp}
+                    value={formData[field]}
+                    placeholder={field === "phone" ? "+970599123456" : ph}
+                    type={field === "phone" ? "tel" : "text"}
+                    inputMode={field === "phone" ? "tel" : undefined}
+                    autoComplete={field === "phone" ? "tel" : undefined}
+                    dir={field === "phone" ? "ltr" : undefined}
+                    onChange={(e) => field === "phone" ? handlePhoneChange(e.target.value) : setFormData({ ...formData, [field]: e.target.value })}
                     onFocus={(e) => { e.target.style.borderColor = C.teal; e.target.style.boxShadow = `0 0 0 3px ${C.tealBg}`; }}
                     onBlur={(e) => { e.target.style.borderColor = C.border; e.target.style.boxShadow = "none"; }} />
                   : <p style={fval}>{formData[field] || "—"}</p>
                 }
+                {editing && field === "phone" && phoneError && (
+                  <p style={{ margin: "4px 0 0", fontSize: "12px", color: C.danger, fontFamily: font, fontWeight: 600 }}>{phoneError}</p>
+                )}
               </div>
             ))}
           </div>

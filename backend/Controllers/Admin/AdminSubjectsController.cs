@@ -2,6 +2,7 @@ using backend.DTOs.Admin;
 using backend.Services.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers.Admin;
 
@@ -86,19 +87,29 @@ public class AdminSubjectsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteSubject(Guid id)
     {
-        var deleted = await _subjectsService.DeleteSubjectAsync(id);
-
-        if (!deleted)
+        try
         {
-            return NotFound(new
+            var deleted = await _subjectsService.DeleteSubjectAsync(id);
+
+            if (!deleted)
             {
-                message = "المادة غير موجودة."
+                return NotFound(new
+                {
+                    message = "المادة غير موجودة."
+                });
+            }
+
+            return Ok(new
+            {
+                message = "تم حذف المادة بنجاح."
             });
         }
-
-        return Ok(new
+        catch (DbUpdateException)
         {
-            message = "تم حذف المادة بنجاح."
-        });
+            return Conflict(new
+            {
+                message = "لا يمكن حذف هذه المادة لأنها مرتبطة ببيانات أخرى."
+            });
+        }
     }
 }

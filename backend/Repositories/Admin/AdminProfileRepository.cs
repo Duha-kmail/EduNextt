@@ -73,6 +73,21 @@ public class AdminProfileRepository : IAdminProfileRepository
             return null;
         }
 
+        string? cleanPhone = null;
+
+        if (!string.IsNullOrWhiteSpace(dto.Phone))
+        {
+            var phone = dto.Phone.Trim().Replace(" ", "").Replace("-", "");
+
+            if (phone.StartsWith("0"))
+                phone = "+970" + phone.Substring(1);
+
+            if (!IsValidInternationalPhone(phone))
+                throw new ArgumentException("رقم الهاتف يجب أن يكون بصيغة دولية مثل: +970599123456");
+
+            cleanPhone = phone;
+        }
+
         var admin = await _context.users
             .FirstOrDefaultAsync(u => u.id == adminId && u.role != null && u.role.ToLower() == "admin");
 
@@ -82,13 +97,19 @@ public class AdminProfileRepository : IAdminProfileRepository
         }
 
         admin.full_name = dto.FullName.Trim();
-        admin.phone = string.IsNullOrWhiteSpace(dto.Phone)
-            ? null
-            : dto.Phone.Trim();
+        admin.phone = cleanPhone;
 
         await _context.SaveChangesAsync();
 
         return await GetProfileAsync(adminId);
+    }
+
+    private static bool IsValidInternationalPhone(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return true;
+
+        return System.Text.RegularExpressions.Regex.IsMatch(value, @"^\+[1-9]\d{7,14}$");
     }
 
     public async Task<bool> ChangePasswordAsync(Guid adminId, ChangeAdminPasswordDto dto)

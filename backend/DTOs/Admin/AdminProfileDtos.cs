@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace backend.DTOs.Admin;
 
 public class AdminProfileDto
@@ -41,9 +43,11 @@ public class AdminProfileActivityItemDto
 
 public class UpdateAdminProfileDto
 {
+    [StringLength(100)]
     public string FullName { get; set; } = "";
 
-    public string Phone { get; set; } = "";
+    [StringLength(30)]
+    public string? Phone { get; set; }
 }
 
 public class ChangeAdminPasswordDto
