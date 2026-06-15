@@ -18,6 +18,7 @@ import {
   X,
   AlertTriangle,
   Info,
+  Trophy,
 } from "lucide-react";
 
 import "./AdminAchievements.css";
@@ -510,7 +511,11 @@ export default function AdminAchievements() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout
+        title="إدارة الإنجازات"
+        subtitle="إنشاء وتعديل وإدارة إنجازات الطلاب على المنصة."
+        titleIcon={Trophy}
+      >
         <div
           className="aa-main rtl"
           style={{
@@ -529,18 +534,28 @@ export default function AdminAchievements() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title="إدارة الإنجازات"
+      subtitle="إنشاء وتعديل وإدارة إنجازات الطلاب على المنصة."
+      titleIcon={Trophy}
+      headerContent={
+        <div className="admin-messages-toolbar">
+
+
+          <button className="aa-btn-primary" onClick={openCreateForm}>
+            <Plus size={18} />
+            إنجاز جديد
+          </button>
+        </div>
+      }
+    >
       <div className="app-container rtl">
         <main className="aa-main rtl">
-          <div className="aa-topbar">
-            <div className="aa-topbar-right">
-              <h1 className="aa-page-title">إدارة الإنجازات</h1>
-              <p className="aa-page-subtitle">
-                إنشاء وتعديل وإدارة إنجازات الطلاب على المنصة
-              </p>
-            </div>
+          {pageError && <div style={errorBoxStyle}>{pageError}</div>}
 
-            <div className="aa-topbar-left">
+
+          <div className="aa-filters">
+            
               <div className="aa-search-box">
                 <Search size={18} />
                 <input
@@ -552,46 +567,39 @@ export default function AdminAchievements() {
                   }}
                 />
               </div>
+            
+            <div className="aa-topbar-right"> 
+              <span className="aa-filter-label">تصفية حسب:</span>
 
-              <button className="aa-btn-primary" onClick={openCreateForm}>
-                <Plus size={18} />
-                إنجاز جديد
-              </button>
+              <select
+                value={typeFilter}
+                onChange={(e) => {
+                  setTypeFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="all">جميع الأنواع</option>
+                {achievementTypes.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="all">جميع الحالات</option>
+                <option value="active">نشط</option>
+                <option value="inactive">غير نشط</option>
+              </select>
             </div>
           </div>
 
-          {pageError && <div style={errorBoxStyle}>{pageError}</div>}
-
-          <div className="aa-filters">
-            <span className="aa-filter-label">تصفية حسب:</span>
-
-            <select
-              value={typeFilter}
-              onChange={(e) => {
-                setTypeFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              <option value="all">جميع الأنواع</option>
-              {achievementTypes.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              <option value="all">جميع الحالات</option>
-              <option value="active">نشط</option>
-              <option value="inactive">غير نشط</option>
-            </select>
-          </div>
 
           {showForm && (
             <div className="aa-form-card">
@@ -740,9 +748,8 @@ export default function AdminAchievements() {
                     <div className="aa-toggle-wrap">
                       <button
                         type="button"
-                        className={`aa-toggle-btn ${
-                          formData.status === "active" ? "active" : ""
-                        }`}
+                        className={`aa-toggle-btn ${formData.status === "active" ? "active" : ""
+                          }`}
                         onClick={() => {
                           setFormData({
                             ...formData,
@@ -789,8 +796,8 @@ export default function AdminAchievements() {
                     {saving
                       ? "جاري الحفظ..."
                       : editingAchievement
-                      ? "حفظ التعديلات"
-                      : "إنشاء الإنجاز"}
+                        ? "حفظ التعديلات"
+                        : "إنشاء الإنجاز"}
                   </button>
 
                   <button
@@ -926,9 +933,8 @@ export default function AdminAchievements() {
 
                           <td>
                             <span
-                              className={`aa-status-badge ${
-                                achievement.status
-                              }`}
+                              className={`aa-status-badge ${achievement.status
+                                }`}
                             >
                               <span className="aa-status-dot" />
                               {achievement.status === "active"

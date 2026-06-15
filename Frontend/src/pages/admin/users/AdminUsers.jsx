@@ -214,9 +214,9 @@ export default function AdminUsers() {
       roles.length > 0
         ? roles
         : [
-            { label: "طالب", value: "student" },
-            { label: "مسؤول", value: "admin" },
-          ]
+          { label: "طالب", value: "student" },
+          { label: "مسؤول", value: "admin" },
+        ]
     );
   };
 
@@ -517,7 +517,11 @@ export default function AdminUsers() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout
+        title="إدارة المستخدمين"
+        subtitle="عرض وإدارة كافة مستخدمي المنصة وتعديل أدوارهم."
+        titleIcon={Users}
+      >
         <div
           className="au-main rtl"
           style={{
@@ -536,7 +540,19 @@ export default function AdminUsers() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title="إدارة المستخدمين"
+      subtitle="عرض وإدارة كافة مستخدمي المنصة وتعديل أدوارهم."
+      titleIcon={Users}
+      headerContent={
+         <div className="au-header-actions">
+              <button className="au-btn au-btn-outline" onClick={handleExport}>
+                <Download size={18} />
+                <span>تصدير البيانات</span>
+              </button>
+            </div>
+      }
+    >
       <div className="app-container rtl">
         {actionSuccess && !roleChangeUser && (
           <div style={getToastStyle("success")}>{actionSuccess}</div>
@@ -547,19 +563,7 @@ export default function AdminUsers() {
         )}
 
         <main className="au-main rtl">
-          <div className="au-header">
-            <div className="au-header-text">
-              <h1>إدارة المستخدمين</h1>
-              <p>عرض وإدارة كافة مستخدمي المنصة وتعديل أدوارهم.</p>
-            </div>
-
-            <div className="au-header-actions">
-              <button className="au-btn au-btn-outline" onClick={handleExport}>
-                <Download size={18} />
-                <span>تصدير البيانات</span>
-              </button>
-            </div>
-          </div>
+         
 
           {pageError && <div style={errorBoxStyle}>{pageError}</div>}
 
@@ -695,12 +699,7 @@ export default function AdminUsers() {
                     <tr key={user.id}>
                       <td>
                         <div className="au-user-cell">
-                          <div
-                            className="au-user-avatar"
-                            style={{ backgroundColor: user.avatarColor }}
-                          >
-                            {user.avatar}
-                          </div>
+
 
                           <div className="au-user-info">
                             <strong>{user.fullName}</strong>
@@ -809,9 +808,8 @@ export default function AdminUsers() {
                 return (
                   <button
                     key={page}
-                    className={`au-page-btn ${
-                      currentPage === page ? "active" : ""
-                    }`}
+                    className={`au-page-btn ${currentPage === page ? "active" : ""
+                      }`}
                     onClick={() => setCurrentPage(page)}
                   >
                     {page}
@@ -903,12 +901,6 @@ export default function AdminUsers() {
               </button>
 
               <div className="au-view-header">
-                <div
-                  className="au-user-avatar-lg"
-                  style={{ backgroundColor: viewUser.avatarColor }}
-                >
-                  {viewUser.avatar}
-                </div>
 
                 <h3>{viewUser.fullName}</h3>
 

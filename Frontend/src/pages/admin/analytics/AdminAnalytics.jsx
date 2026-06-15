@@ -5,6 +5,7 @@ import {
   TrendingUp,
   Clock,
   Loader2,
+  BarChart3,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -196,7 +197,11 @@ export default function AdminAnalytics() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout
+        title="تحليلات النظام"
+        subtitle="إحصائيات وتقارير أداء المنصة والطلاب."
+        titleIcon={BarChart3}
+      >
         <div
           className="analytics-main rtl"
           style={{
@@ -215,14 +220,13 @@ export default function AdminAnalytics() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title="تحليلات النظام"
+      subtitle="إحصائيات وتقارير أداء المنصة والطلاب."
+      titleIcon={BarChart3}
+    >
       <div className="app-container" dir="rtl">
         <main className="analytics-main rtl">
-          <div className="analytics-topbar">
-            <h1 className="analytics-page-title">تحليلات النظام</h1>
-            <div className="analytics-topbar-actions"></div>
-          </div>
-
           {error && (
             <div
               style={{

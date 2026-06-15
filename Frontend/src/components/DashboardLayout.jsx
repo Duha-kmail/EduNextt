@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   BookOpen,
@@ -66,15 +65,28 @@ const sidebarTips = [
   },
 ];
 
-const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titleIcon: TitleIcon }) => {
+const UNREAD_COUNT_KEY = "edunext_admin_unread_messages_count";
+
+const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titleIcon: TitleIcon, headerContent }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem("sidebarCollapsed");
     return saved ? JSON.parse(saved) : false;
   });
   const [tipIndex, setTipIndex] = useState(0);
-  const location = useLocation();
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(() => {
+    return Number(localStorage.getItem(UNREAD_COUNT_KEY) || 0);
+  });
+  
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleUnreadUpdate = (e) => {
+      setUnreadMessagesCount(e.detail ?? Number(localStorage.getItem(UNREAD_COUNT_KEY) || 0));
+    };
+    window.addEventListener("unreadMessagesUpdated", handleUnreadUpdate);
+    return () => window.removeEventListener("unreadMessagesUpdated", handleUnreadUpdate);
+  }, []);
 
   const handleSidebarCollapse = () => {
     const newState = !sidebarCollapsed;
@@ -90,6 +102,7 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
     localStorage.removeItem("branch");
     localStorage.removeItem("isOnboardingCompleted");
     localStorage.removeItem("onboarding");
+    localStorage.removeItem(UNREAD_COUNT_KEY);
 
     setSidebarOpen(false);
     navigate("/login");
@@ -120,6 +133,7 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
         <div className="sidebar-header">
           <div className="sidebar-header-top">
             <div className="dashboard-logo-brand">
+              <img src={logo} alt="EduNext Logo" className="dashboard-logo" />
             </div>
             {!sidebarCollapsed && <span className="dashboard-logo-title">EduNext</span>}
             <button
@@ -137,21 +151,33 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
           </button>
         </div>
 
-        <nav className="sidebar-nav">
-          {sidebarItems.map((item) => (
-            <Link
-              key={item.label}
-              to={item.path}
-              className={`sidebar-nav-item ${location.pathname === item.path ? "sidebar-nav-item-active" : ""
-                }`}
-              onClick={() => setSidebarOpen(false)}
-              title={sidebarCollapsed ? item.label : ""}
-            >
-              <item.icon size={20} />
-              {!sidebarCollapsed && <span>{item.label}</span>}
-            </Link>
-          ))}
-        </nav>
+       <nav className="sidebar-nav">
+  {sidebarItems.map((item) => (
+    <NavLink
+        key={item.label}
+  to={item.path}
+  end={item.path === "/dashboard" || item.path === "/admin-dashboard"}
+  className={({ isActive }) =>
+    `sidebar-nav-item ${
+      isActive ? "sidebar-nav-item-active" : ""
+    }`
+      }
+      onClick={() => setSidebarOpen(false)}
+      title={sidebarCollapsed ? item.label : ""}
+    >
+      <item.icon size={20} />
+
+      {!sidebarCollapsed && <span>{item.label}</span>}
+
+      {item.path === "/admin-messages" &&
+        unreadMessagesCount > 0 && (
+          <span className="sidebar-message-badge">
+            {unreadMessagesCount}
+          </span>
+        )}
+    </NavLink>
+  ))}
+</nav>
 
         <div className="sidebar-footer-section">
           {role !== "admin" && !sidebarCollapsed && (
@@ -191,6 +217,11 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
             </div>
           </div>
 
+          {headerContent && (
+            <div className="dashboard-header-content">
+              {headerContent}
+            </div>
+          )}
         </header>
 
         {children}

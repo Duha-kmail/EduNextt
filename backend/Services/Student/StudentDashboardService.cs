@@ -139,8 +139,7 @@ public class StudentDashboardService : IStudentDashboardService
         {
             Header = new DashboardHeaderDto
             {
-                Title = $"أهلاً بك مجددًا، {fullName} 👋",
-                Subtitle = "هل أنت مستعد لمواصلة التحضير للتوجيهي؟"
+                Title = $"أهلاً بك  {fullName} ",
             },
             Stats = stats,
             SubjectProgress = subjectProgress,
@@ -284,7 +283,7 @@ public class StudentDashboardService : IStudentDashboardService
         {
             Header = new DashboardHeaderDto
             {
-                Title = $"أهلاً بك مجددًا، {fullName} 👋",
+                Title = $"أهلاً بك  {fullName} ",
                 Subtitle = "أكمل إعداد بياناتك الدراسية للبدء."
             },
             Stats = new List<DashboardStatsDto>

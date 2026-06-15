@@ -144,17 +144,13 @@ function Ensure-Venv {
 
 function Ensure-Dependencies($python) {
     $importCheck = @'
-import sys
-from pathlib import Path
-base = Path.cwd()
-sys.path.insert(0, str(base / ".python_packages"))
-missing = []
-for name in ("fastapi", "uvicorn", "google.genai", "faiss", "sentence_transformers", "pypdf", "fitz"):
-    try:
-        __import__(name)
-    except Exception:
-        missing.append(name)
-raise SystemExit(1 if missing else 0)
+import fastapi
+import uvicorn
+import google.genai
+import faiss
+import sentence_transformers
+import pypdf
+import fitz
 '@
 
     & $python -c $importCheck

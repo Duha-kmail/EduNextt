@@ -880,3 +880,129 @@ select:focus {
     padding: 2rem;
   }
 }
+
+/* ── Legal Modal ── */
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.legal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(10, 20, 40, 0.55);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.legal-modal {
+  width: min(620px, 100%);
+  max-height: 82vh;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 32px 80px rgba(10, 20, 40, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  direction: rtl;
+}
+
+.legal-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid #e8edf3;
+  flex-shrink: 0;
+}
+
+.legal-modal-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.legal-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #dfe7ef;
+  border-radius: 12px;
+  background: #f8fbfd;
+  color: #64748b;
+  font-size: 16px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.2s;
+}
+
+.legal-close:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.legal-modal-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  flex: 1;
+  color: #374151;
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.legal-date {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 20px;
+}
+
+.legal-modal-body h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+  margin: 22px 0 8px;
+}
+
+.legal-modal-body h3:first-of-type {
+  margin-top: 0;
+}
+
+.legal-modal-body p {
+  margin: 0 0 4px;
+  color: #4b5563;
+}
+
+.legal-modal-footer {
+  padding: 16px 28px 24px;
+  border-top: 1px solid #e8edf3;
+  flex-shrink: 0;
+}
+
+.legal-accept-btn {
+  width: 100%;
+  height: 48px;
+  background: #08b7aa;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.legal-accept-btn:hover {
+  background: #07a598;
+  transform: translateY(-1px);
+}

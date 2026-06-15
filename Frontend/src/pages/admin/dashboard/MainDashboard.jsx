@@ -11,6 +11,7 @@ import {
   Monitor,
   CircleHelp,
   Loader2,
+  LayoutDashboard,
 } from "lucide-react";
 
 import "./MainDashboard.css";
@@ -119,7 +120,11 @@ const MainDashboard = () => {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout
+        title="لوحة التحكم"
+        subtitle="نظرة سريعة على ما يحدث في المنصة اليوم."
+        titleIcon={LayoutDashboard}
+      >
         <div
           className="dashboard1-content rtl"
           style={{
@@ -139,7 +144,11 @@ const MainDashboard = () => {
 
   if (error) {
     return (
-      <DashboardLayout>
+      <DashboardLayout
+        title="لوحة التحكم"
+        subtitle="نظرة سريعة على ما يحدث في المنصة اليوم."
+        titleIcon={LayoutDashboard}
+      >
         <div
           className="dashboard1-content rtl"
           style={{
@@ -285,53 +294,46 @@ const MainDashboard = () => {
     createdAt: act.createdAt || act.CreatedAt,
   }));
 
+
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title={`مرحباً، ${adminName}`}
+      subtitle={lastLoginMessage}
+      titleIcon={LayoutDashboard}
+      headerContent={
+        <div className="admin-messages-toolbar">
+          <button
+            type="button"
+            onClick={() => fetchDashboard(true)}
+            disabled={refreshing}
+            style={{
+              minWidth: "118px",
+              height: "42px",
+              borderRadius: "12px",
+              border: "1px solid #d8e2f0",
+              background: "#ffffff",
+              color: "#08b7aa",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.45rem",
+              fontWeight: 700,
+              cursor: refreshing ? "not-allowed" : "pointer",
+              boxShadow: "0 6px 18px rgba(15, 23, 42, 0.05)",
+            }}
+          >
+            <RefreshCw
+              size={16}
+              className={refreshing ? "animate-spin" : ""}
+            />
+            {refreshing ? "جاري التحديث..." : "تحديث"}
+          </button>
+        </div>
+      }
+    >
       <div className="app-container rtl">
         <div className="dashboard1-main">
           <div className="dashboard1-content rtl">
-            <div
-              className="welcome-section"
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "space-between",
-                gap: "1rem",
-              }}
-            >
-              <div>
-                <h1>مرحباً بك مجدداً، {adminName}</h1>
-                <p>{lastLoginMessage}</p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => fetchDashboard(true)}
-                disabled={refreshing}
-                style={{
-                  minWidth: "118px",
-                  height: "42px",
-                  borderRadius: "12px",
-                  border: "1px solid #d8e2f0",
-                  background: "#ffffff",
-                  color: "#08b7aa",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.45rem",
-                  fontWeight: 700,
-                  cursor: refreshing ? "not-allowed" : "pointer",
-                  boxShadow: "0 6px 18px rgba(15, 23, 42, 0.05)",
-                }}
-              >
-                <RefreshCw
-                  size={16}
-                  className={refreshing ? "animate-spin" : ""}
-                />
-                {refreshing ? "جاري التحديث..." : "تحديث"}
-              </button>
-            </div>
-
             <div className="admin-summary-grid">
               {statsData.map((stat, i) => (
                 <div className="admin-summary-card" key={i}>
@@ -479,7 +481,7 @@ const MainDashboard = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </ DashboardLayout >
   );
 };
 

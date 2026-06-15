@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import PublicNavbar from '../../../components/public-navbar/PublicNavbar.jsx';
 import './Contact.css';
+import { API_BASE_URL } from '@/config/api';
 
 const FORMSUBMIT_ENDPOINT = 'https://formsubmit.co/edunext.contact@gmail.com';
 const FORMSUBMIT_AJAX_ENDPOINT = 'https://formsubmit.co/ajax/edunext.contact@gmail.com';
@@ -30,6 +31,19 @@ export default function Contact() {
     const payload = Object.fromEntries(formData.entries());
 
     try {
+      // 1. حفظ بالداتا بيس
+      await fetch(`${API_BASE_URL}/api/contact-messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: payload.name,
+          email: payload.email,
+          subject: payload.subject,
+          message: payload.message,
+        }),
+      });
+
+      // 2. إرسال للجيميل عبر formsubmit
       const response = await fetch(FORMSUBMIT_AJAX_ENDPOINT, {
         method: 'POST',
         headers: {

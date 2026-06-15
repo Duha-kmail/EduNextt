@@ -202,7 +202,8 @@ public class StudentSubjectService : IStudentSubjectService
         Guid userId,
         Guid subjectId,
         Guid lessonId,
-        bool completed
+        bool completed,
+        int? durationSeconds = null
     )
     {
         var studentStream = await _repository.GetStudentStreamAsync(userId);
@@ -257,7 +258,7 @@ public class StudentSubjectService : IStudentSubjectService
 
             if (!hasStudySession)
             {
-                var durationMinutes = GetLessonStudyDurationMinutes(lesson);
+                var durationMinutes = GetLessonStudyDurationMinutes(lesson, durationSeconds);
                 var endedAt = now;
                 var startedAt = endedAt.AddMinutes(-durationMinutes);
 
@@ -411,8 +412,14 @@ public class StudentSubjectService : IStudentSubjectService
             .ToList();
     }
 
-    private static int GetLessonStudyDurationMinutes(lesson lesson)
+    private static int GetLessonStudyDurationMinutes(lesson lesson, int? durationSeconds = null)
     {
+        if (durationSeconds.HasValue && durationSeconds.Value > 0)
+        {
+            var minutes = (int)Math.Ceiling(durationSeconds.Value / 60.0);
+            return Math.Clamp(minutes, 1, 240);
+        }
+
         if (lesson.video_duration_seconds.HasValue && lesson.video_duration_seconds.Value > 0)
         {
             return Math.Max(1, (int)Math.Ceiling(lesson.video_duration_seconds.Value / 60.0));

@@ -541,7 +541,11 @@ export default function AdminSubjects() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout
+        title="إدارة المواد"
+        subtitle="تتبع وإدارة كافة المواد التعليمية والدروس المرتبطة بها."
+        titleIcon={BookOpen}
+      >
         <div
           className="admin-main-sub rtl"
           style={{
@@ -560,28 +564,26 @@ export default function AdminSubjects() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title="إدارة المواد"
+      subtitle="تتبع وإدارة كافة المواد التعليمية والدروس المرتبطة بها."
+      titleIcon={BookOpen}
+      headerContent={
+        <div className="admin-messages-toolbar">
+          <button className="btn-primary-sub" onClick={handleAddNew}>
+            <Plus size={18} />
+            <span>إضافة مادة</span>
+          </button>
+
+          <button className="btn-outline-al" onClick={handleExport}>
+            <Download size={18} />
+          </button>
+        </div>
+      }
+    >
+
       <div className="app-container" dir="rtl">
         <main className="admin-main-sub rtl">
-          <div className="page-header-sub">
-            <div>
-              <h1>إدارة المواد</h1>
-              <p>تتبع وإدارة كافة المواد التعليمية والدروس المرتبطة بها.</p>
-            </div>
-
-            <div className="top-bar-actions-sub">
-              <button className="btn-primary-sub" onClick={handleAddNew}>
-                <Plus size={18} />
-                <span>إضافة مادة جديدة</span>
-              </button>
-
-              <button className="btn-outline-al" onClick={handleExport}>
-                <Download size={18} />
-                <span>تصدير</span>
-              </button>
-            </div>
-          </div>
-
           {pageError && (
             <div
               style={{
@@ -596,28 +598,6 @@ export default function AdminSubjects() {
               {pageError}
             </div>
           )}
-
-          <div className="search-bar1">
-            <div className="search-input-wrapper">
-              <Search size={18} className="search-icon" />
-
-              <input
-                type="text"
-                placeholder="ابحث عن مواد..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            <button
-              className={`filter-btn ${
-                showFilterPanel ? "filter-btn--active" : ""
-              }`}
-              onClick={() => setShowFilterPanel(!showFilterPanel)}
-            >
-              <SlidersHorizontal size={18} />
-            </button>
-          </div>
 
           {showFilterPanel && (
             <div className="filter-panel-al1">
@@ -663,7 +643,26 @@ export default function AdminSubjects() {
               </button>
             </div>
           )}
+          <div className="search-bar1">
+            <div className="search-input-wrapper">
+              <Search size={18} className="search-icon" />
 
+              <input
+                type="text"
+                placeholder="ابحث عن مواد..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <button
+              className={`filter-btn ${showFilterPanel ? "filter-btn--active" : ""
+                }`}
+              onClick={() => setShowFilterPanel(!showFilterPanel)}
+            >
+              <SlidersHorizontal size={18} />
+            </button>
+          </div>
           <div className="stats-grid-sub">
             <div className="stat-card-sub">
               <div className="stat-info-sub">
@@ -840,9 +839,8 @@ export default function AdminSubjects() {
                   {Array.from({ length: safeTotalPages }, (_, i) => (
                     <button
                       key={i + 1}
-                      className={`page-btn-sub ${
-                        currentPage === i + 1 ? "page-btn-sub--active" : ""
-                      }`}
+                      className={`page-btn-sub ${currentPage === i + 1 ? "page-btn-sub--active" : ""
+                        }`}
                       onClick={() => setCurrentPage(i + 1)}
                     >
                       {i + 1}
@@ -923,8 +921,8 @@ export default function AdminSubjects() {
                   {saving
                     ? "جاري الحفظ..."
                     : editingSubject
-                    ? "حفظ التعديلات"
-                    : "إضافة المادة"}
+                      ? "حفظ التعديلات"
+                      : "إضافة المادة"}
                 </button>
 
                 <button

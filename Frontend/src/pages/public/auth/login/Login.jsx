@@ -21,12 +21,14 @@ import {
 import { useNavigate } from "react-router-dom";
 import PublicNavbar from "../../../../components/public-navbar/PublicNavbar.jsx";
 
+
 export default function Login() {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
@@ -72,6 +74,7 @@ export default function Login() {
 
   const navigateAfterLogin = (data) => {
     const token = data.token || data.Token || "";
+    const refreshToken = data.refreshToken || data.RefreshToken || "";
     const userId = data.userId || data.UserId || "";
     const fullName = data.fullName || data.FullName || "";
     const role = data.role || data.Role || "";
@@ -87,6 +90,9 @@ export default function Login() {
     const normalizedRole = String(role).toLowerCase().trim();
 
     localStorage.setItem("token", token);
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
     localStorage.setItem("userId", String(userId));
     localStorage.setItem("fullName", fullName || "");
     localStorage.setItem("role", normalizedRole);
@@ -147,6 +153,7 @@ export default function Login() {
         body: JSON.stringify({
           email: email.trim(),
           password,
+          rememberMe,
         }),
       });
 
@@ -353,7 +360,13 @@ export default function Login() {
                 transition={{ delay: 0.5 }}
                 className="remember-me"
               >
-                <input id="remember" type="checkbox" className="checkbox-input" />
+                <input
+                  id="remember"
+                  type="checkbox"
+                  className="checkbox-input"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                />
 
                 <label className="checkbox-label" htmlFor="remember">
                   تذكرني على هذا الجهاز

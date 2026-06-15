@@ -1,6 +1,7 @@
 using backend.DTOs.Auth;
 using backend.Services.Auth;
 using backend.Services.Guest;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
@@ -151,5 +152,23 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "فشل تحديث كلمة المرور. أعد طلب رمز تحقق جديد وحاول مرة أخرى." });
 
         return Ok(new { message = "تم تحديث كلمة المرور بنجاح." });
+    }
+
+    [HttpPost("refresh")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponseDto>> Refresh([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _authService.RefreshAsync(request, cancellationToken);
+
+        if (!result.Success)
+        {
+            return StatusCode(result.StatusCode, new
+            {
+                message = result.Message,
+                errors = result.Errors
+            });
+        }
+
+        return Ok(result.Data);
     }
 }

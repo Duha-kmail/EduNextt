@@ -34,6 +34,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [legalModal, setLegalModal] = useState(null); // 'terms' | 'privacy' | null
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
@@ -277,8 +278,8 @@ export default function Register() {
 
     if (!trimmedName) {
       addFieldError(errors, "fullName", "الاسم الكامل مطلوب.");
-    } else if (trimmedName.length < 3) {
-      addFieldError(errors, "fullName", "الاسم الكامل يجب أن يكون 3 أحرف على الأقل.");
+    } else if (trimmedName.length < 10) {
+      addFieldError(errors, "fullName", "الاسم الكامل يجب أن يكون 10 أحرف على الأقل.");
     }
 
     if (!trimmedEmail) {
@@ -745,8 +746,11 @@ export default function Register() {
                   }}
                 />
                 <label className="checkbox-label" htmlFor="terms">
-                  أوافق على <a className="link" href="#">شروط الاستخدام</a> و{" "}
-                  <a className="link" href="#">سياسة الخصوصية</a> الخاصة بـ EduNext.
+                  أوافق على{" "}
+                  <button type="button" className="link link-btn" onClick={() => setLegalModal('terms')}>شروط الاستخدام</button>
+                  {" "}و{" "}
+                  <button type="button" className="link link-btn" onClick={() => setLegalModal('privacy')}>سياسة الخصوصية</button>
+                  {" "}الخاصة بـ EduNext.
                 </label>
               </Motion.div>
 
@@ -814,6 +818,74 @@ export default function Register() {
           </div>
         </Motion.div>
       </div>
+      {legalModal && (
+        <div className="legal-overlay" onClick={() => setLegalModal(null)}>
+          <div className="legal-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+            <div className="legal-modal-header">
+              <h2>{legalModal === 'terms' ? 'شروط الاستخدام' : 'سياسة الخصوصية'}</h2>
+              <button type="button" className="legal-close" onClick={() => setLegalModal(null)} aria-label="إغلاق">✕</button>
+            </div>
+            <div className="legal-modal-body">
+              {legalModal === 'terms' ? (
+                <>
+                  <p className="legal-date">آخر تحديث: يونيو 2026</p>
+
+                  <h3>1. قبول الشروط</h3>
+                  <p>باستخدامك لمنصة EduNext، فإنك توافق على الالتزام بهذه الشروط والأحكام. إذا كنت لا توافق على أي جزء منها، يُرجى عدم استخدام المنصة.</p>
+
+                  <h3>2. وصف الخدمة</h3>
+                  <p>EduNext منصة تعليمية إلكترونية موجهة لطلاب التوجيهي في فلسطين، تقدم خططاً دراسية ذكية، ومساعداً تعليمياً، واختبارات تجريبية، وتحليلات أداء.</p>
+
+                  <h3>3. حساب المستخدم</h3>
+                  <p>أنت مسؤول عن الحفاظ على سرية بيانات حسابك وعدم مشاركتها مع أي طرف آخر. يجب أن تكون المعلومات المُدخلة صحيحة ودقيقة.</p>
+
+                  <h3>4. الاستخدام المقبول</h3>
+                  <p>يُحظر استخدام المنصة لأغراض غير قانونية، أو نشر محتوى مسيء، أو محاولة اختراق أنظمة المنصة أو انتهاك خصوصية المستخدمين الآخرين.</p>
+
+                  <h3>5. الملكية الفكرية</h3>
+                  <p>جميع المحتويات المنشورة على EduNext — من نصوص وصور وأدوات — هي ملك حصري للمنصة ولا يجوز نسخها أو إعادة توزيعها دون إذن مسبق.</p>
+
+                  <h3>6. إنهاء الحساب</h3>
+                  <p>تحتفظ EduNext بحق تعليق أو إنهاء أي حساب يخالف هذه الشروط، دون الحاجة إلى إشعار مسبق.</p>
+
+                  <h3>7. تحديث الشروط</h3>
+                  <p>قد نعدّل هذه الشروط في أي وقت. سيتم إشعارك بأي تغييرات جوهرية عبر البريد الإلكتروني أو إشعار داخل المنصة.</p>
+
+                  <h3>8. التواصل</h3>
+                  <p>لأي استفسار يتعلق بهذه الشروط، تواصل معنا عبر: <strong>edunext.contact@gmail.com</strong></p>
+                </>
+              ) : (
+                <>
+                  <p className="legal-date">آخر تحديث: يونيو 2026</p>
+
+                  <h3>1. المعلومات التي نجمعها</h3>
+                  <p>نجمع المعلومات التي تقدمها عند التسجيل (الاسم، البريد الإلكتروني)، وبيانات الاستخدام داخل المنصة كالتقدم الدراسي ونتائج الاختبارات.</p>
+
+                  <h3>2. كيف نستخدم معلوماتك</h3>
+                  <p>نستخدم بياناتك لتخصيص تجربتك التعليمية، وتحسين الخطط الدراسية، وإرسال توصيات ذكية مبنية على أدائك الفعلي داخل المنصة.</p>
+
+                  <h3>3. حماية البيانات</h3>
+                  <p>نحمي بياناتك باستخدام تشفير SSL وإجراءات أمنية محدّثة. لا نبيع بياناتك أو نشاركها مع أطراف خارجية لأغراض تجارية.</p>
+
+                  <h3>4. ملفات تعريف الارتباط (Cookies)</h3>
+                  <p>نستخدم الكوكيز لتحسين تجربة التصفح والحفاظ على جلسة تسجيل الدخول. يمكنك تعطيلها من إعدادات متصفحك، لكن قد يؤثر ذلك على بعض ميزات المنصة.</p>
+
+                  <h3>5. حقوقك</h3>
+                  <p>يحق لك في أي وقت طلب الاطلاع على بياناتك، تعديلها، أو حذف حسابك بالكامل. تواصل معنا لتنفيذ أي من هذه الطلبات.</p>
+
+                  <h3>6. التواصل</h3>
+                  <p>لأي استفسار يتعلق بخصوصيتك، تواصل معنا عبر: <strong>edunext.contact@gmail.com</strong></p>
+                </>
+              )}
+            </div>
+            <div className="legal-modal-footer">
+              <button type="button" className="legal-accept-btn" onClick={() => { setAcceptedTerms(true); setLegalModal(null); }}>
+                فهمت وأوافق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

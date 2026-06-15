@@ -151,12 +151,6 @@ th {
   backdrop-filter: blur(18px);
 }
 
-.sidebar-nav-item-active,
-.admin-message-status.unseen,
-.pill {
-  color: var(--edn-teal);
-  background: var(--edn-teal-soft);
-}
 
 @media (max-width: 768px) {
 

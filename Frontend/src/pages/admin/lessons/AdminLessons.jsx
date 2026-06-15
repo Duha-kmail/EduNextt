@@ -11,6 +11,7 @@ import {
   Download,
   Eye,
   Loader2,
+  FileText,
 } from "lucide-react";
 
 import "./AdminLessons.css";
@@ -584,7 +585,11 @@ export default function AdminLessons() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout
+        title="إدارة الدروس"
+        subtitle="إضافة وتعديل وتنظيم الدروس التعليمية لكل مادة."
+        titleIcon={FileText}
+      >
         <div
           className="admin-main rtl"
           style={{
@@ -603,28 +608,27 @@ export default function AdminLessons() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title="إدارة الدروس"
+      subtitle="إضافة وتعديل وتنظيم الدروس التعليمية لكل مادة."
+      titleIcon={FileText}
+      headerContent={
+        <div className="admin-messages-toolbar">
+
+
+          <button className="btn-primary" onClick={handleAddNew}>
+            <Plus size={18} />
+            <span>إضافة درس</span>
+          </button>
+
+          <button className="btn-outline-al" onClick={handleExport}>
+            <Download size={18} />
+          </button>
+        </div>
+      }
+    >
       <div className="app-container" dir="rtl">
         <main className="admin-main rtl">
-          <div className="page-header">
-            <div className="header-text">
-              <h1>إدارة الدروس</h1>
-              <p>إضافة وتعديل وتنظيم الدروس التعليمية لكل مادة.</p>
-            </div>
-
-            <div className="header-actions-al">
-              <button className="btn-primary" onClick={handleAddNew}>
-                <Plus size={18} />
-                <span>إضافة درس جديد</span>
-              </button>
-
-              <button className="btn-outline-al" onClick={handleExport}>
-                <Download size={18} />
-                <span>تصدير</span>
-              </button>
-            </div>
-          </div>
-
           {pageError && (
             <div
               style={{
@@ -639,7 +643,6 @@ export default function AdminLessons() {
               {pageError}
             </div>
           )}
-
           <div className="search-bar">
             <div className="search-input-wrapper">
               <Search size={18} className="search-icon" />
@@ -688,14 +691,14 @@ export default function AdminLessons() {
             </select>
 
             <button
-              className={`filter-btn ${
-                showFilterPanel ? "filter-btn--active" : ""
-              }`}
+              className={`filter-btn ${showFilterPanel ? "filter-btn--active" : ""
+                }`}
               onClick={() => setShowFilterPanel(!showFilterPanel)}
             >
               <SlidersHorizontal size={18} />
             </button>
           </div>
+
 
           {showFilterPanel && (
             <div className="filter-panel-al">
@@ -882,9 +885,8 @@ export default function AdminLessons() {
                   return (
                     <button
                       key={page}
-                      className={`page-btn ${
-                        currentPage === page ? "page-btn--active" : ""
-                      }`}
+                      className={`page-btn ${currentPage === page ? "page-btn--active" : ""
+                        }`}
                       onClick={() => setCurrentPage(page)}
                     >
                       {page}
@@ -1048,8 +1050,8 @@ export default function AdminLessons() {
                   {saving
                     ? "جاري الحفظ..."
                     : editingLesson
-                    ? "حفظ التعديلات"
-                    : "حفظ الدرس"}
+                      ? "حفظ التعديلات"
+                      : "حفظ الدرس"}
                 </button>
 
                 <button
@@ -1161,11 +1163,10 @@ export default function AdminLessons() {
 
                   <span style={viewModalStyles.value}>
                     {viewLesson.unitOrder
-                      ? `الوحدة ${viewLesson.unitOrder}${
-                          viewLesson.unitTitle
-                            ? ` - ${viewLesson.unitTitle}`
-                            : ""
-                        }`
+                      ? `الوحدة ${viewLesson.unitOrder}${viewLesson.unitTitle
+                        ? ` - ${viewLesson.unitTitle}`
+                        : ""
+                      }`
                       : "غير محددة"}
                   </span>
                 </div>

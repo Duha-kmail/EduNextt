@@ -31,6 +31,12 @@ const AdminMessages = lazy(() => import("./pages/admin/messages/AdminMessages.js
 const AdminAnalytics = lazy(() => import("./pages/admin/analytics/AdminAnalytics.jsx"));
 const AdminAchievements = lazy(() => import("./pages/admin/achievements/AdminAchievements.jsx"));
 const AdminProfile = lazy(() => import("./pages/admin/profile/AdminProfile.jsx"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPasswordPage.jsx"));
+//OtpVerificationPage
+const OtpVerificationPage = lazy(() => import("./pages/OtpVerificationPage.jsx"));
+//ResetPasswordPage
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage.jsx"));
+
 
 const NotFound = lazy(() => import("./pages/not-found/NotFound.jsx"));
 
@@ -51,6 +57,9 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/otp-verification" element={<OtpVerificationPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Route>
 
           <Route element={<OnboardingRoute />}>
@@ -85,8 +94,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-    </ExamRecordsProvider>
-  </BrowserRouter>
+    </ExamRecordsProvider>  </BrowserRouter>
 );
 
 export default App;

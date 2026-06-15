@@ -120,31 +120,77 @@ public class StudentStudyPlanService : IStudentStudyPlanService
             }).ToList()
         });
 
-        var focusSubject = subjectProgress
-            .Where(s => aiResponse.FocusSubjects.Contains(s.SubjectName))
+        var orderedSubjectProgress = subjectProgress
             .OrderBy(s => s.AverageScore <= 0 ? 100 : s.AverageScore)
             .ThenBy(s => s.TotalLessons == 0 ? 100 : s.CompletedLessons * 100.0 / s.TotalLessons)
-            .FirstOrDefault()
-            ?? subjectProgress
-                .OrderBy(s => s.AverageScore <= 0 ? 100 : s.AverageScore)
-                .ThenBy(s => s.TotalLessons == 0 ? 100 : s.CompletedLessons * 100.0 / s.TotalLessons)
-                .FirstOrDefault();
+            .ToList();
 
-        var lessonIds = new List<Guid>();
+        var focusSubjects = orderedSubjectProgress
+            .Where(s => aiResponse.FocusSubjects.Any(name => SubjectNamesMatch(name, s.SubjectName)))
+            .ToList();
 
-        if (focusSubject?.NextLessonId != null)
+        if (focusSubjects.Count == 0)
         {
-            lessonIds.Add(focusSubject.NextLessonId.Value);
+            focusSubjects = orderedSubjectProgress
+                .Where(s =>
+                    s.AverageScore is > 0 and < 70 ||
+                    s.TotalLessons == 0 ||
+                    s.CompletedLessons * 100.0 / Math.Max(1, s.TotalLessons) < 60 ||
+                    s.TotalLessons > s.CompletedLessons)
+                .Take(3)
+                .ToList();
         }
+
+        if (focusSubjects.Count == 0)
+        {
+            focusSubjects = orderedSubjectProgress.Take(2).ToList();
+        }
+
+        var suggestedSubjects = new List<StudyPlanSuggestedSubjectDto>();
+
+        foreach (var subject in focusSubjects)
+        {
+            var subjectLessons = await _repository.GetLessonsBySubjectAsync(subject.SubjectId);
+            var lessonIds = PickSuggestedLessonIds(subject, subjectLessons, aiResponse.LessonOrder);
+
+            if (lessonIds.Count == 0)
+            {
+                continue;
+            }
+
+            var lessonTitlesById = subjectLessons.ToDictionary(l => l.LessonId, l => l.LessonTitle);
+
+            suggestedSubjects.Add(new StudyPlanSuggestedSubjectDto
+            {
+                SubjectId = subject.SubjectId,
+                SubjectName = subject.SubjectName,
+                LessonIds = lessonIds,
+                LessonOrder = lessonIds
+                    .Where(id => lessonTitlesById.ContainsKey(id))
+                    .Select(id => lessonTitlesById[id])
+                    .ToList()
+            });
+        }
+
+        var primarySuggestion = suggestedSubjects.FirstOrDefault();
+        var verifiedFocusSubjects = suggestedSubjects
+            .Select(s => s.SubjectName)
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct()
+            .ToList();
+        var verifiedLessonOrder = suggestedSubjects
+            .SelectMany(s => s.LessonOrder.Select(lesson => $"{s.SubjectName}: {lesson}"))
+            .ToList();
 
         return new StudyPlanSuggestionDto
         {
             RecommendationText = aiResponse.RecommendationText,
-            FocusSubjects = aiResponse.FocusSubjects,
-            WeeklyStudyHours = aiResponse.WeeklyStudyHours,
-            LessonOrder = aiResponse.LessonOrder,
-            SubjectId = focusSubject?.SubjectId,
-            LessonIds = lessonIds
+            FocusSubjects = verifiedFocusSubjects,
+            WeeklyStudyHours = NormalizeWeeklyStudyHours(aiResponse.WeeklyStudyHours, profile.StudyHours),
+            LessonOrder = verifiedLessonOrder,
+            SubjectId = primarySuggestion?.SubjectId,
+            LessonIds = primarySuggestion?.LessonIds ?? new List<Guid>(),
+            SuggestedSubjects = suggestedSubjects
         };
     }
 
@@ -182,6 +228,8 @@ public class StudentStudyPlanService : IStudentStudyPlanService
         {
             throw new ArgumentException("بعض الدروس لا تنتمي للمادة المختارة.");
         }
+
+        validLessons = SortLessonsByRequestedOrder(validLessons, lessonIds);
 
         var title = string.IsNullOrWhiteSpace(dto.Title)
             ? $"خطة - {subject.name}"
@@ -266,6 +314,8 @@ public class StudentStudyPlanService : IStudentStudyPlanService
         {
             throw new ArgumentException("بعض الدروس لا تنتمي للمادة المختارة.");
         }
+
+        validLessons = SortLessonsByRequestedOrder(validLessons, lessonIds);
 
         var now = GetUnspecifiedNow();
 
@@ -372,6 +422,117 @@ public class StudentStudyPlanService : IStudentStudyPlanService
             .Select(day => day.Trim())
             .Distinct()
             .ToList() ?? new List<string>();
+    }
+
+    private static bool SubjectNamesMatch(string? aiName, string? subjectName)
+    {
+        var left = NormalizeSubjectName(aiName);
+        var right = NormalizeSubjectName(subjectName);
+
+        if (string.IsNullOrWhiteSpace(left) || string.IsNullOrWhiteSpace(right))
+        {
+            return false;
+        }
+
+        return left == right || left.Contains(right) || right.Contains(left);
+    }
+
+    private static List<Guid> PickSuggestedLessonIds(
+        StudentStudyPlanSubjectProgressData subject,
+        List<StudyPlanLessonOptionData> subjectLessons,
+        List<string> aiLessonOrder
+    )
+    {
+        var selected = new List<Guid>();
+
+        foreach (var aiLesson in aiLessonOrder)
+        {
+            var matchedLesson = subjectLessons.FirstOrDefault(lesson =>
+                LessonNamesMatch(aiLesson, lesson.LessonTitle) ||
+                (SubjectNamesMatch(aiLesson, subject.SubjectName) && LessonNamesMatch(aiLesson, lesson.LessonTitle))
+            );
+
+            if (matchedLesson != null && !selected.Contains(matchedLesson.LessonId))
+            {
+                selected.Add(matchedLesson.LessonId);
+            }
+        }
+
+        if (subject.NextLessonId != null && !selected.Contains(subject.NextLessonId.Value))
+        {
+            selected.Add(subject.NextLessonId.Value);
+        }
+
+        foreach (var lesson in subjectLessons)
+        {
+            if (selected.Count >= 3)
+            {
+                break;
+            }
+
+            if (!selected.Contains(lesson.LessonId))
+            {
+                selected.Add(lesson.LessonId);
+            }
+        }
+
+        return selected;
+    }
+
+    private static bool LessonNamesMatch(string? aiText, string? lessonTitle)
+    {
+        var left = NormalizeSubjectName(aiText);
+        var right = NormalizeSubjectName(lessonTitle);
+
+        if (string.IsNullOrWhiteSpace(left) || string.IsNullOrWhiteSpace(right))
+        {
+            return false;
+        }
+
+        return left == right || left.Contains(right) || right.Contains(left);
+    }
+
+    private static int NormalizeWeeklyStudyHours(int aiHours, string? availableStudyHours)
+    {
+        var maxHours = ExtractAvailableWeeklyHours(availableStudyHours);
+        var normalized = aiHours <= 0 ? Math.Min(8, maxHours) : aiHours;
+
+        return Math.Clamp(normalized, 1, maxHours);
+    }
+
+    private static int ExtractAvailableWeeklyHours(string? value)
+    {
+        var digits = new string((value ?? "").Where(char.IsDigit).ToArray());
+
+        if (int.TryParse(digits, out var number) && number > 0)
+        {
+            return number <= 6 ? number * 5 : number;
+        }
+
+        return 12;
+    }
+
+    private static List<lesson> SortLessonsByRequestedOrder(List<lesson> lessons, List<Guid> requestedIds)
+    {
+        var order = requestedIds
+            .Select((id, index) => new { id, index })
+            .ToDictionary(item => item.id, item => item.index);
+
+        return lessons
+            .OrderBy(lesson => order.TryGetValue(lesson.id, out var index) ? index : int.MaxValue)
+            .ToList();
+    }
+
+    private static string NormalizeSubjectName(string? value)
+    {
+        return (value ?? "")
+            .Trim()
+            .Replace("أ", "ا")
+            .Replace("إ", "ا")
+            .Replace("آ", "ا")
+            .Replace("ة", "ه")
+            .Replace("ى", "ي")
+            .ToLowerInvariant();
     }
 
     private static StudyPlanDto MapToDto(study_plan plan)

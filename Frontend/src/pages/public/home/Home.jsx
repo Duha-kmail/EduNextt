@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -39,6 +39,7 @@ import GeneralChatbot from '../../../components/Public_Chatbot/GeneralChatbot.js
 import logo from '../../../assets/EDU.svg';
 import heroImage from '../../../assets/lovable-home/hero.png';
 import whyImage from '../../../assets/lovable-home/why.png';
+import planVideo from '../../../assets/plan-demo.mp4';
 
 const quickFeatures = [
   { label: 'مساعد ذكي لكل مادة', icon: Bot },
@@ -138,6 +139,58 @@ const upcoming = [
   { title: 'دعم مواد إضافية', text: 'توسيع تغطية المواد والفروع المستقبلية.', icon: Plus },
 ];
 
+
+const heroCards = [
+  {
+    progress: "82%",
+    recommendation: "راجع الفيزياء لمدة 30 دقيقة",
+    goals: "3 أهداف مكتملة هذا الأسبوع",
+    exam: "رياضيات — 9/10",
+
+    subject: "الرياضيات",
+  },
+  {
+    progress: "87%",
+    recommendation: "حل 15 سؤال كيمياء",
+    goals: "4 أهداف مكتملة هذا الأسبوع",
+    exam: "فيزياء — 8/10",
+
+    subject: "الفيزياء",
+  },
+  {
+    progress: "91%",
+    recommendation: "مراجعة الوحدة الثالثة إنجليزي",
+    goals: "5 أهداف مكتملة هذا الأسبوع",
+    exam: "إنجليزي — 10/10",
+
+    subject: "اللغة الإنجليزية",
+  },
+  {
+    progress: "95%",
+    recommendation: "مراجعة مكثفة للوزاري",
+    goals: "6 أهداف مكتملة هذا الأسبوع",
+    exam: "عربي — 10/10",
+
+    subject: "اللغة العربية",
+  },
+  {
+    progress: "78%",
+    recommendation: "أكمل وحدة التفاضل والتكامل",
+    goals: "2 أهداف مكتملة هذا الأسبوع",
+    exam: "كيمياء — 7/10",
+
+    subject: "الكيمياء",
+  },
+  {
+    progress: "89%",
+    recommendation: "راجع قواعد اللغة العربية",
+    goals: "5 أهداف مكتملة هذا الأسبوع",
+    exam: "أحياء — 9/10",
+
+    subject: "الأحياء",
+  },
+];
+
 const faqs = [
   {
     question: 'ما هي منصة EduNext؟',
@@ -157,7 +210,7 @@ const faqs = [
   },
 ];
 
-function BrowserMockup({ type }) {
+function BrowserMockup({ type, onVideoClick }) {
   return (
     <div className={`mock-window ${type}`}>
       <div className="window-dots">
@@ -180,42 +233,107 @@ function BrowserMockup({ type }) {
         </div>
       )}
       {type === 'plan' && (
-        <div className="plan-board" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-          <b />
-          <b />
-          <b />
-          <b />
+        <div className="plan-video-wrapper" onClick={onVideoClick} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onVideoClick()} aria-label="تكبير الفيديو">
+          <video
+            className="plan-video"
+            src={planVideo}
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+          <div className="plan-video-overlay">
+            <span>🔍</span>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
+const navLinks = [
+  { href: '#hero', label: 'الرئيسية', section: 'hero' },
+  { href: '#showcase', label: 'شاهد المنصة', section: 'showcase' },
+  { href: '#subjects', label: 'المواد', section: 'subjects' },
+  { href: '#upcoming', label: 'ميزات قادمة', section: 'upcoming' },
+  { href: '#faq', label: 'الأسئلة الشائعة', section: 'faq' },
+  { href: '/contact', label: 'تواصل معنا', isRoute: true },
+];
+
 export default function Home() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
   const [activeSubject, setActiveSubject] = useState(null);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('hero');
+
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [cardsVisible, setCardsVisible] = useState(true);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 16);
+      const sections = ['hero', 'showcase', 'tools', 'why', 'subjects', 'steps', 'upcoming', 'faq'];
+      const offsets = sections.map((id) => {
+        const el = document.getElementById(id);
+        return el ? { id, top: el.getBoundingClientRect().top } : null;
+      }).filter(Boolean);
+      const current = offsets.filter((s) => s.top <= 110).at(-1);
+      if (current) setActiveSection(current.id);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+
+      setCardsVisible(false);
+      setTimeout(() => {
+        setHeroIndex((prev) => (prev + 1) % heroCards.length);
+        setCardsVisible(true);
+      }, 400);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleHeroMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) / 20;
+    const y = (e.clientY - rect.top - rect.height / 2) / 20;
+    setMousePosition({ x, y });
+  };
+
 
   const handleLogin = () => navigate('/login');
   const handleSignup = () => navigate('/register');
 
   return (
     <div className="edn-home" dir="rtl">
-      <header className="edn-header">
+      <header className={`edn-header ${scrolled ? 'scrolled' : ''}`}>
         <div className="edn-container edn-nav">
           <button className="edn-brand" type="button" onClick={() => navigate('/')}>
             <img className="edn-brand-logo" src={logo} alt="EduNext" />
           </button>
 
           <nav className={`edn-links ${mobileOpen ? 'open' : ''}`}>
-            <a href="#hero" onClick={() => setMobileOpen(false)}>الرئيسية</a>
-            <a href="#subjects" onClick={() => setMobileOpen(false)}>المواد الدراسية</a>
-            <a href="#faq" onClick={() => setMobileOpen(false)}>الأسئلة الشائعة</a>
-            <a href="/contact" onClick={() => setMobileOpen(false)}>تواصل معنا</a>
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.isRoute ? undefined : link.href}
+                className={!link.isRoute && activeSection === link.section ? 'nav-active' : ''}
+                onClick={(e) => {
+                  if (link.isRoute) { e.preventDefault(); navigate(link.href); }
+                  setMobileOpen(false);
+                }}
+              >
+                {link.label}
+                <span className="nav-dot" />
+              </a>
+            ))}
           </nav>
 
           <div className="edn-actions">
@@ -245,29 +363,56 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="hero-visual">
-              <div className="hero-image-panel">
+            <div
+              className="hero-visual"
+              onMouseMove={handleHeroMove}
+              onMouseLeave={() => setMousePosition({ x: 0, y: 0 })}
+            >
+              <div
+                className="hero-image-panel"
+              >
                 <img src={heroImage} alt="طالب يستخدم منصة EduNext" />
               </div>
-              <div className="float-card progress">
+              <div
+                className={`float-card progress ${cardsVisible ? 'cards-in' : 'cards-out'}`}
+                style={{ transform: `translate(${mousePosition.x * -1.4}px, ${mousePosition.y * -1.4}px)` }}
+              >
                 <span>معدل التقدم</span>
-                <strong>82%</strong>
+                <strong>{heroCards[heroIndex].progress}</strong>
                 <LineChart size={18} />
               </div>
-              <div className="float-card recommend">
+              <div
+                className={`float-card recommend ${cardsVisible ? 'cards-in' : 'cards-out'}`}
+                style={{ transform: `translate(${mousePosition.x * -1.8}px, ${mousePosition.y * -1.0}px)` }}
+              >
                 <span>توصية ذكية</span>
-                <strong>راجع الفيزياء لمدة 30 دقيقة</strong>
+                <strong>{heroCards[heroIndex].recommendation}</strong>
                 <Bot size={18} />
               </div>
-              <div className="float-card target">
+              <div
+                className={`float-card target ${cardsVisible ? 'cards-in' : 'cards-out'}`}
+                style={{ transform: `translate(${mousePosition.x * 1.6}px, ${mousePosition.y * 1.2}px)` }}
+              >
                 <span>الأهداف</span>
-                <strong>3 أهداف مكتملة هذا الأسبوع</strong>
+                <strong>{heroCards[heroIndex].goals}</strong>
                 <Target size={18} />
               </div>
-              <div className="float-card exam">
+              <div
+                className={`float-card exam ${cardsVisible ? 'cards-in' : 'cards-out'}`}
+                style={{ transform: `translate(${mousePosition.x * -1.2}px, ${mousePosition.y * 1.6}px)` }}
+              >
                 <span>اختبار مكتمل</span>
-                <strong>رياضيات — 9/10</strong>
+                <strong>{heroCards[heroIndex].exam}</strong>
                 <ClipboardCheck size={18} />
+              </div>
+
+              <div
+                className={`float-card subject-best ${cardsVisible ? 'cards-in' : 'cards-out'}`}
+                style={{ transform: `translate(${mousePosition.x * -1.0}px, ${mousePosition.y * 1.8}px)` }}
+              >
+                <span>أفضل مادة</span>
+                <strong>{heroCards[heroIndex].subject}</strong>
+                <GraduationCap size={18} />
               </div>
             </div>
           </div>
@@ -284,7 +429,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="showcase-section grid-bg">
+        <section className="showcase-section grid-bg" id="showcase">
           <div className="edn-container">
             <div className="section-title">
               <span className="pill">تجربة واقعية</span>
@@ -294,7 +439,7 @@ export default function Home() {
             <div className="showcase-grid">
               {showcaseCards.map((card) => (
                 <article className="showcase-card" key={card.title}>
-                  <BrowserMockup type={card.type} />
+                  <BrowserMockup type={card.type} onVideoClick={card.type === 'plan' ? () => setVideoModalOpen(true) : undefined} />
                   <h3>{card.title}</h3>
                   <p>{card.text}</p>
                 </article>
@@ -322,7 +467,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="why-section grid-bg">
+        <section className="why-section grid-bg" id="why">
           <div className="edn-container why-grid">
             <div className="why-copy">
               <span className="eyebrow">لماذا EduNext</span>
@@ -374,7 +519,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="steps-section grid-bg">
+        <section className="steps-section grid-bg" id="steps">
           <div className="edn-container">
             <div className="section-title">
               <span className="pill">الخطوات</span>
@@ -395,7 +540,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="upcoming-section grid-bg-soft">
+        <section className="upcoming-section grid-bg-soft" id="upcoming">
           <div className="edn-container">
             <div className="section-title">
               <span className="pill">يتم العمل عليها</span>
@@ -486,6 +631,22 @@ export default function Home() {
               <button className="btn btn-primary" type="button" onClick={handleLogin}>ابدأ التعلم</button>
               <button className="btn btn-ghost" type="button" onClick={() => setActiveSubject(null)}>إغلاق</button>
             </div>
+          </div>
+        </div>
+      )}
+      {videoModalOpen && (
+        <div className="video-modal-overlay" onClick={() => setVideoModalOpen(false)} role="presentation">
+          <div className="video-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+            <button className="modal-close" type="button" onClick={() => setVideoModalOpen(false)} aria-label="إغلاق"><X size={18} /></button>
+            <video
+              className="video-modal-player"
+              src={planVideo}
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls
+            />
           </div>
         </div>
       )}

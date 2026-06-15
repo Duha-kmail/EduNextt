@@ -117,6 +117,12 @@ const normalizeSuggestion = (s) => ({
   lessonOrder: s.lessonOrder || s.LessonOrder || [],
   subjectId: s.subjectId || s.SubjectId || "",
   lessonIds: s.lessonIds || s.LessonIds || [],
+  suggestedSubjects: (s.suggestedSubjects || s.SuggestedSubjects || []).map((subject) => ({
+    subjectId: subject.subjectId || subject.SubjectId || "",
+    subjectName: subject.subjectName || subject.SubjectName || "",
+    lessonIds: subject.lessonIds || subject.LessonIds || [],
+    lessonOrder: subject.lessonOrder || subject.LessonOrder || [],
+  })),
 });
 
 const getDayNames = (days) => {
@@ -131,6 +137,13 @@ const getDurationText = (minutes) => {
   if (minutes === 120) return "ساعتان يوميًا";
   if (minutes === 180) return "3 ساعات يوميًا";
   return `${minutes} دقيقة يوميًا`;
+};
+
+const getDurationFromWeeklyHours = (weeklyHours, studyDaysCount) => {
+  if (!weeklyHours || !studyDaysCount) return 60;
+
+  const minutesPerDay = Math.round((weeklyHours * 60) / studyDaysCount);
+  return Math.min(240, Math.max(30, Math.round(minutesPerDay / 15) * 15));
 };
 
 const StudyPlans = () => {
@@ -158,6 +171,7 @@ const StudyPlans = () => {
   const [selectedLessons, setSelectedLessons] = useState([]);
   const [selectedDays, setSelectedDays] = useState(["الأحد", "الثلاثاء", "الخميس"]);
   const [duration, setDuration] = useState(60);
+  const [appliedAiSubjects, setAppliedAiSubjects] = useState([]);
 
   const [creating, setCreating] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState(null);
@@ -308,6 +322,7 @@ const StudyPlans = () => {
     setDuration(60);
     setExpandedUnitId(null);
     setCreateError("");
+    setAppliedAiSubjects([]);
   };
 
   const toggleDay = (day) => {
@@ -349,12 +364,65 @@ const StudyPlans = () => {
     [subjects, selectedSubject]
   );
 
+  const aiSuggestedSubjects = useMemo(() => {
+    if (aiSuggestion?.suggestedSubjects?.length) {
+      return aiSuggestion.suggestedSubjects.filter((subject) => subject.subjectId);
+    }
+
+    if (!aiSuggestion?.subjectId) return [];
+
+    return [
+      {
+        subjectId: aiSuggestion.subjectId,
+        subjectName:
+          aiSuggestion.focusSubjects?.[0] ||
+          subjects.find((subject) => subject.id === aiSuggestion.subjectId)?.title ||
+          "",
+        lessonIds: aiSuggestion.lessonIds || [],
+        lessonOrder: aiSuggestion.lessonOrder || [],
+      },
+    ];
+  }, [aiSuggestion, subjects]);
+
+  const aiLessonGroups = useMemo(() => {
+    if (aiSuggestedSubjects.length) {
+      return aiSuggestedSubjects.map((subject) => ({
+        subjectName:
+          subject.subjectName ||
+          subjects.find((item) => item.id === subject.subjectId)?.title ||
+          "مادة",
+        lessons: subject.lessonOrder?.length
+          ? subject.lessonOrder
+          : subject.lessonIds?.length
+          ? subject.lessonIds.map((_, index) => `درس مقترح ${index + 1}`)
+          : [],
+      }));
+    }
+
+    return [
+      {
+        subjectName: "اقتراح عام",
+        lessons: aiSuggestion?.lessonOrder?.length
+          ? aiSuggestion.lessonOrder
+          : [aiSuggestion?.recommendationText || "أكمل درساً واحداً ثم حل اختباراً قصيراً"],
+      },
+    ];
+  }, [aiSuggestion, aiSuggestedSubjects, subjects]);
+
+  const canCreatePlan =
+    selectedDays.length > 0 &&
+    !creating &&
+    (appliedAiSubjects.length > 0
+      ? appliedAiSubjects.some((subject) => subject.lessonIds?.length)
+      : Boolean(selectedSubject && selectedLessons.length > 0));
+
   const handleSubjectChange = async (e) => {
     const value = e.target.value;
     setSelectedSubject(value);
     setCreateError("");
     setSelectedLessons([]);
     setEditingPlanId(null);
+    setAppliedAiSubjects([]);
 
     if (!value) {
       setSubjectUnits([]);
@@ -365,58 +433,94 @@ const StudyPlans = () => {
     await fetchLessonsForSubject(value);
   };
 
-  const handleCreateOrUpdatePlan = async () => {
-    if (!selectedSubject || selectedLessons.length === 0 || selectedDays.length === 0) {
-      return;
+  const saveStudyPlan = async ({ subjectId, subjectName, lessonIds, isEditing = false }) => {
+    const url = isEditing
+      ? `${API_BASE_URL}/api/student/study-plans/${editingPlanId}`
+      : `${API_BASE_URL}/api/student/study-plans`;
+
+    const method = isEditing ? "PUT" : "POST";
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        subjectId,
+        title: `خطة - ${subjectName}`,
+        description: `خطة دراسية مخصصة لمادة ${subjectName}`,
+        isAiGenerated: appliedAiSubjects.length > 0,
+        studyDays: selectedDays,
+        dailyDurationMinutes: duration,
+        lessonIds,
+      }),
+    });
+
+    let data = null;
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      data = await response.json();
     }
+
+    if (!response.ok) {
+      throw new Error(data?.message || (isEditing ? "فشل تعديل الخطة" : "فشل إنشاء الخطة"));
+    }
+
+    return normalizePlan(data);
+  };
+
+  const handleCreateOrUpdatePlan = async () => {
+    if (!canCreatePlan) return;
 
     try {
       setCreating(true);
       setCreateError("");
 
       const isEditing = Boolean(editingPlanId);
-      const url = isEditing
-        ? `${API_BASE_URL}/api/student/study-plans/${editingPlanId}`
-        : `${API_BASE_URL}/api/student/study-plans`;
-
-      const method = isEditing ? "PUT" : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          subjectId: selectedSubject,
-          title: `خطة - ${selectedSubjectName}`,
-          description: `خطة دراسية مخصصة لمادة ${selectedSubjectName}`,
-          isAiGenerated: selectedSubject === aiSuggestion?.subjectId,
-          studyDays: selectedDays,
-          dailyDurationMinutes: duration,
-          lessonIds: selectedLessons,
-        }),
-      });
-
-      let data = null;
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        data = await response.json();
-      }
-
-      if (!response.ok) {
-        setCreateError(data?.message || (isEditing ? "فشل تعديل الخطة" : "فشل إنشاء الخطة"));
-        return;
-      }
-
-      const normalizedPlan = normalizePlan(data);
 
       if (isEditing) {
+        const normalizedPlan = await saveStudyPlan({
+          subjectId: selectedSubject,
+          subjectName: selectedSubjectName,
+          lessonIds: selectedLessons,
+          isEditing: true,
+        });
+
         setPlans((prev) =>
           prev.map((plan) => (plan.id === editingPlanId ? normalizedPlan : plan))
         );
       } else {
-        setPlans((prev) => [normalizedPlan, ...prev]);
+        const plansToCreate =
+          appliedAiSubjects.length > 0
+            ? appliedAiSubjects
+                .map((subject) => ({
+                  subjectId: subject.subjectId,
+                  subjectName:
+                    subject.subjectName ||
+                    subjects.find((item) => item.id === subject.subjectId)?.title ||
+                    "مادة",
+                  lessonIds:
+                    subject.subjectId === selectedSubject && selectedLessons.length > 0
+                      ? selectedLessons
+                      : subject.lessonIds,
+                }))
+                .filter((subject) => subject.subjectId && subject.lessonIds?.length)
+            : [
+                {
+                  subjectId: selectedSubject,
+                  subjectName: selectedSubjectName,
+                  lessonIds: selectedLessons,
+                },
+              ];
+
+        const createdPlans = [];
+
+        for (const plan of plansToCreate) {
+          createdPlans.push(await saveStudyPlan(plan));
+        }
+
+        setPlans((prev) => [...createdPlans, ...prev]);
       }
 
       setShowSuccess(true);
@@ -425,7 +529,7 @@ const StudyPlans = () => {
       resetForm();
     } catch (error) {
       console.error(error);
-      setCreateError("تعذر الاتصال بالسيرفر");
+      setCreateError(error.message || "تعذر الاتصال بالسيرفر");
     } finally {
       setCreating(false);
     }
@@ -435,6 +539,7 @@ const StudyPlans = () => {
     setOpenMenuId(null);
     setCreateError("");
     setEditingPlanId(plan.id);
+    setAppliedAiSubjects([]);
     setSelectedSubject(plan.subjectId || "");
     setSelectedDays(Array.isArray(plan.studyDays) ? plan.studyDays : []);
     setDuration(plan.dailyDurationMinutes || 60);
@@ -457,29 +562,36 @@ const StudyPlans = () => {
   };
 
   const handleApplyAiSuggestion = async () => {
-    if (!aiSuggestion?.subjectId) return;
+    const firstSuggestedSubject = aiSuggestedSubjects.find((subject) => subject.subjectId);
 
-    setSelectedSubject(aiSuggestion.subjectId);
+    if (!firstSuggestedSubject) return;
+
+    setSelectedSubject(firstSuggestedSubject.subjectId);
+    setAppliedAiSubjects(aiSuggestedSubjects);
     setEditingPlanId(null);
     setCreateError("");
+    setDuration(getDurationFromWeeklyHours(aiSuggestion?.weeklyStudyHours, selectedDays.length));
 
-    await fetchLessonsForSubject(aiSuggestion.subjectId);
+    await fetchLessonsForSubject(firstSuggestedSubject.subjectId);
 
-    if (aiSuggestion.lessonIds?.length) {
-      setSelectedLessons(aiSuggestion.lessonIds);
+    if (firstSuggestedSubject.lessonIds?.length) {
+      setSelectedLessons(firstSuggestedSubject.lessonIds);
     }
 
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   useEffect(() => {
-    if (!pendingAiApplyRef.current || suggestionLoading || !aiSuggestion?.subjectId) {
+    const hasSuggestion =
+      aiSuggestion?.suggestedSubjects?.length || aiSuggestion?.subjectId;
+
+    if (!pendingAiApplyRef.current || suggestionLoading || !hasSuggestion) {
       return;
     }
 
     pendingAiApplyRef.current = false;
     handleApplyAiSuggestion();
-  }, [suggestionLoading, aiSuggestion?.subjectId]);
+  }, [suggestionLoading, aiSuggestion?.subjectId, aiSuggestion?.suggestedSubjects?.length]);
 
   const handleDeletePlan = async (planId) => {
     try {
@@ -738,7 +850,9 @@ const StudyPlans = () => {
 
               {selectedLessons.length > 0 && (
                 <p className="sp-selected-lessons-count">
-                  تم اختيار {selectedLessons.length} درس
+                  {appliedAiSubjects.length > 1
+                    ? `سيتم إنشاء ${appliedAiSubjects.length} خطط حسب مواد الذكاء الاصطناعي`
+                    : `تم اختيار ${selectedLessons.length} درس`}
                 </p>
               )}
 
@@ -751,10 +865,7 @@ const StudyPlans = () => {
                   whileTap={{ scale: creating ? 1 : 0.98 }}
                   onClick={handleCreateOrUpdatePlan}
                   disabled={
-                    !selectedSubject ||
-                    selectedLessons.length === 0 ||
-                    selectedDays.length === 0 ||
-                    creating
+                    !canCreatePlan
                   }
                 >
                   {creating ? (
@@ -768,6 +879,8 @@ const StudyPlans = () => {
                       : "جاري إنشاء الخطة..."
                     : editingPlanId
                     ? "حفظ التعديلات"
+                    : appliedAiSubjects.length > 1
+                    ? `إنشاء ${appliedAiSubjects.length} خطط`
                     : "إنشاء الخطة"}
                 </motion.button>
 
@@ -961,16 +1074,28 @@ const StudyPlans = () => {
 
             <div className="sp-ai-info">
               <span className="sp-ai-label">الترتيب المقترح للدروس:</span>
-              <ul className="sp-ai-lessons">
-                {(aiSuggestion?.lessonOrder?.length
-                  ? aiSuggestion.lessonOrder
-                  : [aiSuggestion?.recommendationText || "أكمل درساً واحداً ثم حل اختباراً قصيراً"]
-                ).slice(0, 3).map((item, index) => (
-                  <li key={`${item}-${index}`}>
-                    <span className="sp-ai-num">{index + 1}</span> {item}
-                  </li>
-                ))}
-              </ul>
+              <div className="sp-ai-lesson-groups">
+                {suggestionLoading ? (
+                  <p className="sp-ai-note">جاري تجهيز ترتيب الدروس...</p>
+                ) : (
+                  aiLessonGroups.map((group) => (
+                    <div key={group.subjectName} className="sp-ai-lesson-group">
+                      <div className="sp-ai-subject-title">{group.subjectName}</div>
+                      <ul className="sp-ai-lessons">
+                        {(group.lessons?.length
+                          ? group.lessons
+                          : ["ابدأ بالدرس التالي المتاح لهذه المادة"]
+                        ).map((item, index) => (
+                          <li key={`${group.subjectName}-${item}-${index}`}>
+                            <span className="sp-ai-num">{index + 1}</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
             <motion.button
@@ -978,7 +1103,9 @@ const StudyPlans = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               onClick={handleApplyAiSuggestion}
-              disabled={!aiSuggestion?.subjectId}
+              disabled={
+                suggestionLoading || aiSuggestedSubjects.length === 0
+              }
             >
               تطبيق هذه الخطة
             </motion.button>

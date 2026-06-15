@@ -399,8 +399,7 @@ const Dashboard = () => {
   const headerTitle = normalizedData?.header?.title || normalizedData?.header?.Title || "أهلاً بك";
   const headerSubtitle =
     normalizedData?.header?.subtitle ||
-    normalizedData?.header?.Subtitle ||
-    "هل أنت مستعد لمواصلة التحضير للتوجيهي؟";
+    normalizedData?.header?.Subtitle ;
 
   const statsData = normalizedData?.stats || [];
   const weeklyProgress = normalizedData?.weeklyProgress || [];

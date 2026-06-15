@@ -364,7 +364,11 @@ export default function AdminExams() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout
+        title="إدارة الامتحانات"
+        subtitle="نظام إدارة وتقييم الاختبارات التعليمية للطلاب."
+        titleIcon={ClipboardList}
+      >
         <div className="admin-main-ex rtl" style={{ minHeight: "350px", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
           <Loader2 className="animate-spin" />
           <span>جاري تحميل الامتحانات...</span>
@@ -374,31 +378,21 @@ export default function AdminExams() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title="إدارة الامتحانات"
+      subtitle="نظام إدارة وتقييم الاختبارات التعليمية للطلاب."
+      titleIcon={ClipboardList}
+      headerContent={
+        <div className="admin-messages-toolbar">
+          <button className="btn-primary-ex" onClick={handleAddNew}>
+            <Plus size={18} />
+            <span>إضافة امتحان</span>
+          </button>
+        </div>
+      }
+    >
       <div className="app-container" dir="rtl">
         <main className="admin-main-ex rtl">
-          <div className="page-header-ex">
-            <div className="header-text-ex">
-              <span className="page-kicker-ex">
-                <Sparkles size={15} />
-                مركز الاختبارات
-              </span>
-              <h1>إدارة الامتحانات</h1>
-              <p>نظام إدارة وتقييم الاختبارات التعليمية للطلاب</p>
-            </div>
-
-            <div className="exam-hero-panel" aria-hidden="true">
-              <div className="exam-floating-badge exam-floating-badge-one"><ClipboardList size={22} /></div>
-              <div className="exam-floating-badge exam-floating-badge-two"><GraduationCap size={20} /></div>
-              <div className="exam-hero-card"><BookOpenCheck size={34} /><span>جاهز للتقييم</span></div>
-            </div>
-
-            <button className="btn-primary-ex" onClick={handleAddNew}>
-              <Plus size={18} />
-              <span>إضافة امتحان جديد</span>
-            </button>
-          </div>
-
           {pageError && (
             <div style={{ marginBottom: "16px", padding: "12px 16px", borderRadius: "12px", background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
               {pageError}

@@ -18,6 +18,7 @@ import { API_BASE_URL } from "@/config/api";
 import "./AdminMessages.css";
 
 const SEEN_MESSAGES_KEY = "edunext_admin_seen_contact_messages";
+const UNREAD_COUNT_KEY = "edunext_admin_unread_messages_count";
 
 const getId = (message) => String(message.id || message.Id || "");
 const getName = (message) => message.name || message.Name || "مرسل بدون اسم";
@@ -99,6 +100,11 @@ export default function AdminMessages() {
     () => messages.filter((message) => !seenIds.has(getId(message))),
     [messages, seenIds]
   );
+
+  useEffect(() => {
+    localStorage.setItem(UNREAD_COUNT_KEY, String(unseenMessages.length));
+    window.dispatchEvent(new CustomEvent("unreadMessagesUpdated", { detail: unseenMessages.length }));
+  }, [unseenMessages.length]);
 
   const filteredMessages = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();

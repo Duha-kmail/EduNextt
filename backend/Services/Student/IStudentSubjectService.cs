@@ -14,7 +14,8 @@ public interface IStudentSubjectService
         Guid userId,
         Guid subjectId,
         Guid lessonId,
-        bool completed
+        bool completed,
+        int? durationSeconds = null
     );
 
     Task<List<OnboardingSubjectDto>> GetSubjectsByBranchAsync(string branch);

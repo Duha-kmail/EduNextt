@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
+import chatbotIcon from "../../../assets/robot.png";
 import {
   BookMarked,
   Atom,
@@ -371,6 +372,7 @@ const Subjects = () => {
   const token = getAuthToken();
   const location = useLocation();
   const pendingNavigationRef = useRef(location.state || null);
+  const lessonOpenedAtRef = useRef(null);
 
   const [subjects, setSubjects] = useState([]);
   const [subjectsLoading, setSubjectsLoading] = useState(true);
@@ -478,9 +480,9 @@ const Subjects = () => {
         lessons: unit.lessons.map((lesson) =>
           lesson.lessonId === lessonId
             ? {
-                ...lesson,
-                completed,
-              }
+              ...lesson,
+              completed,
+            }
             : lesson
         ),
       }));
@@ -504,11 +506,11 @@ const Subjects = () => {
         prevSubjects.map((subject) =>
           subject.id === updatedSubject.id
             ? {
-                ...subject,
-                completed: completedCount,
-                lessons: totalLessons,
-                progress,
-              }
+              ...subject,
+              completed: completedCount,
+              lessons: totalLessons,
+              progress,
+            }
             : subject
         )
       );
@@ -519,9 +521,9 @@ const Subjects = () => {
     setLessonDetails((previous) =>
       previous
         ? {
-            ...previous,
-            completed,
-          }
+          ...previous,
+          completed,
+        }
         : previous
     );
   };
@@ -552,6 +554,10 @@ const Subjects = () => {
     try {
       setCompletionLoading(true);
       setCompletionError("");
+      const durationSeconds =
+        completed && lessonOpenedAtRef.current
+          ? Math.max(1, Math.round((Date.now() - lessonOpenedAtRef.current) / 1000))
+          : null;
 
       const response = await fetch(
         `${API_BASE_URL}/api/student/subjects/${selectedSubjectId}/lessons/${selectedLessonId}/completion`,
@@ -563,6 +569,7 @@ const Subjects = () => {
           },
           body: JSON.stringify({
             completed,
+            durationSeconds,
           }),
         }
       );
@@ -589,6 +596,7 @@ const Subjects = () => {
         ...normalizedLesson,
         completed,
       }));
+      lessonOpenedAtRef.current = Date.now();
 
       updateLocalLessonCompletion(selectedLessonId, completed);
 
@@ -652,6 +660,7 @@ const Subjects = () => {
     try {
       setSelectedSubjectId(subjectId);
       setSelectedLessonId(null);
+      lessonOpenedAtRef.current = null;
       setLessonDetails(null);
       setSubjectDetailsLoading(true);
       setSubjectDetailsError("");
@@ -713,6 +722,7 @@ const Subjects = () => {
 
     try {
       setSelectedLessonId(lessonId);
+      lessonOpenedAtRef.current = Date.now();
       setLessonDetails(null);
       setLessonLoading(true);
       setLessonError("");
@@ -945,6 +955,7 @@ const Subjects = () => {
             style={{ marginBottom: "1rem" }}
             onClick={() => {
               setSelectedLessonId(null);
+              lessonOpenedAtRef.current = null;
               setLessonDetails(null);
               setLessonError("");
               setCompletionError("");
@@ -1311,21 +1322,25 @@ const Subjects = () => {
             </div>
           ) : null}
 
-          <AnimatePresence>
-            {!chatOpen && lesson && chatbotConfig && (
-              <motion.button
-                className="chatbot-fab"
-                onClick={() => setChatOpen(true)}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <ChatbotIcon size={24} />
-              </motion.button>
-            )}
-          </AnimatePresence>
+          <motion.button
+            className="chatbot-fab"
+            onClick={() => setChatOpen(true)}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <img
+              src={chatbotIcon}
+              alt="Chatbot"
+              style={{
+                width: "32px",
+                height: "32px",
+                objectFit: "contain",
+              }}
+            />
+          </motion.button>
 
           <AnimatePresence>
             {chatOpen && lesson && chatbotConfig && (
@@ -1339,7 +1354,15 @@ const Subjects = () => {
                 <div className="chatbot-panel-header" style={{ "--chat-accent": chatbotConfig.accent }}>
                   <div className="chatbot-title-wrap">
                     <span className="chatbot-avatar">
-                      <ChatbotIcon size={20} />
+                      <img
+                        src={chatbotIcon}
+                        alt="Chatbot"
+                        style={{
+                          width: "28px",
+                          height: "28px",
+                          objectFit: "contain",
+                        }}
+                      />
                     </span>
                     <span>
                       <strong>{chatbotConfig.title}</strong>
@@ -1419,9 +1442,8 @@ const Subjects = () => {
                   {chatMessages.map((message, index) => (
                     <div
                       key={index}
-                      className={`chat-message ${
-                        message.role === "ai" ? "chat-message-ai" : "chat-message-user"
-                      }`}
+                      className={`chat-message ${message.role === "ai" ? "chat-message-ai" : "chat-message-user"
+                        }`}
                       dir={hasArabicText(message.text) ? "rtl" : "ltr"}
                     >
                       <span className="chatbot-message-label">
@@ -1557,6 +1579,7 @@ const Subjects = () => {
               setSubjectDetails(null);
               setSubjectDetailsError("");
               setSelectedLessonId(null);
+              lessonOpenedAtRef.current = null;
               setLessonDetails(null);
               setCompletionError("");
               setChatOpen(false);
@@ -1660,9 +1683,8 @@ const Subjects = () => {
                                 return (
                                   <motion.div
                                     key={lesson.lessonId}
-                                    className={`lesson-item ${
-                                      lesson.completed ? "lesson-completed" : ""
-                                    }`}
+                                    className={`lesson-item ${lesson.completed ? "lesson-completed" : ""
+                                      }`}
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.04 }}
@@ -1677,9 +1699,8 @@ const Subjects = () => {
                                   >
                                     <div className="lesson-item-right">
                                       <div
-                                        className={`lesson-number ${
-                                          lesson.completed ? "lesson-number-done" : ""
-                                        }`}
+                                        className={`lesson-number ${lesson.completed ? "lesson-number-done" : ""
+                                          }`}
                                         style={{
                                           background: lesson.completed ? "#dcfce7" : undefined,
                                           color: lesson.completed ? "#15803d" : undefined,
