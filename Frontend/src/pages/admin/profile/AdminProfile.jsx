@@ -38,6 +38,14 @@ const readResponseBody = async (res) => {
   try { return JSON.parse(raw); } catch { return { message: raw }; }
 };
 
+const normalizePhone = (value) =>
+  String(value || "").replace(/[^\d+]/g, "").replace(/(?!^)\+/g, "");
+
+const isValidPhone = (value) => {
+  if (!value) return true;
+  return /^\+?\d{7,15}$/.test(value);
+};
+
 /* ── Design tokens (match Home page) ── */
 const C = {
   teal: "#08b7aa",
@@ -86,6 +94,7 @@ const Profile = () => {
   const [editing, setEditing] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   /* password lives inside the info card, shown only while editing */
@@ -102,6 +111,12 @@ const Profile = () => {
 
   const authHeaders = useMemo(() => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` }), [token]);
   const activityHistory = useMemo(() => profileData?.activityHistory || [], [profileData]);
+
+  const handlePhoneChange = (value) => {
+    const cleaned = normalizePhone(value);
+    setFormData((prev) => ({ ...prev, phone: cleaned }));
+    setPhoneError(cleaned && !isValidPhone(cleaned) ? "رقم الهاتف يجب أن يحتوي على أرقام فقط ويمكن أن يبدأ بـ +." : "");
+  };
 
   /* ── fetch ── */
   const fetchProfile = async () => {
