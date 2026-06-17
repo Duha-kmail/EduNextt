@@ -22,6 +22,18 @@ public interface IStudentSetupRepository
 
     Task<List<subject>> GetAllSubjectsForOnboardingAsync();
 
+    Task<student_preference?> GetPreferenceForUpdateAsync(Guid userId);
+
+    student_preference CreatePreference(Guid userId, DateTime now);
+
+    void RemovePreferenceLearningMethods(IEnumerable<student_preference_learning_method> methods);
+
+    void RemovePreferenceDifficultSubjects(IEnumerable<student_preference_difficult_subject> subjects);
+
+    void AddPreferenceLearningMethod(student_preference_learning_method method);
+
+    void AddPreferenceDifficultSubject(student_preference_difficult_subject subject);
+
     void RemoveProfileSubjects(IEnumerable<student_profile_subject> subjects);
 
     void AddProfileSubject(student_profile_subject profileSubject);

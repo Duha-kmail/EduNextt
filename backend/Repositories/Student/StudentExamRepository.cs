@@ -223,6 +223,11 @@ public class StudentExamRepository : IStudentExamRepository
         _db.ai_recommendations.Add(recommendation);
     }
 
+    public void AddSubjectAnalysis(subject_analysis analysis)
+    {
+        _db.subject_analyses.Add(analysis);
+    }
+
     public Task SaveChangesAsync()
     {
         return _db.SaveChangesAsync();

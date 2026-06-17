@@ -36,6 +36,8 @@ public interface IStudentExamRepository
 
     void AddAiRecommendation(ai_recommendation recommendation);
 
+    void AddSubjectAnalysis(subject_analysis analysis);
+
     Task SaveChangesAsync();
 }
 

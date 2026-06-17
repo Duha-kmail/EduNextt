@@ -334,6 +334,8 @@ public class StudentSetupService : IStudentSetupService
             });
         }
 
+        await SaveStudentPreferencesAsync(userId, branch, hours, goal, level, examExp, cleanMethods, matchedSubjects);
+
         user.onboarding_completed = true;
         user.onboarding_completed_at = GetUtcNow();
 
@@ -401,6 +403,53 @@ public class StudentSetupService : IStudentSetupService
         EnsureLearningMethods(profile);
 
         return profile;
+    }
+
+    private async Task SaveStudentPreferencesAsync(
+        Guid userId,
+        string branch,
+        string hours,
+        string goal,
+        string level,
+        string examExp,
+        List<string> methods,
+        List<subject> difficultSubjects
+    )
+    {
+        var now = GetUnspecifiedNow();
+        var preference = await _repository.GetPreferenceForUpdateAsync(userId)
+            ?? _repository.CreatePreference(userId, now);
+
+        preference.branch_code = ToPreferenceCode(branch, 20);
+        preference.study_hours_code = ToPreferenceCode(hours, 20);
+        preference.goal_code = ToPreferenceCode(goal, 30);
+        preference.level_code = ToPreferenceCode(level, 20);
+        preference.exam_experience_code = ToPreferenceCode(examExp, 20);
+        preference.has_other_difficult_subject = false;
+        preference.updated_at = now;
+
+        _repository.RemovePreferenceLearningMethods(preference.student_preference_learning_methods);
+        _repository.RemovePreferenceDifficultSubjects(preference.student_preference_difficult_subjects);
+
+        foreach (var method in methods)
+        {
+            _repository.AddPreferenceLearningMethod(new student_preference_learning_method
+            {
+                user_id = userId,
+                method_code = ToPreferenceCode(method, 20),
+                created_at = now
+            });
+        }
+
+        foreach (var subject in difficultSubjects)
+        {
+            _repository.AddPreferenceDifficultSubject(new student_preference_difficult_subject
+            {
+                user_id = userId,
+                subject_id = subject.id,
+                created_at = now
+            });
+        }
     }
 
     private static StudentSetupDto BuildSetupDto(user user, student_profile? profile)
@@ -484,6 +533,15 @@ public class StudentSetupService : IStudentSetupService
             .Select(x => x.Trim())
             .Distinct()
             .ToList() ?? new List<string>();
+    }
+
+    private static string ToPreferenceCode(string? value, int maxLength)
+    {
+        var clean = (value ?? "").Trim();
+
+        return clean.Length <= maxLength
+            ? clean
+            : clean[..maxLength];
     }
 
     private static DateTime GetUtcNow()

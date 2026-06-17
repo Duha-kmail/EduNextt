@@ -120,7 +120,11 @@ public class StudentStudyPlanService : IStudentStudyPlanService
             }).ToList()
         });
 
-        var orderedSubjectProgress = subjectProgress
+        var subjectsWithRemainingLessons = subjectProgress
+            .Where(s => s.TotalLessons > s.CompletedLessons)
+            .ToList();
+
+        var orderedSubjectProgress = subjectsWithRemainingLessons
             .OrderBy(s => s.AverageScore <= 0 ? 100 : s.AverageScore)
             .ThenBy(s => s.TotalLessons == 0 ? 100 : s.CompletedLessons * 100.0 / s.TotalLessons)
             .ToList();
@@ -134,9 +138,7 @@ public class StudentStudyPlanService : IStudentStudyPlanService
             focusSubjects = orderedSubjectProgress
                 .Where(s =>
                     s.AverageScore is > 0 and < 70 ||
-                    s.TotalLessons == 0 ||
-                    s.CompletedLessons * 100.0 / Math.Max(1, s.TotalLessons) < 60 ||
-                    s.TotalLessons > s.CompletedLessons)
+                    s.CompletedLessons * 100.0 / Math.Max(1, s.TotalLessons) < 60)
                 .Take(3)
                 .ToList();
         }
@@ -150,8 +152,8 @@ public class StudentStudyPlanService : IStudentStudyPlanService
 
         foreach (var subject in focusSubjects)
         {
-            var subjectLessons = await _repository.GetLessonsBySubjectAsync(subject.SubjectId);
-            var lessonIds = PickSuggestedLessonIds(subject, subjectLessons, aiResponse.LessonOrder);
+            var subjectLessons = await _repository.GetIncompleteLessonsBySubjectAsync(userId, subject.SubjectId);
+            var lessonIds = PickSuggestedLessonIds(subject, subjectLessons);
 
             if (lessonIds.Count == 0)
             {
@@ -439,24 +441,10 @@ public class StudentStudyPlanService : IStudentStudyPlanService
 
     private static List<Guid> PickSuggestedLessonIds(
         StudentStudyPlanSubjectProgressData subject,
-        List<StudyPlanLessonOptionData> subjectLessons,
-        List<string> aiLessonOrder
+        List<StudyPlanLessonOptionData> subjectLessons
     )
     {
         var selected = new List<Guid>();
-
-        foreach (var aiLesson in aiLessonOrder)
-        {
-            var matchedLesson = subjectLessons.FirstOrDefault(lesson =>
-                LessonNamesMatch(aiLesson, lesson.LessonTitle) ||
-                (SubjectNamesMatch(aiLesson, subject.SubjectName) && LessonNamesMatch(aiLesson, lesson.LessonTitle))
-            );
-
-            if (matchedLesson != null && !selected.Contains(matchedLesson.LessonId))
-            {
-                selected.Add(matchedLesson.LessonId);
-            }
-        }
 
         if (subject.NextLessonId != null && !selected.Contains(subject.NextLessonId.Value))
         {

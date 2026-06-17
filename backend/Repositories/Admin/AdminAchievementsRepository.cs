@@ -170,6 +170,7 @@ public class AdminAchievementsRepository : IAdminAchievementsRepository
         };
 
         _context.achievements.Add(achievement);
+        AddAdminLog("create_achievement", $"Created achievement {achievement.title_ar}");
 
         await _context.SaveChangesAsync();
 
@@ -208,6 +209,7 @@ public class AdminAchievementsRepository : IAdminAchievementsRepository
         achievement.reward_value = dto.RewardValue;
         achievement.is_active = dto.Status == "active";
         achievement.updated_at = GetUnspecifiedNow();
+        AddAdminLog("update_achievement", $"Updated achievement {achievement.title_ar}");
 
         await _context.SaveChangesAsync();
 
@@ -226,6 +228,7 @@ public class AdminAchievementsRepository : IAdminAchievementsRepository
 
         achievement.is_active = false;
         achievement.updated_at = GetUnspecifiedNow();
+        AddAdminLog("delete_achievement", $"Disabled achievement {achievement.title_ar}");
 
         await _context.SaveChangesAsync();
 
@@ -366,6 +369,17 @@ public class AdminAchievementsRepository : IAdminAchievementsRepository
             .ThenBy(a => a.TitleAr)
             .Take(6)
             .ToList();
+    }
+
+    private void AddAdminLog(string actionType, string description)
+    {
+        _context.admin_logs.Add(new admin_log
+        {
+            id = Guid.NewGuid(),
+            action_type = actionType,
+            description = description,
+            created_at = DateTime.Now
+        });
     }
 
     private async Task<int> GetTotalActiveStudentsAsync()

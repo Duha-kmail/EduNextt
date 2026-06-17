@@ -106,6 +106,7 @@ public class AdminExamsRepository : IAdminExamsRepository
             _context.questions.Add(MapQuestionDtoToEntity(questionDto, exam.id));
         }
 
+        AddAdminLog("create_exam", $"Created exam {exam.title}");
         await _context.SaveChangesAsync();
 
         return await GetExamByIdAsync(exam.id);
@@ -143,6 +144,7 @@ public class AdminExamsRepository : IAdminExamsRepository
             _context.questions.Add(MapQuestionDtoToEntity(questionDto, exam.id));
         }
 
+        AddAdminLog("update_exam", $"Updated exam {exam.title}");
         await _context.SaveChangesAsync();
 
         return await GetExamByIdAsync(exam.id);
@@ -156,6 +158,7 @@ public class AdminExamsRepository : IAdminExamsRepository
         if (exam == null)
             return false;
 
+        AddAdminLog("delete_exam", $"Deleted exam {exam.title}");
         _context.exams.Remove(exam);
         await _context.SaveChangesAsync();
 
@@ -199,6 +202,17 @@ public class AdminExamsRepository : IAdminExamsRepository
                 }).ToList()
             })
             .FirstOrDefaultAsync();
+    }
+
+    private void AddAdminLog(string actionType, string description)
+    {
+        _context.admin_logs.Add(new admin_log
+        {
+            id = Guid.NewGuid(),
+            action_type = actionType,
+            description = description,
+            created_at = DateTime.Now
+        });
     }
 
     private async Task<AdminExamsStatsDto> GetStatsAsync()

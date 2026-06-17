@@ -212,6 +212,43 @@ public class StudentStudyPlanRepository : IStudentStudyPlanRepository
             .ToList();
     }
 
+    public async Task<List<StudyPlanLessonOptionData>> GetIncompleteLessonsBySubjectAsync(Guid userId, Guid subjectId)
+    {
+        var completedLessonIds = _db.lesson_progresses
+            .AsNoTracking()
+            .Where(lp =>
+                lp.user_id == userId &&
+                lp.lesson_id != null &&
+                lp.completed == true)
+            .Select(lp => lp.lesson_id!.Value);
+
+        var rawLessons = await _db.lessons
+            .AsNoTracking()
+            .Where(l => l.subject_id == subjectId && !completedLessonIds.Contains(l.id))
+            .OrderBy(l => l.subject_unit != null ? l.subject_unit.order_number : int.MaxValue)
+            .ThenBy(l => l.order_number ?? int.MaxValue)
+            .ThenBy(l => l.title)
+            .Select(l => new
+            {
+                l.id,
+                l.title,
+                LessonOrder = l.order_number ?? 0,
+                UnitTitle = l.subject_unit != null ? l.subject_unit.title : "ط¨ط¯ظˆظ† ظˆط­ط¯ط©"
+            })
+            .ToListAsync();
+
+        return rawLessons
+            .Select((lesson, index) => new StudyPlanLessonOptionData
+            {
+                LessonId = lesson.id,
+                LessonTitle = lesson.title,
+                OrderNumber = lesson.LessonOrder,
+                DisplayOrder = index + 1,
+                UnitTitle = lesson.UnitTitle
+            })
+            .ToList();
+    }
+
     public Task<List<lesson>> GetValidLessonsAsync(Guid subjectId, List<Guid> lessonIds)
     {
         return _db.lessons

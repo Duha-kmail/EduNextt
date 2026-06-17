@@ -115,6 +115,9 @@ public class AuthService : IAuthService
             _db.users.Add(newUser);
             await _db.SaveChangesAsync();
 
+            _db.user_stats.Add(CreateInitialUserStat(newUser.id));
+            await _db.SaveChangesAsync();
+
             var token = _jwtTokenService.GenerateToken(newUser);
 
             await transaction.CommitAsync();
@@ -292,6 +295,9 @@ public class AuthService : IAuthService
         try
         {
             _db.users.Add(newUser);
+            await _db.SaveChangesAsync();
+
+            _db.user_stats.Add(CreateInitialUserStat(newUser.id));
             await _db.SaveChangesAsync();
 
             await transaction.CommitAsync();
@@ -578,6 +584,19 @@ public class AuthService : IAuthService
     private static string NormalizeEmail(string? email)
     {
         return email?.Trim().ToLowerInvariant() ?? "";
+    }
+
+    private static user_stat CreateInitialUserStat(Guid userId)
+    {
+        return new user_stat
+        {
+            user_id = userId,
+            points = 0,
+            level = 1,
+            streak_days = 0,
+            last_activity_date = DateOnly.FromDateTime(DateTime.Now),
+            updated_at = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
+        };
     }
 
     private static string GetOtpCacheKey(string email)
