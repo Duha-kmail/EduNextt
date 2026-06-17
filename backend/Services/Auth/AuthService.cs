@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using backend.Data.Generated;
 using backend.DTOs.Auth;
+using backend.Models;
 using backend.Models.Generated;
 using backend.Services.Guest;
 using Microsoft.EntityFrameworkCore;
@@ -114,6 +115,9 @@ public class AuthService : IAuthService
             _db.users.Add(newUser);
             await _db.SaveChangesAsync();
 
+            _db.user_stats.Add(CreateInitialUserStat(newUser.id));
+            await _db.SaveChangesAsync();
+
             var token = _jwtTokenService.GenerateToken(newUser);
 
             await transaction.CommitAsync();
@@ -214,7 +218,7 @@ public class AuthService : IAuthService
             );
         }
 
-        var response = await BuildAuthResponseAsync(user);
+        var response = await BuildAuthResponseAsync(user, dto.RememberMe);
 
         return AuthResult<AuthResponseDto>.Ok(
             response,
@@ -222,98 +226,101 @@ public class AuthService : IAuthService
         );
     }
 
-public async Task<AuthResult<AuthResponseDto>> GoogleLoginAsync(GoogleLoginRequestDto dto)
-{
-    if (dto == null || string.IsNullOrWhiteSpace(dto.IdToken))
+    public async Task<AuthResult<AuthResponseDto>> GoogleLoginAsync(GoogleLoginRequestDto dto)
     {
-        return AuthResult<AuthResponseDto>.Fail(
-            400,
-            "تعذر تسجيل الدخول باستخدام جوجل. يرجى المحاولة مرة أخرى."
-        );
-    }
-
-    GoogleUserInfo? googleUser;
-
-    try
-    {
-        googleUser = await _googleTokenValidator.ValidateAsync(dto.IdToken);
-    }
-    catch
-    {
-        return AuthResult<AuthResponseDto>.Fail(
-            500,
-            "حدث خطأ أثناء التحقق من حساب جوجل. تأكد من إعدادات Google Client ID."
-        );
-    }
-
-    if (googleUser == null)
-    {
-        return AuthResult<AuthResponseDto>.Fail(
-            401,
-            "فشل التحقق من حساب جوجل. تأكد من اختيار الحساب الصحيح والمحاولة مرة أخرى."
-        );
-    }
-
-    var user = await _db.users.FirstOrDefaultAsync(x => x.email == googleUser.Email);
-
-    if (user != null)
-    {
-        if (user.is_active == false)
+        if (dto == null || string.IsNullOrWhiteSpace(dto.IdToken))
         {
             return AuthResult<AuthResponseDto>.Fail(
-                401,
-                "هذا الحساب معطل. يرجى التواصل مع الدعم."
+                400,
+                "تعذر تسجيل الدخول باستخدام جوجل. يرجى المحاولة مرة أخرى."
             );
         }
 
-        var existingUserResponse = await BuildAuthResponseAsync(user);
+        GoogleUserInfo? googleUser;
 
-        return AuthResult<AuthResponseDto>.Ok(
-            existingUserResponse,
-            "تم تسجيل الدخول باستخدام جوجل بنجاح."
-        );
+        try
+        {
+            googleUser = await _googleTokenValidator.ValidateAsync(dto.IdToken);
+        }
+        catch
+        {
+            return AuthResult<AuthResponseDto>.Fail(
+                500,
+                "حدث خطأ أثناء التحقق من حساب جوجل. تأكد من إعدادات Google Client ID."
+            );
+        }
+
+        if (googleUser == null)
+        {
+            return AuthResult<AuthResponseDto>.Fail(
+                401,
+                "فشل التحقق من حساب جوجل. تأكد من اختيار الحساب الصحيح والمحاولة مرة أخرى."
+            );
+        }
+
+        var user = await _db.users.FirstOrDefaultAsync(x => x.email == googleUser.Email);
+
+        if (user != null)
+        {
+            if (user.is_active == false)
+            {
+                return AuthResult<AuthResponseDto>.Fail(
+                    401,
+                    "هذا الحساب معطل. يرجى التواصل مع الدعم."
+                );
+            }
+
+            var existingUserResponse = await BuildAuthResponseAsync(user, rememberMe: false);
+
+            return AuthResult<AuthResponseDto>.Ok(
+                existingUserResponse,
+                "تم تسجيل الدخول باستخدام جوجل بنجاح."
+            );
+        }
+
+        var generatedPassword = $"{Guid.NewGuid():N}-{googleUser.GoogleUserId}";
+
+        var newUser = new user
+        {
+            full_name = googleUser.FullName,
+            email = googleUser.Email,
+            password_hash = BCrypt.Net.BCrypt.HashPassword(generatedPassword),
+            role = "student",
+            is_active = true,
+            onboarding_completed = false
+        };
+
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+
+        try
+        {
+            _db.users.Add(newUser);
+            await _db.SaveChangesAsync();
+
+            _db.user_stats.Add(CreateInitialUserStat(newUser.id));
+            await _db.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
+            var newUserResponse = await BuildAuthResponseAsync(newUser, rememberMe: false);
+
+            return AuthResult<AuthResponseDto>.Ok(
+                newUserResponse,
+                "تم إنشاء الحساب وتسجيل الدخول باستخدام جوجل بنجاح."
+            );
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+
+            Console.WriteLine("Google login database error: " + ex.Message);
+
+            return AuthResult<AuthResponseDto>.Fail(
+                500,
+                "حدث خطأ أثناء تسجيل الدخول باستخدام جوجل. يرجى المحاولة مرة أخرى."
+            );
+        }
     }
-
-    var generatedPassword = $"{Guid.NewGuid():N}-{googleUser.GoogleUserId}";
-
-    var newUser = new user
-    {
-        full_name = googleUser.FullName,
-        email = googleUser.Email,
-        password_hash = BCrypt.Net.BCrypt.HashPassword(generatedPassword),
-        role = "student",
-        is_active = true,
-        onboarding_completed = false
-    };
-
-    await using var transaction = await _db.Database.BeginTransactionAsync();
-
-    try
-    {
-        _db.users.Add(newUser);
-        await _db.SaveChangesAsync();
-
-        await transaction.CommitAsync();
-
-        var newUserResponse = await BuildAuthResponseAsync(newUser);
-
-        return AuthResult<AuthResponseDto>.Ok(
-            newUserResponse,
-            "تم إنشاء الحساب وتسجيل الدخول باستخدام جوجل بنجاح."
-        );
-    }
-    catch (Exception ex)
-    {
-        await transaction.RollbackAsync();
-
-        Console.WriteLine("Google login database error: " + ex.Message);
-
-        return AuthResult<AuthResponseDto>.Fail(
-            500,
-            "حدث خطأ أثناء تسجيل الدخول باستخدام جوجل. يرجى المحاولة مرة أخرى."
-        );
-    }
-}
 
     public async Task<bool> RequestPasswordResetAsync(string email)
     {
@@ -394,23 +401,120 @@ public async Task<AuthResult<AuthResponseDto>> GoogleLoginAsync(GoogleLoginReque
         return true;
     }
 
-    private async Task<AuthResponseDto> BuildAuthResponseAsync(user user)
+    private async Task<AuthResponseDto> BuildAuthResponseAsync(user user, bool rememberMe = false)
     {
         var profile = await _db.student_profiles
             .AsNoTracking()
             .FirstOrDefaultAsync(profile => profile.user_id == user.id);
 
         var token = _jwtTokenService.GenerateToken(user);
+        string? refreshToken = null;
+
+        if (rememberMe)
+        {
+            refreshToken = await GenerateRefreshTokenAsync(user.id);
+        }
 
         return new AuthResponseDto
         {
             Token = token,
+            RefreshToken = refreshToken,
             UserId = user.id,
             FullName = user.full_name,
             Role = user.role,
             IsOnboardingCompleted = user.onboarding_completed,
             Branch = profile?.stream
         };
+    }
+
+    private async Task<string> GenerateRefreshTokenAsync(Guid userId)
+    {
+        var refreshTokenValue = Guid.NewGuid().ToString("N");
+        var tokenHash = BCrypt.Net.BCrypt.HashPassword(refreshTokenValue);
+        var expiresAt = DateTime.UtcNow.AddDays(14);// صلاحية الـ refresh token لمدة 14 يومًا
+
+        var refreshToken = new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = tokenHash,
+            ExpiresAt = expiresAt,
+            CreatedAt = DateTime.UtcNow,
+            UserId = userId
+        };
+
+        _db.RefreshTokens.Add(refreshToken);
+        await _db.SaveChangesAsync();
+
+        return refreshTokenValue;
+    }
+
+    public async Task<AuthResult<AuthResponseDto>> RefreshAsync(RefreshTokenRequest request, CancellationToken cancellationToken)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.RefreshToken))
+        {
+            return AuthResult<AuthResponseDto>.Fail(
+                400,
+                "الرمز غير صالح."
+            );
+        }
+
+        // البحث عن جميع الـ tokens غير المنتهية الصلاحية والغير مُلغاة
+        var activeTokens = await _db.RefreshTokens
+            .AsNoTracking()
+            .Where(rt => rt.ExpiresAt > DateTime.UtcNow && rt.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+
+        // البحث عن الـ token الذي يطابق الـ hash
+        RefreshToken? storedToken = null;
+        foreach (var token in activeTokens)
+        {
+            try
+            {
+                if (BCrypt.Net.BCrypt.Verify(request.RefreshToken, token.TokenHash))
+                {
+                    storedToken = token;
+                    break;
+                }
+            }
+            catch
+            {
+                // استمر مع الـ token التالي
+                continue;
+            }
+        }
+
+        if (storedToken == null)
+        {
+            return AuthResult<AuthResponseDto>.Fail(
+                401,
+                "رمز التحديث غير صالح أو منتهي الصلاحية."
+            );
+        }
+
+        // الحصول على المستخدم
+        var user = await _db.users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.id == storedToken.UserId, cancellationToken: cancellationToken);
+
+        if (user == null || user.is_active == false)
+        {
+            return AuthResult<AuthResponseDto>.Fail(
+                401,
+                "هذا الحساب معطل أو غير موجود."
+            );
+        }
+
+        // إلغاء الـ token القديم وإنشاء واحد جديد
+        storedToken.RevokedAt = DateTime.UtcNow;
+        _db.RefreshTokens.Update(storedToken);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        var response = await BuildAuthResponseAsync(user, rememberMe: true);
+
+        return AuthResult<AuthResponseDto>.Ok(
+            response,
+            "تم تحديث الرمز بنجاح."
+        );
     }
 
     private void ValidateRegisterFields(
@@ -480,6 +584,19 @@ public async Task<AuthResult<AuthResponseDto>> GoogleLoginAsync(GoogleLoginReque
     private static string NormalizeEmail(string? email)
     {
         return email?.Trim().ToLowerInvariant() ?? "";
+    }
+
+    private static user_stat CreateInitialUserStat(Guid userId)
+    {
+        return new user_stat
+        {
+            user_id = userId,
+            points = 0,
+            level = 1,
+            streak_days = 0,
+            last_activity_date = DateOnly.FromDateTime(DateTime.Now),
+            updated_at = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified)
+        };
     }
 
     private static string GetOtpCacheKey(string email)

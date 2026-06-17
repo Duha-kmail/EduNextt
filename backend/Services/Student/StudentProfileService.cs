@@ -1,5 +1,8 @@
+using System.Security.Cryptography;
+using System.Text;
 using backend.DTOs.Student;
 using backend.Repositories.Student;
+using Microsoft.AspNetCore.Identity;
 
 namespace backend.Services.Student;
 
@@ -128,20 +131,43 @@ public class StudentProfileService : IStudentProfileService
             throw new ArgumentException("كلمة المرور الجديدة وتأكيدها غير متطابقتين.");
         }
 
-        var isCurrentPasswordCorrect = BCrypt.Net.BCrypt.Verify(
-            dto.CurrentPassword,
-            user.password_hash
-        );
+        if (VerifyStoredPassword(dto.CurrentPassword, user.password_hash))
+        {
+            user.password_hash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            await _repository.SaveChangesAsync();
+            return;
+        }
+
+        bool isCurrentPasswordCorrect;
+        try
+        {
+            isCurrentPasswordCorrect = BCrypt.Net.BCrypt.Verify(
+                dto.CurrentPassword,
+                user.password_hash
+            );
+        }
+        catch
+        {
+            isCurrentPasswordCorrect = false;
+        }
 
         if (!isCurrentPasswordCorrect)
         {
             throw new ArgumentException("كلمة المرور الحالية غير صحيحة.");
         }
 
-        var isSamePassword = BCrypt.Net.BCrypt.Verify(
-            dto.NewPassword,
-            user.password_hash
-        );
+        bool isSamePassword;
+        try
+        {
+            isSamePassword = BCrypt.Net.BCrypt.Verify(
+                dto.NewPassword,
+                user.password_hash
+            );
+        }
+        catch
+        {
+            isSamePassword = false;
+        }
 
         if (isSamePassword)
         {
@@ -229,5 +255,88 @@ public class StudentProfileService : IStudentProfileService
             .Replace('7', '٧')
             .Replace('8', '٨')
             .Replace('9', '٩');
+    }
+
+    private static bool VerifyStoredPassword(string password, string passwordHash)
+    {
+        if (string.IsNullOrWhiteSpace(passwordHash))
+        {
+            return false;
+        }
+
+        try
+        {
+            if (BCrypt.Net.BCrypt.Verify(password, passwordHash))
+            {
+                return true;
+            }
+        }
+        catch
+        {
+            // Try legacy hash formats below.
+        }
+
+        try
+        {
+            var identityHasher = new PasswordHasher<object>();
+            var result = identityHasher.VerifyHashedPassword(
+                new object(),
+                passwordHash,
+                password
+            );
+
+            if (result != PasswordVerificationResult.Failed)
+            {
+                return true;
+            }
+        }
+        catch
+        {
+            // Try legacy PBKDF2 format below.
+        }
+
+        if (VerifyPbkdf2Password(password, passwordHash))
+        {
+            return true;
+        }
+
+        return VerifyLegacyPlainTextPassword(password, passwordHash);
+    }
+
+    private static bool VerifyPbkdf2Password(string password, string passwordHash)
+    {
+        try
+        {
+            var parts = passwordHash.Split('$');
+            if (parts.Length != 4 || parts[0] != "PBKDF2" || !int.TryParse(parts[1], out var iterations))
+            {
+                return false;
+            }
+
+            var salt = Convert.FromBase64String(parts[2]);
+            var storedHash = Convert.FromBase64String(parts[3]);
+            var hash = Rfc2898DeriveBytes.Pbkdf2(
+                password,
+                salt,
+                iterations,
+                HashAlgorithmName.SHA256,
+                storedHash.Length
+            );
+
+            return CryptographicOperations.FixedTimeEquals(hash, storedHash);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool VerifyLegacyPlainTextPassword(string password, string passwordHash)
+    {
+        var passwordBytes = Encoding.UTF8.GetBytes(password);
+        var passwordHashBytes = Encoding.UTF8.GetBytes(passwordHash);
+
+        return passwordBytes.Length == passwordHashBytes.Length &&
+            CryptographicOperations.FixedTimeEquals(passwordBytes, passwordHashBytes);
     }
 }

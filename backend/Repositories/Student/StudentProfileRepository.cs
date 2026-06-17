@@ -62,7 +62,9 @@ public class StudentProfileRepository : IStudentProfileRepository
             {
                 Date = r.created_at!.Value,
                 Type = "exam",
-                Text = $"حصلت على {ToArabicNumber(r.score.GetValueOrDefault())}٪ في اختبار",
+                Text = r.exam != null
+                    ? $"حصلت على {ToArabicNumber(r.score.GetValueOrDefault())}٪ في اختبار {r.exam.title}"
+                    : $"حصلت على {ToArabicNumber(r.score.GetValueOrDefault())}٪ في اختبار",
                 Color = "amber"
             })
             .ToListAsync();

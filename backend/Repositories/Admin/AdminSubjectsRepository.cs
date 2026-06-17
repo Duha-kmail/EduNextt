@@ -235,6 +235,15 @@ public class AdminSubjectsRepository : IAdminSubjectsRepository
         };
 
         _context.subjects.Add(newSubject);
+        _context.subject_units.Add(new subject_unit
+        {
+            id = Guid.NewGuid(),
+            subject_id = newSubject.id,
+            title = "Default Unit",
+            order_number = 1,
+            created_at = DateTime.Now
+        });
+        AddAdminLog("create_subject", $"Created subject {subjectName}");
         await _context.SaveChangesAsync();
 
         return new AdminSubjectDto
@@ -285,6 +294,7 @@ public class AdminSubjectsRepository : IAdminSubjectsRepository
 
         subject.name = subjectName;
         subject.stream = department;
+        AddAdminLog("update_subject", $"Updated subject {subjectName}");
 
         await _context.SaveChangesAsync();
 
@@ -317,8 +327,107 @@ public class AdminSubjectsRepository : IAdminSubjectsRepository
             return false;
         }
 
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        var lessonIds = await _context.lessons
+            .Where(l => l.subject_id == id)
+            .Select(l => l.id)
+            .ToListAsync();
+
+        var examIds = await _context.exams
+            .Where(e =>
+                e.subject_id == id ||
+                (e.lesson_id != null && lessonIds.Contains(e.lesson_id.Value)))
+            .Select(e => e.id)
+            .ToListAsync();
+
+        var questionIds = await _context.questions
+            .Where(q => q.exam_id != null && examIds.Contains(q.exam_id.Value))
+            .Select(q => q.id)
+            .ToListAsync();
+
+        var resultIds = await _context.exam_results
+            .Where(r => r.exam_id != null && examIds.Contains(r.exam_id.Value))
+            .Select(r => r.id)
+            .ToListAsync();
+
+        if (resultIds.Count > 0 || questionIds.Count > 0)
+        {
+            await _context.exam_result_answers
+                .Where(a =>
+                    (a.exam_result_id != null && resultIds.Contains(a.exam_result_id.Value)) ||
+                    (a.question_id != null && questionIds.Contains(a.question_id.Value)))
+                .ExecuteDeleteAsync();
+        }
+
+        if (resultIds.Count > 0)
+        {
+            await _context.exam_results
+                .Where(r => resultIds.Contains(r.id))
+                .ExecuteDeleteAsync();
+        }
+
+        if (questionIds.Count > 0)
+        {
+            await _context.questions
+                .Where(q => questionIds.Contains(q.id))
+                .ExecuteDeleteAsync();
+        }
+
+        if (examIds.Count > 0)
+        {
+            await _context.exams
+                .Where(e => examIds.Contains(e.id))
+                .ExecuteDeleteAsync();
+        }
+
+        if (lessonIds.Count > 0)
+        {
+            await _context.lesson_progresses
+                .Where(lp => lp.lesson_id != null && lessonIds.Contains(lp.lesson_id.Value))
+                .ExecuteDeleteAsync();
+
+            await _context.study_plan_items
+                .Where(i => lessonIds.Contains(i.lesson_id))
+                .ExecuteDeleteAsync();
+
+            await _context.study_sessions
+                .Where(s => s.lesson_id != null && lessonIds.Contains(s.lesson_id.Value))
+                .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.lesson_id, (Guid?)null));
+
+            await _context.lessons
+                .Where(l => lessonIds.Contains(l.id))
+                .ExecuteDeleteAsync();
+        }
+
+        await _context.study_plans
+            .Where(p => p.subject_id == id)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.subject_id, (Guid?)null));
+
+        await _context.study_sessions
+            .Where(s => s.subject_id == id)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.subject_id, (Guid?)null));
+
+        await _context.subject_analyses
+            .Where(a => a.subject_id == id)
+            .ExecuteDeleteAsync();
+
+        await _context.student_profile_subjects
+            .Where(s => s.subject_id == id)
+            .ExecuteDeleteAsync();
+
+        await _context.student_preference_difficult_subjects
+            .Where(s => s.subject_id == id)
+            .ExecuteDeleteAsync();
+
+        await _context.subject_units
+            .Where(u => u.subject_id == id)
+            .ExecuteDeleteAsync();
+
+        AddAdminLog("delete_subject", $"Deleted subject {subject.name}");
         _context.subjects.Remove(subject);
         await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return true;
     }
@@ -350,6 +459,17 @@ public class AdminSubjectsRepository : IAdminSubjectsRepository
             TotalExams = totalExams,
             NewSubjectsThisMonth = newSubjectsThisMonth
         };
+    }
+
+    private void AddAdminLog(string actionType, string description)
+    {
+        _context.admin_logs.Add(new admin_log
+        {
+            id = Guid.NewGuid(),
+            action_type = actionType,
+            description = description,
+            created_at = DateTime.Now
+        });
     }
 
     private static DateTime GetStartOfCurrentMonth()

@@ -22,6 +22,8 @@ public interface IStudentStudyPlanRepository
 
     Task<List<StudyPlanLessonOptionData>> GetLessonsBySubjectAsync(Guid subjectId);
 
+    Task<List<StudyPlanLessonOptionData>> GetIncompleteLessonsBySubjectAsync(Guid userId, Guid subjectId);
+
     Task<List<lesson>> GetValidLessonsAsync(Guid subjectId, List<Guid> lessonIds);
 
     void AddPlan(study_plan plan);

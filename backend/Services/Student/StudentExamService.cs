@@ -1,4 +1,5 @@
 using backend.DTOs.AI;
+using System.Text.Json;
 using backend.DTOs.Student;
 using backend.Helpers;
 using backend.Models.Generated;
@@ -339,6 +340,19 @@ public class StudentExamService : IStudentExamService
                 user_id = userId,
                 recommendation_text = aiResp.RecommendationText,
                 created_at = createdAt
+            });
+        }
+
+        if (subject.id != Guid.Empty)
+        {
+            _repository.AddSubjectAnalysis(new subject_analysis
+            {
+                id = Guid.NewGuid(),
+                user_id = userId,
+                subject_id = subject.id,
+                strengths = JsonSerializer.Serialize(aiResp.StrengthAreas),
+                weaknesses = JsonSerializer.Serialize(aiResp.WeakAreas),
+                improvement_tip = aiResp.RecommendationText
             });
         }
 

@@ -3,6 +3,7 @@ using backend.DTOs.Admin;
 using backend.Services.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers.Admin;
 
@@ -45,6 +46,11 @@ public class AdminProfileController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateAdminProfileDto dto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         if (!TryGetUserId(out var adminId))
         {
             return Unauthorized(new
@@ -53,17 +59,34 @@ public class AdminProfileController : ControllerBase
             });
         }
 
-        var profile = await _profileService.UpdateProfileAsync(adminId, dto);
+        try
+        {
+            var profile = await _profileService.UpdateProfileAsync(adminId, dto);
 
-        if (profile == null)
+            if (profile == null)
+            {
+                return BadRequest(new
+                {
+                    message = "تأكد من إدخال الاسم بشكل صحيح."
+                });
+            }
+
+            return Ok(profile);
+        }
+        catch (ArgumentException ex)
         {
             return BadRequest(new
             {
-                message = "تأكد من إدخال الاسم بشكل صحيح."
+                message = ex.Message
             });
         }
-
-        return Ok(profile);
+        catch (DbUpdateException)
+        {
+            return BadRequest(new
+            {
+                message = "رقم الهاتف يجب أن يكون بصيغة دولية مثل: +970599123456"
+            });
+        }
     }
 
     [HttpPut("change-password")]

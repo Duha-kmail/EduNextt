@@ -95,7 +95,7 @@ public class AdminUsersRepository : IAdminUsersRepository
                 Status = u.is_active == true ? "نشط" : "معطل",
                 IsActive = u.is_active == true,
                 RegistrationDate = FormatDate(u.created_at),
-                Avatar = GetAvatarByRole(u.role),
+           // Avatar = GetAvatarByRole(u.role),
                 AvatarColor = GetAvatarColorByRole(u.role)
             })
             .ToList();
@@ -143,7 +143,7 @@ public class AdminUsersRepository : IAdminUsersRepository
             Status = rawUser.is_active == true ? "نشط" : "معطل",
             IsActive = rawUser.is_active == true,
             RegistrationDate = FormatDate(rawUser.created_at),
-            Avatar = GetAvatarByRole(rawUser.role),
+           // Avatar = GetAvatarByRole(rawUser.role),
             AvatarColor = GetAvatarColorByRole(rawUser.role)
         };
     }
@@ -314,15 +314,15 @@ public class AdminUsersRepository : IAdminUsersRepository
         };
     }
 
-    private static string GetAvatarByRole(string role)
-    {
-        return role switch
-        {
-            "student" => "🧑",
-            "admin" => "👩",
-            _ => "👤"
-        };
-    }
+    // private static string GetAvatarByRole(string role)
+    // {
+    //     return role switch
+    //     {
+    //         "student" => "🧑",
+    //         "admin" => "👩",
+    //         _ => "👤"
+    //     };
+    // }
 
     private static string GetAvatarColorByRole(string role)
     {

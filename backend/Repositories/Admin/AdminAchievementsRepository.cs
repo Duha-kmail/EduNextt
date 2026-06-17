@@ -170,6 +170,7 @@ public class AdminAchievementsRepository : IAdminAchievementsRepository
         };
 
         _context.achievements.Add(achievement);
+        AddAdminLog("create_achievement", $"Created achievement {achievement.title_ar}");
 
         await _context.SaveChangesAsync();
 
@@ -208,6 +209,7 @@ public class AdminAchievementsRepository : IAdminAchievementsRepository
         achievement.reward_value = dto.RewardValue;
         achievement.is_active = dto.Status == "active";
         achievement.updated_at = GetUnspecifiedNow();
+        AddAdminLog("update_achievement", $"Updated achievement {achievement.title_ar}");
 
         await _context.SaveChangesAsync();
 
@@ -226,6 +228,7 @@ public class AdminAchievementsRepository : IAdminAchievementsRepository
 
         achievement.is_active = false;
         achievement.updated_at = GetUnspecifiedNow();
+        AddAdminLog("delete_achievement", $"Disabled achievement {achievement.title_ar}");
 
         await _context.SaveChangesAsync();
 
@@ -373,6 +376,17 @@ public class AdminAchievementsRepository : IAdminAchievementsRepository
         return await _context.users
             .AsNoTracking()
             .CountAsync(u => u.role == "student" && u.is_active == true);
+    }
+
+    private void AddAdminLog(string actionType, string description)
+    {
+        _context.admin_logs.Add(new admin_log
+        {
+            id = Guid.NewGuid(),
+            action_type = actionType,
+            description = description,
+            created_at = GetUnspecifiedNow()
+        });
     }
 
     private async Task<int> GetUnlockedCountAsync(Guid achievementId)

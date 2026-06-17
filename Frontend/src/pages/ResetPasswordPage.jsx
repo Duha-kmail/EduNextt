@@ -4,6 +4,7 @@ import { motion as Motion } from "framer-motion";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
+import PublicNavbar from "../components/public-navbar/PublicNavbar.jsx";
 
 async function postJson(path, body) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -113,7 +114,8 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="layout-wrapper" dir="rtl">
+    <div className="layout-wrapper auth-flow-page" dir="rtl">
+      <PublicNavbar compact />
       <main className="main-content">
         <Motion.div
           initial={{ opacity: 0, y: 20 }}

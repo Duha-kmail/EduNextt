@@ -109,7 +109,8 @@ public class StudentSubjectsController : ControllerBase
             userId.Value,
             subjectId,
             lessonId,
-            dto.Completed
+            dto.Completed,
+            dto.DurationSeconds
         );
 
         if (result == null)

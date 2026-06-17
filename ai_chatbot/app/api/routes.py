@@ -88,8 +88,7 @@ def chat_route(req: ChatRequest):
 @router.post("/exam-analysis")
 def exam_analysis_route(req: ExamAnalysisRequest):
     fallback = _build_rule_based_analysis(req)
-    prompt = _build_exam_analysis_prompt(req)
-    raw = ask_llm(prompt)
+    raw = ask_llm(_build_exam_analysis_prompt(req))
     parsed = _parse_analysis_json(raw)
 
     if not parsed:
@@ -106,8 +105,7 @@ def exam_analysis_route(req: ExamAnalysisRequest):
 @router.post("/question-explanation")
 def question_explanation_route(req: QuestionExplanationRequest):
     fallback = _build_rule_based_explanation(req)
-    prompt = _build_question_explanation_prompt(req, fallback)
-    raw = ask_llm(prompt)
+    raw = ask_llm(_build_question_explanation_prompt(req, fallback))
     parsed = _parse_analysis_json(raw)
 
     if parsed:
@@ -116,7 +114,7 @@ def question_explanation_route(req: QuestionExplanationRequest):
             return {"solutionText": solution}
 
     cleaned = (raw or "").strip()
-    if cleaned and not cleaned.startswith("مفتاح GEMINI_API_KEY") and "GEMINI_API_KEY" not in cleaned:
+    if cleaned and "GEMINI_API_KEY" not in cleaned:
         return {"solutionText": cleaned}
 
     return {"solutionText": fallback}
@@ -125,8 +123,7 @@ def question_explanation_route(req: QuestionExplanationRequest):
 @router.post("/personalized-recommendation")
 def personalized_recommendation_route(req: PersonalizedRecommendationRequest):
     fallback = _build_rule_based_recommendation(req)
-    prompt = _build_personalized_recommendation_prompt(req)
-    raw = ask_llm(prompt)
+    raw = ask_llm(_build_personalized_recommendation_prompt(req))
     parsed = _parse_analysis_json(raw)
 
     if not parsed:
@@ -134,9 +131,9 @@ def personalized_recommendation_route(req: PersonalizedRecommendationRequest):
 
     return {
         "recommendationText": str(parsed.get("recommendationText") or fallback["recommendationText"]).strip(),
-        "focusSubjects": _clean_list(parsed.get("focusSubjects")) or fallback["focusSubjects"],
+        "focusSubjects": _clean_list(parsed.get("focusSubjects"), limit=8) or fallback["focusSubjects"],
         "weeklyStudyHours": _clean_int(parsed.get("weeklyStudyHours"), fallback["weeklyStudyHours"]),
-        "lessonOrder": _clean_list(parsed.get("lessonOrder")) or fallback["lessonOrder"],
+        "lessonOrder": _clean_list(parsed.get("lessonOrder"), limit=10) or fallback["lessonOrder"],
         "strengthAreas": _clean_list(parsed.get("strengthAreas")) or fallback["strengthAreas"],
         "weakAreas": _clean_list(parsed.get("weakAreas")) or fallback["weakAreas"],
         "subjectAnalyses": _clean_subject_analyses(parsed.get("subjectAnalyses")) or fallback["subjectAnalyses"],
@@ -155,8 +152,7 @@ def _build_exam_analysis_prompt(req: ExamAnalysisRequest) -> str:
         )
 
     return f"""
-أنت محلل أداء تعليمي لمنصة EduNext.
-حلل نتيجة امتحان الطالب وأعد JSON فقط بدون markdown وبدون شرح خارجي.
+حلل نتيجة امتحان الطالب وأعد JSON فقط بدون markdown.
 
 المادة: {req.subjectName or 'غير محددة'}
 نوع الامتحان: {req.examType or 'غير محدد'}
@@ -168,15 +164,13 @@ def _build_exam_analysis_prompt(req: ExamAnalysisRequest) -> str:
 أسئلة خاطئة:
 {chr(10).join(format_question(q) for q in wrong_questions) or '- لا يوجد'}
 
-أعد JSON بهذا الشكل تماماً:
+الشكل المطلوب:
 {{
-  "strengthAreas": ["نقطة قوة قصيرة", "نقطة قوة قصيرة"],
-  "weakAreas": ["نقطة ضعف قصيرة", "نقطة ضعف قصيرة"],
+  "strengthAreas": ["نقطة قوة محددة", "نقطة قوة محددة"],
+  "weakAreas": ["نقطة ضعف محددة", "نقطة ضعف محددة"],
   "levelMessage": "جملة قصيرة تصف مستوى الطالب",
-  "recommendationText": "توصية عملية مخصصة من جملة إلى جملتين"
+  "recommendationText": "توصية عملية من جملة إلى جملتين"
 }}
-
-إذا كانت البيانات قليلة، اكتب تحليلاً جديداً مختصراً من البيانات المتاحة فقط.
 """.strip()
 
 
@@ -191,51 +185,73 @@ def _build_personalized_recommendation_prompt(req: PersonalizedRecommendationReq
             "remainingLessons": s.remainingLessons,
             "nextLessonTitle": s.nextLessonTitle,
         }
-        for s in req.subjects[:8]
+        for s in req.subjects[:12]
     ]
 
     return f"""
-أنت مستشار دراسي ذكي داخل منصة EduNext. استخدم بيانات الطالب من المنصة لتوليد توصية شخصية قابلة للتنفيذ.
-أعد JSON فقط بدون markdown وبدون شرح خارجي.
+أنت رفيق دراسة داخل EduNext. ابنِ توصية دراسة عربية دافئة ومباشرة من بيانات الطالب فقط.
+أعد JSON فقط بدون markdown وبدون نص خارجي.
 
-نوع السياق: {req.contextType or 'recommendations'}
+السياق: {req.contextType or 'recommendations'}
 اسم الطالب: {req.studentName or 'الطالب'}
 الفرع: {req.stream or 'غير محدد'}
-المستوى الحالي من التهيئة: {req.currentLevel or 'غير محدد'}
+المستوى الحالي: {req.currentLevel or 'غير محدد'}
 الهدف: {req.goal or 'غير محدد'}
 وقت الدراسة المتاح: {req.studyHours or 'غير محدد'}
 خبرة الاختبارات: {req.examExperience or 'غير محدد'}
 طرق التعلم المفضلة: {', '.join(req.learningMethods) or 'غير محدد'}
-المواد الصعبة في التهيئة: {', '.join(req.difficultSubjects) or 'غير محدد'}
+المواد الصعبة من التهيئة: {', '.join(req.difficultSubjects) or 'غير محدد'}
 متوسط العلامات: {req.averageScore}%
 الدروس المكتملة: {req.completedLessons} من {req.totalLessons}
-تقدم المواد ونسبة مشاهدة/إكمال الدروس:
+بيانات المواد:
 {json.dumps(subjects_payload, ensure_ascii=False)}
 
-قواعد التوصية:
-- اربط التوصية بنتائج الاختبارات، مستوى التهيئة، المواد الصعبة، ونسبة إكمال دروس كل مادة.
-- إذا كانت مادة علامتها منخفضة أو نسبة إكمال دروسها منخفضة فاجعلها ضمن focusSubjects.
-- اقترح ترتيب دروس قصير من nextLessonTitle عندما يكون متاحاً.
-- اجعل النص بالعربية، قصيراً، ومباشراً للطالب.
+قواعد مهمة:
+- اختر كل المواد التي تحتاج تركيزاً فعلياً، وليس مادة واحدة فقط، خصوصاً إذا كانت ضمن المواد الصعبة أو علامتها أقل من 70 أو لديها دروس كثيرة متبقية.
+- لا تضع مادة في focusSubjects إذا لم تكن موجودة في بيانات المواد أو المواد الصعبة.
+- اربط كل حكم برقم واضح: علامة، نسبة تقدم، دروس مكتملة، أو الدرس التالي.
+- weeklyStudyHours يجب أن يناسب وقت الدراسة المتاح. إذا الوقت قليل لا تقترح رقماً كبيراً.
+- lessonOrder خطوات عملية قابلة للتنفيذ، واذكر اسم المادة مع الدرس عندما تتوفر nextLessonTitle.
 
-أعد JSON بهذا الشكل تماماً:
+الشكل المطلوب:
 {{
-  "recommendationText": "توصية مخصصة من جملة إلى جملتين",
+  "recommendationText": "رسالة قصيرة توضّح من أين يبدأ الطالب ولماذا",
   "focusSubjects": ["مادة 1", "مادة 2"],
-  "weeklyStudyHours": 12,
-  "lessonOrder": ["درس 1", "درس 2", "درس 3"],
-  "strengthAreas": ["نقطة قوة عامة قصيرة", "نقطة قوة عامة قصيرة"],
-  "weakAreas": ["نقطة ضعف عامة قصيرة", "نقطة ضعف عامة قصيرة"],
+  "weeklyStudyHours": 8,
+  "lessonOrder": ["ابدأ في مادة كذا بدرس كذا", "راجع نقطة محددة", "حل اختباراً قصيراً"],
+  "strengthAreas": ["قوة محددة مرتبطة برقم", "قوة محددة مرتبطة برقم"],
+  "weakAreas": ["ضعف محدد مع السبب", "ضعف محدد مع السبب"],
   "subjectAnalyses": [
     {{
       "subjectName": "اسم المادة",
-      "strengths": ["نقطة قوة خاصة بالمادة"],
-      "weaknesses": ["نقطة ضعف خاصة بالمادة"]
+      "strengths": ["ما الذي يسير جيداً ولماذا"],
+      "weaknesses": ["ما الذي يحتاج تحسيناً ولماذا"]
     }}
   ]
 }}
+""".strip()
 
-إذا كانت البيانات قليلة، اكتب توصية جديدة مختصرة من البيانات المتاحة فقط.
+
+def _build_question_explanation_prompt(req: QuestionExplanationRequest, fallback: str) -> str:
+    selected = req.selectedAnswerText or req.selectedAnswer or "لم يختر الطالب إجابة"
+
+    return f"""
+اشرح حل السؤال للطالب خطوة بخطوة بلغة واضحة ومختصرة.
+أعد JSON فقط بدون markdown:
+{{"solutionText": "شرح منظم على عدة أسطر"}}
+
+المادة: {req.subjectName or 'غير محددة'}
+السؤال:
+{req.questionText}
+
+إجابة الطالب:
+{selected}
+
+الإجابة الصحيحة:
+{req.correctAnswerText or req.correctAnswer}
+
+إذا كانت البيانات لا تكفي، استخدم هذا الشرح:
+{fallback}
 """.strip()
 
 
@@ -257,63 +273,11 @@ def _parse_analysis_json(raw: str) -> dict | None:
     return value if isinstance(value, dict) else None
 
 
-def _build_question_explanation_prompt(req: QuestionExplanationRequest, fallback: str) -> str:
-    selected = req.selectedAnswerText or req.selectedAnswer or "لم يختر الطالب إجابة"
-
-    return f"""
-أنت مدرس ذكي في منصة EduNext وتستخدم نفس أسلوب شات بوت المواد.
-اشرح حل السؤال للطالب خطوة بخطوة بلغة واضحة ومختصرة.
-أعد JSON فقط بدون markdown:
-{{"solutionText": "شرح منظم على عدة أسطر"}}
-
-المادة: {req.subjectName or 'غير محددة'}
-السؤال:
-{req.questionText}
-
-إجابة الطالب:
-{selected}
-
-الإجابة الصحيحة:
-{req.correctAnswerText or req.correctAnswer}
-
-قواعد الشرح:
-- ابدأ بفكرة السؤال.
-- وضح لماذا الإجابة الصحيحة مناسبة.
-- إذا كانت إجابة الطالب خاطئة، اشرح سبب الخطأ بلطف.
-- اختم بنصيحة قصيرة مرتبطة بالسؤال.
-- لا تكتب كلاماً عاماً لا يشرح السؤال.
-
-إذا لم تكف البيانات، استخدم هذا الشرح:
-{fallback}
-""".strip()
-
-
-def _build_rule_based_explanation(req: QuestionExplanationRequest) -> str:
-    selected = req.selectedAnswerText or req.selectedAnswer or "لم يختر الطالب إجابة"
-    correct = req.correctAnswerText or req.correctAnswer or "غير محددة"
-
-    if req.isCorrect:
-        return (
-            f"فكرة السؤال هي اختيار الإجابة الأنسب من الخيارات.\n"
-            f"إجابتك كانت: {selected}، وهي صحيحة.\n"
-            f"السبب أن الإجابة المطابقة هي: {correct}.\n"
-            "استمر بنفس الطريقة، وراجع نص السؤال جيداً قبل تثبيت الإجابة."
-        )
-
-    return (
-        f"فكرة السؤال هي فهم المطلوب ثم مقارنة الخيارات.\n"
-        f"إجابتك كانت: {selected}.\n"
-        f"الإجابة الصحيحة هي: {correct}.\n"
-        "سبب الخطأ غالباً هو الخلط بين الخيارات أو عدم الانتباه للكلمة المفتاحية في السؤال.\n"
-        "راجع السؤال مرة أخرى وحدد الدليل الذي يقود للإجابة الصحيحة."
-    )
-
-
-def _clean_list(value) -> list[str]:
+def _clean_list(value, limit: int = 5) -> list[str]:
     if not isinstance(value, list):
         return []
 
-    return [str(item).strip() for item in value if str(item).strip()][:5]
+    return [str(item).strip() for item in value if str(item).strip()][:limit]
 
 
 def _clean_int(value, fallback: int) -> int:
@@ -330,7 +294,7 @@ def _clean_subject_analyses(value) -> list[dict]:
         return []
 
     analyses = []
-    for item in value[:8]:
+    for item in value[:12]:
         if not isinstance(item, dict):
             continue
 
@@ -350,43 +314,82 @@ def _clean_subject_analyses(value) -> list[dict]:
     return analyses
 
 
+def _lesson_count_text(count: int) -> str:
+    if count == 1:
+        return "درساً واحداً"
+    if count == 2:
+        return "درسين"
+    if 3 <= count <= 10:
+        return f"{count} دروس"
+    return f"{count} درساً"
+
+
+def _available_weekly_hours(study_hours: str) -> int:
+    text = (study_hours or "").strip()
+    numbers = [int(value) for value in re.findall(r"\d+", text)]
+    if numbers:
+        base = max(numbers)
+        return base * 5 if base <= 6 else base
+
+    if any(word in text for word in ("أقل", "قليل", "ساعة")):
+        return 6
+    if any(word in text for word in ("كثير", "متفرغ", "4", "٤")):
+        return 18
+    return 12
+
+
 def _build_rule_based_recommendation(req: PersonalizedRecommendationRequest) -> dict:
     subjects = sorted(
         req.subjects,
         key=lambda s: (
+            0 if s.subjectName in req.difficultSubjects else 1,
             s.averageScore if s.averageScore > 0 else 100,
             s.progressPercent,
             -s.remainingLessons,
         ),
     )
 
-    focus_subjects = [s.subjectName for s in subjects if s.subjectName][:2]
-    if not focus_subjects:
-        focus_subjects = req.difficultSubjects[:2]
-
-    lesson_order = [
-        s.nextLessonTitle
+    focus_subjects = [
+        s.subjectName
         for s in subjects
-        if s.nextLessonTitle and s.subjectName in focus_subjects
-    ][:3]
+        if s.subjectName and (
+            s.subjectName in req.difficultSubjects
+            or 0 < s.averageScore < 70
+            or s.progressPercent < 60
+            or s.remainingLessons > 0
+        )
+    ][:4]
+    if not focus_subjects:
+        focus_subjects = [s.subjectName for s in subjects if s.subjectName][:2] or req.difficultSubjects[:2]
+
+    lesson_order = []
+    for subject in subjects:
+        if subject.subjectName not in focus_subjects:
+            continue
+        if subject.nextLessonTitle:
+            lesson_order.append(f"{subject.subjectName}: ابدأ بدرس {subject.nextLessonTitle}")
+        else:
+            lesson_order.append(f"{subject.subjectName}: حل اختباراً قصيراً لتحديد أول نقطة ضعف")
+    lesson_order = lesson_order[:6]
 
     strength_areas = []
     weak_areas = []
     subject_analyses = []
 
-    for subject in subjects[:8]:
+    for subject in subjects[:12]:
         strengths = []
         weaknesses = []
+        subject_name = subject.subjectName or "هذه المادة"
 
         if subject.averageScore >= 70:
-            strengths.append(f"أداء جيد في {subject.subjectName}.")
+            strengths.append(f"أداؤك في {subject_name} جيد لأن متوسطك وصل إلى {subject.averageScore:.0f}%.")
         elif subject.completedLessons > 0:
-            strengths.append(f"بدأت ببناء أساس في {subject.subjectName}.")
+            strengths.append(f"عندك بداية واضحة في {subject_name}: أنجزت {_lesson_count_text(subject.completedLessons)}.")
 
-        if subject.averageScore < 65:
-            weaknesses.append(f"تحتاج لمراجعة إضافية في {subject.subjectName}.")
+        if subject.averageScore and subject.averageScore < 70:
+            weaknesses.append(f"{subject_name} تحتاج مراجعة لأن متوسطك فيها {subject.averageScore:.0f}%.")
         if subject.remainingLessons > 0:
-            weaknesses.append(f"استكمال الدروس المتبقية في {subject.subjectName}.")
+            weaknesses.append(f"ما زال عندك {_lesson_count_text(subject.remainingLessons)} غير مكتمل في {subject_name}.")
 
         if strengths:
             strength_areas.extend(strengths[:1])
@@ -403,24 +406,16 @@ def _build_rule_based_recommendation(req: PersonalizedRecommendationRequest) -> 
             )
 
     if not strength_areas and req.completedLessons > 0:
-        strength_areas.append(f"أنجزت {req.completedLessons} من أصل {req.totalLessons} درس.")
+        strength_areas.append(f"أنجزت {_lesson_count_text(req.completedLessons)} من أصل {req.totalLessons}.")
+    if not weak_areas and req.averageScore < 70:
+        weak_areas.append(f"متوسطك الحالي {req.averageScore:.0f}%، لذلك الأفضل مراجعة الأساسيات.")
 
-    if not weak_areas and req.averageScore < 65:
-        weak_areas.append("رفع متوسط الدرجات من خلال مراجعة الأساسيات.")
-
-    if focus_subjects:
-        recommendation = (
-            f"ركّز هذا الأسبوع على {' و'.join(focus_subjects)} لأنها تحتاج دعماً حسب نتائجك وتقدمك. "
-            "ابدأ بمراجعة الدروس غير المكتملة ثم حل اختبار قصير للتأكد من التحسن."
-        )
-    else:
-        recommendation = "ابدأ بدرس واحد واختبار قصير حتى نتمكن من بناء توصيات أدق بناءً على بياناتك الفعلية."
-
-    weekly_hours = 12
-    if "٤" in req.studyHours or "4" in req.studyHours:
-        weekly_hours = 18
-    elif "أقل" in req.studyHours:
-        weekly_hours = 6
+    weekly_hours = _available_weekly_hours(req.studyHours)
+    student_name = req.studentName.strip() if req.studentName.strip() else "صديقي"
+    recommendation = (
+        f"{student_name}، ركّز هذا الأسبوع على {' و'.join(focus_subjects)} لأنها الأوضح حسب تقدمك وعلاماتك. "
+        f"ابدأ بخطوة صغيرة من ترتيب الدروس، ثم حل اختباراً قصيراً بعد كل مراجعة."
+    )
 
     return {
         "recommendationText": recommendation,
@@ -437,24 +432,43 @@ def _build_rule_based_analysis(req: ExamAnalysisRequest) -> dict:
     wrong_answers = [q for q in req.questions if not q.isCorrect]
 
     if req.score >= 85:
-        level = "أداء ممتاز. الطالب متمكن من أغلب مهارات الامتحان."
-        recommendation = "استمر على نفس الخطة، وراجع الأخطاء القليلة قبل الانتقال إلى أسئلة أعلى مستوى."
-        strengths = ["فهم المفاهيم", "الدقة في الإجابة"]
-        weaknesses = ["تفاصيل بسيطة تحتاج مراجعة"] if wrong_answers else ["لا توجد نقاط ضعف واضحة حالياً"]
-    elif req.score >= 60:
-        level = "أداء جيد، لكن يحتاج إلى تدريب إضافي على الأسئلة التي تسببت بأخطاء."
-        recommendation = "راجع الأسئلة الخاطئة، ثم حل تدريباً قصيراً على نفس الأفكار قبل إعادة المحاولة."
-        strengths = ["امتلاك أساس مناسب", "القدرة على حل جزء جيد من الأسئلة"]
-        weaknesses = ["الأسئلة التطبيقية", "التركيز أثناء الحل"]
-    else:
-        level = "المستوى يحتاج إلى تحسين من الأساسيات قبل الانتقال للأسئلة الصعبة."
-        recommendation = "ارجع إلى شرح الدرس وملخصه، ثم ابدأ بالأسئلة السهلة تدريجياً قبل الانتقال إلى الأسئلة الأصعب."
-        strengths = ["المحاولة والاستمرار"]
-        weaknesses = ["المفاهيم الأساسية", "الدقة في اختيار الإجابة"]
-
+        return {
+            "strengthAreas": ["فهم المفاهيم", "الدقة في الإجابة"],
+            "weakAreas": ["تفاصيل بسيطة تحتاج مراجعة"] if wrong_answers else ["لا توجد نقاط ضعف واضحة حالياً"],
+            "levelMessage": "أداء ممتاز، الطالب متمكن من أغلب مهارات الامتحان.",
+            "recommendationText": "استمر على نفس الخطة وراجع الأخطاء القليلة قبل الانتقال لأسئلة أعلى مستوى.",
+        }
+    if req.score >= 60:
+        return {
+            "strengthAreas": ["امتلاك أساس مناسب", "حل جزء جيد من الأسئلة"],
+            "weakAreas": ["الأسئلة التطبيقية", "التركيز أثناء الحل"],
+            "levelMessage": "أداء جيد، لكنه يحتاج تدريباً إضافياً على الأسئلة التي سببت أخطاء.",
+            "recommendationText": "راجع الأسئلة الخاطئة ثم حل تدريباً قصيراً على نفس الأفكار قبل إعادة المحاولة.",
+        }
     return {
-        "strengthAreas": strengths,
-        "weakAreas": weaknesses,
-        "levelMessage": level,
-        "recommendationText": recommendation,
+        "strengthAreas": ["المحاولة والاستمرار"],
+        "weakAreas": ["المفاهيم الأساسية", "الدقة في اختيار الإجابة"],
+        "levelMessage": "المستوى يحتاج تحسيناً من الأساسيات قبل الانتقال للأسئلة الصعبة.",
+        "recommendationText": "ارجع إلى شرح الدرس وملخصه، ثم ابدأ بالأسئلة السهلة تدريجياً.",
     }
+
+
+def _build_rule_based_explanation(req: QuestionExplanationRequest) -> str:
+    selected = req.selectedAnswerText or req.selectedAnswer or "لم يختر الطالب إجابة"
+    correct = req.correctAnswerText or req.correctAnswer or "غير محددة"
+
+    if req.isCorrect:
+        return (
+            f"فكرة السؤال هي اختيار الإجابة الأنسب من الخيارات.\n"
+            f"إجابتك كانت: {selected}، وهي صحيحة.\n"
+            f"الإجابة المطابقة هي: {correct}.\n"
+            "استمر بنفس الطريقة، وراجع نص السؤال جيداً قبل تثبيت الإجابة."
+        )
+
+    return (
+        f"فكرة السؤال هي فهم المطلوب ثم مقارنة الخيارات.\n"
+        f"إجابتك كانت: {selected}.\n"
+        f"الإجابة الصحيحة هي: {correct}.\n"
+        "سبب الخطأ غالباً هو الخلط بين الخيارات أو عدم الانتباه للكلمة المفتاحية في السؤال.\n"
+        "راجع السؤال مرة أخرى وحدد الدليل الذي يقود للإجابة الصحيحة."
+    )

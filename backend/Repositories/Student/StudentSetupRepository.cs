@@ -96,6 +96,54 @@ public class StudentSetupRepository : IStudentSetupRepository
             .ToListAsync();
     }
 
+    public Task<student_preference?> GetPreferenceForUpdateAsync(Guid userId)
+    {
+        return _db.student_preferences
+            .Include(p => p.student_preference_learning_methods)
+            .Include(p => p.student_preference_difficult_subjects)
+            .FirstOrDefaultAsync(p => p.user_id == userId);
+    }
+
+    public student_preference CreatePreference(Guid userId, DateTime now)
+    {
+        var preference = new student_preference
+        {
+            user_id = userId,
+            branch_code = "",
+            study_hours_code = "",
+            goal_code = "",
+            level_code = "",
+            exam_experience_code = "",
+            has_other_difficult_subject = false,
+            created_at = now,
+            updated_at = now
+        };
+
+        _db.student_preferences.Add(preference);
+
+        return preference;
+    }
+
+    public void RemovePreferenceLearningMethods(IEnumerable<student_preference_learning_method> methods)
+    {
+        _db.student_preference_learning_methods.RemoveRange(methods);
+    }
+
+    public void RemovePreferenceDifficultSubjects(IEnumerable<student_preference_difficult_subject> subjects)
+    {
+        _db.student_preference_difficult_subjects.RemoveRange(subjects);
+    }
+
+    public void AddPreferenceLearningMethod(student_preference_learning_method method)
+    {
+        _db.student_preference_learning_methods.Add(method);
+    }
+
+    public void AddPreferenceDifficultSubject(student_preference_difficult_subject subject)
+    {
+        _db.student_preference_difficult_subjects.Add(subject);
+    }
+
     public void RemoveProfileSubjects(IEnumerable<student_profile_subject> subjects)
     {
         _db.student_profile_subjects.RemoveRange(subjects);

@@ -1,5 +1,6 @@
 using backend.DTOs.Guest;
 using backend.Services.Guest;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
@@ -40,5 +41,32 @@ public class ContactMessagesController : ControllerBase
             message = "Contact message received successfully.",
             contactMessage = result
         });
+    }
+
+    [Authorize(Roles = "admin")]
+    [HttpGet("/api/admin/contact-messages")]
+    public async Task<ActionResult<IReadOnlyList<ContactMessageDto>>> GetAll(
+        CancellationToken cancellationToken
+    )
+    {
+        var messages = await _contactMessageService.GetAllAsync(cancellationToken);
+        return Ok(messages);
+    }
+
+    [Authorize(Roles = "admin")]
+    [HttpDelete("/api/admin/contact-messages/{id:guid}")]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        CancellationToken cancellationToken
+    )
+    {
+        var deleted = await _contactMessageService.DeleteAsync(id, cancellationToken);
+
+        if (!deleted)
+        {
+            return NotFound(new { message = "Contact message was not found." });
+        }
+
+        return NoContent();
     }
 }

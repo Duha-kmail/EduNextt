@@ -12,8 +12,14 @@ SUPPORTED_SUBJECTS = {
 }
 
 MATH_EXAM_SOURCES = {
-    "اسئلة سنوات 2020.pdf",
-    "اسئلة سنوات 2022.pdf",
+    "5ee4bfafcf66d.pdf",
+    "math.pdf",
+}
+
+ENGLISH_EXAM_SOURCES = {
+    "en12s.pdf",
+    "اللغة الإنجليزية_ الدورة الثانية_الفرع العلمي_14_08_2024.pdf",
+    "اللغة الانجليزية_العلمي_الدورة الأولى 2023.pdf",
 }
 
 GREETINGS = {
@@ -45,8 +51,8 @@ EXAM_PRACTICE_KEYWORDS = {
 
 
 def _is_greeting(message: str) -> bool:
-    normalized = message.casefold().strip(" .!؟?،,")
-    greetings = {item.casefold().strip(" .!؟?،,") for item in GREETINGS}
+    normalized = message.casefold().strip(" .!؟?,،")
+    greetings = {item.casefold().strip(" .!؟?,،") for item in GREETINGS}
     return normalized in greetings
 
 
@@ -62,7 +68,7 @@ def _english_retrieval_query(message: str, exam_practice: bool) -> str:
     return (
         f"{message}\n"
         "English Tawjihi past exam questions الدورة الأولى الدورة الثانية الدورة الثالثة "
-        "2022 2023 2024 scientific literary grammar reading writing"
+        "2023 2024 scientific literary grammar reading writing"
     )
 
 
@@ -72,10 +78,8 @@ def _math_retrieval_query(message: str, exam_practice: bool) -> str:
 
     return (
         f"{message}\n"
-        "Math Tawjihi past exam questions ministry exam practice scientific stream "
-        "calculus algebra geometry probability "
-        "اسئلة سنوات 2020.pdf اسئلة سنوات 2022.pdf "
-        "أسئلة سنوات 2020 2022 امتحان وزاري تدريبات"
+        "رياضيات توجيهي امتحان وزاري تدريب أسئلة سنوات تفاضل تكامل جبر هندسة احتمالات "
+        "Math Tawjihi past exam questions ministry exam practice scientific stream"
     )
 
 
@@ -89,14 +93,14 @@ def _retrieval_query(subject: str, message: str, exam_practice: bool) -> str:
 
 def _prioritize_exam_sources(results: list[dict], subject: str) -> list[dict]:
     preferred_sources = {
-        "english": {"en12s.pdf"},
+        "english": ENGLISH_EXAM_SOURCES,
         "math": MATH_EXAM_SOURCES,
     }.get(subject, set())
 
     return sorted(
         results,
         key=lambda item: (
-            (item.get("source") or "").casefold() not in preferred_sources,
+            (item.get("source") or "").casefold() not in {s.casefold() for s in preferred_sources},
             -float(item.get("score", 0)),
         ),
     )
@@ -146,10 +150,10 @@ def chat(
     has_image = bool((image_data or "").strip())
 
     if not message and not has_image:
-        return "اكتب سؤالك أو أرفق صورة أولا."
+        return "اكتب سؤالك أو أرفق صورة أولاً."
 
     if message and not has_image and _is_greeting(message):
-        return "أهلا وسهلا، كيف أقدر أساعدك اليوم؟"
+        return "أهلاً وسهلاً، كيف أقدر أساعدك اليوم؟"
 
     if subject not in SUPPORTED_SUBJECTS:
         return "المادة غير مدعومة. اختر الرياضيات أو اللغة الإنجليزية."
@@ -159,9 +163,9 @@ def chat(
         _ensure_subject_index(subject)
         exam_practice = subject in {"english", "math"} and _is_exam_practice_request(message)
         query = _retrieval_query(subject, message, exam_practice)
-        results = retrieve(query, subject=subject, k=12 if exam_practice else 5)
+        results = retrieve(query, subject=subject, k=12 if exam_practice else 6)
         if exam_practice:
-            results = _prioritize_exam_sources(results, subject)[:6]
+            results = _prioritize_exam_sources(results, subject)[:8]
         context = format_context(results)
 
     return SUPPORTED_SUBJECTS[subject].answer(

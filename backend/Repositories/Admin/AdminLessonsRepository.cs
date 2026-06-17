@@ -231,6 +231,7 @@ public class AdminLessonsRepository : IAdminLessonsRepository
         };
 
         _context.lessons.Add(lesson);
+        AddAdminLog("create_lesson", $"Created lesson {title}");
         await _context.SaveChangesAsync();
 
         return await GetLessonDtoByIdAsync(lesson.id);
@@ -292,6 +293,7 @@ public class AdminLessonsRepository : IAdminLessonsRepository
         lesson.video_url = string.IsNullOrWhiteSpace(dto.VideoUrl)
             ? null
             : dto.VideoUrl.Trim();
+        AddAdminLog("update_lesson", $"Updated lesson {title}");
 
         await _context.SaveChangesAsync();
 
@@ -308,6 +310,7 @@ public class AdminLessonsRepository : IAdminLessonsRepository
             return false;
         }
 
+        AddAdminLog("delete_lesson", $"Deleted lesson {lesson.title}");
         _context.lessons.Remove(lesson);
         await _context.SaveChangesAsync();
 
@@ -372,6 +375,17 @@ public class AdminLessonsRepository : IAdminLessonsRepository
             PdfUrl = lessonRaw.PdfUrl ?? "",
             ResourcesUrl = lessonRaw.ResourcesUrl ?? ""
         };
+    }
+
+    private void AddAdminLog(string actionType, string description)
+    {
+        _context.admin_logs.Add(new admin_log
+        {
+            id = Guid.NewGuid(),
+            action_type = actionType,
+            description = description,
+            created_at = DateTime.Now
+        });
     }
 
     private async Task<List<AdminLessonSubjectDto>> GetSubjectsAsync()
