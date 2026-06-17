@@ -371,6 +371,13 @@ public class AdminAchievementsRepository : IAdminAchievementsRepository
             .ToList();
     }
 
+    private async Task<int> GetTotalActiveStudentsAsync()
+    {
+        return await _context.users
+            .AsNoTracking()
+            .CountAsync(u => u.role == "student" && u.is_active == true);
+    }
+
     private void AddAdminLog(string actionType, string description)
     {
         _context.admin_logs.Add(new admin_log
@@ -378,15 +385,8 @@ public class AdminAchievementsRepository : IAdminAchievementsRepository
             id = Guid.NewGuid(),
             action_type = actionType,
             description = description,
-            created_at = DateTime.Now
+            created_at = GetUnspecifiedNow()
         });
-    }
-
-    private async Task<int> GetTotalActiveStudentsAsync()
-    {
-        return await _context.users
-            .AsNoTracking()
-            .CountAsync(u => u.role == "student" && u.is_active == true);
     }
 
     private async Task<int> GetUnlockedCountAsync(Guid achievementId)

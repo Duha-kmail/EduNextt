@@ -546,7 +546,7 @@ public class StudentSetupService : IStudentSetupService
 
     private static DateTime GetUtcNow()
     {
-        return GetUnspecifiedNow();
+        return DateTime.UtcNow;
     }
 
     private static DateTime GetUnspecifiedNow()
