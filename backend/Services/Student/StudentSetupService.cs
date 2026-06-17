@@ -238,13 +238,17 @@ public class StudentSetupService : IStudentSetupService
 
         var cleanMethods = CleanStringList(dto.Methods);
         var difficultNames = CleanStringList(dto.Difficult);
+        var subjectIds = dto.SubjectIds
+            .Where(id => id != Guid.Empty)
+            .Distinct()
+            .ToList();
 
         if (cleanMethods.Count == 0)
         {
             throw new ArgumentException("يجب اختيار طريقة تعلم واحدة على الأقل.");
         }
 
-        if (difficultNames.Count == 0)
+        if (subjectIds.Count == 0 && difficultNames.Count == 0)
         {
             throw new ArgumentException("يجب اختيار مادة صعبة واحدة على الأقل.");
         }
@@ -276,9 +280,22 @@ public class StudentSetupService : IStudentSetupService
             throw new ArgumentException("قيمة الخبرة في الاختبارات غير صحيحة.");
         }
 
-        var matchedSubjects = await _repository.GetSubjectsByBranchAndNamesAsync(branch, difficultNames);
+        var matchedSubjects = subjectIds.Count > 0
+            ? await _repository.GetSubjectsByIdsAsync(subjectIds)
+            : await _repository.GetSubjectsByBranchAndNamesAsync(branch, difficultNames);
 
-        if (matchedSubjects.Count != difficultNames.Count)
+        if (subjectIds.Count > 0)
+        {
+            var invalidSubjectIds = subjectIds
+                .Except(matchedSubjects.Select(s => s.id))
+                .ToList();
+
+            if (invalidSubjectIds.Count > 0 || matchedSubjects.Any(s => s.stream != branch))
+            {
+                throw new ArgumentException("بعض المواد المختارة غير صالحة لهذا الفرع.");
+            }
+        }
+        else if (matchedSubjects.Count != difficultNames.Count)
         {
             var matchedNames = matchedSubjects
                 .Select(s => s.name)
@@ -471,7 +488,7 @@ public class StudentSetupService : IStudentSetupService
 
     private static DateTime GetUtcNow()
     {
-        return DateTime.UtcNow;
+        return GetUnspecifiedNow();
     }
 
     private static DateTime GetUnspecifiedNow()

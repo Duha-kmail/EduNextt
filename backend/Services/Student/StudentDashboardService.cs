@@ -176,17 +176,16 @@ public class StudentDashboardService : IStudentDashboardService
 
         if (hasAnyProgress && subjectProgress.Any())
         {
-            var weakestSubjects = subjectProgress
+            var candidateSubjects = subjectProgress
                 .OrderBy(x => x.ProgressPercent)
                 .ThenByDescending(x => x.RemainingLessons)
-                .Take(3)
                 .ToList();
 
-            var weakestSubjectIds = weakestSubjects
+            var candidateSubjectIds = candidateSubjects
                 .Select(x => x.SubjectId)
                 .ToList();
 
-            var lessonCandidates = await _repository.GetNextLessonsForSubjectsAsync(userId, weakestSubjectIds);
+            var lessonCandidates = await _repository.GetNextLessonsForSubjectsAsync(userId, candidateSubjectIds);
 
             var nextLessonBySubject = lessonCandidates
                 .GroupBy(x => x.SubjectId)
@@ -206,7 +205,7 @@ public class StudentDashboardService : IStudentDashboardService
                 AverageScore = averageScorePercent,
                 CompletedLessons = completedLessonsCount,
                 TotalLessons = totalLessons,
-                Subjects = weakestSubjects.Select(subject =>
+                Subjects = candidateSubjects.Select(subject =>
                 {
                     nextLessonBySubject.TryGetValue(subject.SubjectId, out var nextLesson);
 
@@ -227,22 +226,19 @@ public class StudentDashboardService : IStudentDashboardService
                 }).ToList()
             });
 
-            var recommendationText = aiResponse.RecommendationText;
+            var recommendedSubjects = OrderSubjectsByAiRecommendation(
+                candidateSubjects,
+                aiResponse.FocusSubjects,
+                aiResponse.LessonOrder,
+                nextLessonBySubject
+            )
+                .Take(3)
+                .ToList();
 
-            if (!string.IsNullOrWhiteSpace(recommendationText))
-            {
-                recommendations.Add(new DashboardRecommendationDto
-                {
-                    Title = "توصية مخصصة لك",
-                    Tag = "الذكاء الاصطناعي",
-                    TagColor = "purple",
-                    Description = recommendationText
-                });
-            }
-
-            foreach (var subject in weakestSubjects)
+            foreach (var subject in recommendedSubjects)
             {
                 nextLessonBySubject.TryGetValue(subject.SubjectId, out var nextLesson);
+                var subjectAnalysis = FindSubjectAnalysis(aiResponse.SubjectAnalyses, subject);
 
                 recommendations.Add(new DashboardRecommendationDto
                 {
@@ -251,7 +247,12 @@ public class StudentDashboardService : IStudentDashboardService
                     Title = nextLesson?.LessonTitle ?? $"تابع مادة {subject.SubjectName}",
                     Tag = subject.SubjectName,
                     TagColor = MapTagColor(subject.SubjectName),
-                    Description = BuildRecommendationDescription(subject.SubjectName, subject.ProgressPercent)
+                    Description = BuildAiRecommendationDescription(
+                        subject,
+                        nextLesson?.LessonTitle,
+                        subjectAnalysis,
+                        aiResponse.RecommendationText
+                    )
                 });
             }
 
@@ -271,6 +272,140 @@ public class StudentDashboardService : IStudentDashboardService
             EmptyMessage = "ابدأ بدراسة أول درس أو بحل أول اختبار لنتمكن من اقتراح خطوات مناسبة لك.",
             IsAi = false
         };
+    }
+
+    private static List<SubjectProgressDto> OrderSubjectsByAiRecommendation(
+        List<SubjectProgressDto> subjects,
+        List<string> focusSubjects,
+        List<string> lessonOrder,
+        Dictionary<Guid, DashboardLessonCandidateData> nextLessonBySubject
+    )
+    {
+        var ordered = new List<SubjectProgressDto>();
+        var usedSubjectIds = new HashSet<Guid>();
+
+        void AddSubject(SubjectProgressDto? subject)
+        {
+            if (subject == null || usedSubjectIds.Contains(subject.SubjectId))
+            {
+                return;
+            }
+
+            ordered.Add(subject);
+            usedSubjectIds.Add(subject.SubjectId);
+        }
+
+        foreach (var focusSubject in focusSubjects)
+        {
+            AddSubject(subjects.FirstOrDefault(subject =>
+                TextMatches(subject.SubjectName, focusSubject) ||
+                TextMatches(focusSubject, subject.SubjectName)));
+        }
+
+        foreach (var lessonTitle in lessonOrder)
+        {
+            var subjectId = nextLessonBySubject
+                .Where(pair =>
+                    TextMatches(pair.Value.LessonTitle, lessonTitle) ||
+                    TextMatches(lessonTitle, pair.Value.LessonTitle))
+                .Select(pair => pair.Key)
+                .FirstOrDefault();
+
+            if (subjectId != Guid.Empty)
+            {
+                AddSubject(subjects.FirstOrDefault(subject => subject.SubjectId == subjectId));
+            }
+        }
+
+        foreach (var subject in subjects
+            .OrderBy(x => x.ProgressPercent)
+            .ThenByDescending(x => x.RemainingLessons))
+        {
+            AddSubject(subject);
+        }
+
+        return ordered;
+    }
+
+    private static AiSubjectAnalysisDto? FindSubjectAnalysis(
+        List<AiSubjectAnalysisDto> analyses,
+        SubjectProgressDto subject
+    )
+    {
+        return analyses.FirstOrDefault(analysis =>
+            analysis.SubjectId == subject.SubjectId ||
+            TextMatches(analysis.SubjectName, subject.SubjectName) ||
+            TextMatches(subject.SubjectName, analysis.SubjectName));
+    }
+
+    private static string BuildAiRecommendationDescription(
+        SubjectProgressDto subject,
+        string? nextLessonTitle,
+        AiSubjectAnalysisDto? analysis,
+        string recommendationText
+    )
+    {
+        var weakness = analysis?.Weaknesses.FirstOrDefault();
+        var strength = analysis?.Strengths.FirstOrDefault();
+
+        if (!string.IsNullOrWhiteSpace(nextLessonTitle) && !string.IsNullOrWhiteSpace(weakness))
+        {
+            return $"حسب تحليل الذكاء الاصطناعي، ركز الآن على {subject.SubjectName}. ابدأ بدرس {nextLessonTitle} لأنه يعالج نقطة تحتاج تقوية: {weakness}.";
+        }
+
+        if (!string.IsNullOrWhiteSpace(nextLessonTitle) && !string.IsNullOrWhiteSpace(strength))
+        {
+            return $"حسب تحليل الذكاء الاصطناعي، درس {nextLessonTitle} هو الخطوة التالية في {subject.SubjectName}. عندك أساس جيد في {strength} ونبني عليه بالتدريج.";
+        }
+
+        if (!string.IsNullOrWhiteSpace(nextLessonTitle))
+        {
+            return $"حسب تقدمك الحالي، هذا هو أول درس غير مكتمل في {subject.SubjectName}: {nextLessonTitle}. ابدأ منه حتى تكمّل المسار بدون قفزات.";
+        }
+
+        if (!string.IsNullOrWhiteSpace(recommendationText))
+        {
+            return ShortenRecommendation(recommendationText);
+        }
+
+        return BuildRecommendationDescription(subject.SubjectName, subject.ProgressPercent);
+    }
+
+    private static bool TextMatches(string? value, string? query)
+    {
+        if (string.IsNullOrWhiteSpace(value) || string.IsNullOrWhiteSpace(query))
+        {
+            return false;
+        }
+
+        var cleanValue = NormalizeText(value);
+        var cleanQuery = NormalizeText(query);
+
+        return cleanValue.Contains(cleanQuery, StringComparison.OrdinalIgnoreCase) ||
+               cleanQuery.Contains(cleanValue, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeText(string value)
+    {
+        return value
+            .Trim()
+            .Replace("أ", "ا")
+            .Replace("إ", "ا")
+            .Replace("آ", "ا")
+            .Replace("ة", "ه")
+            .Replace("ى", "ي");
+    }
+
+    private static string ShortenRecommendation(string value)
+    {
+        var clean = value.Trim();
+
+        if (clean.Length <= 220)
+        {
+            return clean;
+        }
+
+        return clean[..220].TrimEnd() + "...";
     }
 
     private static StudentDashboardDto BuildEmptyDashboard(

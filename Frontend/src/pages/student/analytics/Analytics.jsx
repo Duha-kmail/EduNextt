@@ -42,6 +42,106 @@ const getAuthToken = () => {
   return sessionStorage.getItem("token") || localStorage.getItem("token");
 };
 
+const getTokenPayload = (token) => {
+  try {
+    if (!token) return null;
+
+    const payloadBase64 = token.split(".")[1];
+    if (!payloadBase64) return null;
+
+    const normalized = payloadBase64.replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = atob(normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "="));
+
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+};
+
+const getCurrentUserStorageId = () => {
+  const storedUserId =
+    sessionStorage.getItem("userId") ||
+    localStorage.getItem("userId");
+
+  if (storedUserId && storedUserId !== "undefined" && storedUserId !== "null") {
+    return storedUserId;
+  }
+
+  const payload = getTokenPayload(getAuthToken());
+  return (
+    payload?.nameid ||
+    payload?.sub ||
+    payload?.[
+      "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+    ] ||
+    ""
+  );
+};
+
+const sameSubjectName = (first = "", second = "") => {
+  return first.trim().toLowerCase() === second.trim().toLowerCase();
+};
+
+const getStudentChatHistoryInsights = () => {
+  const userId = getCurrentUserStorageId();
+  if (!userId) return null;
+
+  const keyPrefix = `edunext-ai-chat-history:${encodeURIComponent(userId)}:`;
+  const subjects = new Map();
+  let totalQuestions = 0;
+  let latestQuestionAt = "";
+
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (!key?.startsWith(keyPrefix)) continue;
+
+    try {
+      const messages = JSON.parse(localStorage.getItem(key) || "[]");
+      if (!Array.isArray(messages)) continue;
+
+      messages
+        .filter((message) => message?.role === "user")
+        .forEach((message) => {
+          const subjectName =
+            String(message.subjectName || "").trim() ||
+            String(message.subjectKey || "").trim() ||
+            "Chatbot";
+          const lessonTitle = String(message.lessonTitle || "").trim();
+          const text = String(message.text || "").trim();
+          const current = subjects.get(subjectName) || {
+            subjectName,
+            questions: 0,
+            lessons: new Set(),
+            samples: [],
+          };
+
+          current.questions += 1;
+          if (lessonTitle) current.lessons.add(lessonTitle);
+          if (text && current.samples.length < 3) current.samples.push(text);
+          subjects.set(subjectName, current);
+          totalQuestions += 1;
+
+          const createdAt = String(message.createdAt || "");
+          if (createdAt && (!latestQuestionAt || createdAt > latestQuestionAt)) {
+            latestQuestionAt = createdAt;
+          }
+        });
+    } catch {
+      // Ignore malformed local history entries.
+    }
+  }
+
+  const topSubjects = Array.from(subjects.values())
+    .map((subject) => ({
+      ...subject,
+      lessons: Array.from(subject.lessons).slice(0, 3),
+    }))
+    .sort((a, b) => b.questions - a.questions)
+    .slice(0, 4);
+
+  return totalQuestions > 0 ? { totalQuestions, latestQuestionAt, topSubjects } : null;
+};
+
 const getLevelByScore = (score) => {
   if (score >= 90) return "ممتاز";
   if (score >= 80) return "جيد جداً";
@@ -176,6 +276,74 @@ const normalizeAnalytics = (data) => {
         weaknesses: normalizeList(subject.weaknesses || subject.Weaknesses),
       };
     }),
+  };
+};
+
+const enrichAnalyticsWithChatHistory = (analytics) => {
+  const chatInsights = getStudentChatHistoryInsights();
+  if (!chatInsights) return analytics;
+
+  const primarySubject = chatInsights.topSubjects[0];
+  const weakAreas = [...analytics.weakAreas];
+
+  if (primarySubject) {
+    const chatSummary = `حسب أسئلة الشات بوت، أكثر مادة تبحث عنها هي ${primarySubject.subjectName} بعدد ${primarySubject.questions} سؤال.`;
+
+    if (!weakAreas.some((item) => item.includes(primarySubject.subjectName))) {
+      weakAreas.unshift(chatSummary);
+    }
+  }
+
+  const strengthAreas = [...analytics.strengthAreas];
+  if (chatInsights.totalQuestions >= 3) {
+    strengthAreas.push(`استخدمت الشات بوت ${chatInsights.totalQuestions} مرات، وهذا يساعد التحليل على فهم المواضيع التي تراجعها.`);
+  }
+
+  const subjectDetails = [...analytics.subjectDetails];
+  chatInsights.topSubjects.forEach((chatSubject) => {
+    const existingIndex = subjectDetails.findIndex((subject) =>
+      sameSubjectName(subject.name, chatSubject.subjectName)
+    );
+    const chatStrength = "يوجد نشاط مراجعة واضح في الشات بوت لهذه المادة.";
+    const chatWeakness = `أسئلتك في الشات بوت تركزت هنا (${chatSubject.questions} سؤال)، لذلك الأفضل مراجعة هذه النقاط مع الدروس المرتبطة.`;
+
+    if (existingIndex >= 0) {
+      const existing = subjectDetails[existingIndex];
+      subjectDetails[existingIndex] = {
+        ...existing,
+        strengths: [...existing.strengths, chatStrength],
+        weaknesses: [...existing.weaknesses, chatWeakness],
+      };
+      return;
+    }
+
+    subjectDetails.push({
+      subjectId: `chat-${chatSubject.subjectName}`,
+      name: chatSubject.subjectName,
+      averageScore: 0,
+      level: "غير محدد",
+      icon: subjectIconMap[chatSubject.subjectName],
+      strengths: [chatStrength],
+      weaknesses: [chatWeakness],
+    });
+  });
+
+  const recommendationText = [
+    analytics.recommendationText,
+    primarySubject
+      ? `ومن سجل الشات بوت، ابدأ بمراجعة ${primarySubject.subjectName} لأن أسئلتك الأخيرة تتركز فيها.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return {
+    ...analytics,
+    strengthAreas: strengthAreas.slice(0, 6),
+    weakAreas: weakAreas.slice(0, 6),
+    recommendationText,
+    subjectDetails,
+    chatInsights,
   };
 };
 
@@ -714,7 +882,7 @@ const Analytics = () => {
         return;
       }
 
-      setAnalytics(normalizeAnalytics(data));
+      setAnalytics(enrichAnalyticsWithChatHistory(normalizeAnalytics(data)));
     } catch (err) {
       console.error(err);
       setError("تعذر الاتصال بالسيرفر");

@@ -236,6 +236,7 @@ public class StudentDashboardRepository : IStudentDashboardRepository
                 lp.lesson_id == l.id &&
                 lp.completed == true))
             .OrderBy(l => l.subject_id)
+            .ThenBy(l => l.subject_unit != null ? l.subject_unit.order_number : int.MaxValue)
             .ThenBy(l => l.order_number ?? int.MaxValue)
             .ThenBy(l => l.title)
             .Select(l => new DashboardLessonCandidateData

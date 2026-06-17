@@ -75,6 +75,7 @@ const OnboardingStep1 = () => {
 
   const [branch, setBranch] = useState("");
   const [difficult, setDifficult] = useState([]);
+  const [subjectIds, setSubjectIds] = useState([]);
   const [hours, setHours] = useState("");
   const [goal, setGoal] = useState("");
   const [error, setError] = useState("");
@@ -93,6 +94,7 @@ const OnboardingStep1 = () => {
     const savedData = JSON.parse(localStorage.getItem("onboarding") || "{}");
     if (savedData.branch) setBranch(savedData.branch);
     if (savedData.difficult) setDifficult(savedData.difficult);
+    if (savedData.subjectIds) setSubjectIds(savedData.subjectIds);
     if (savedData.hours) setHours(savedData.hours);
     if (savedData.goal) setGoal(savedData.goal);
   }, [navigate]);
@@ -118,12 +120,19 @@ const OnboardingStep1 = () => {
   }, [branch]);
 
   const handleBranchSelect = (selectedBranch) => {
-    setBranch(selectedBranch); setDifficult([]); setSubjects([]); setSubjectsError("");
+    setBranch(selectedBranch); setDifficult([]); setSubjectIds([]); setSubjects([]); setSubjectsError("");
   };
 
-  const toggleDifficult = (subjectName) => {
+  const toggleDifficult = (subject) => {
     setDifficult((prev) =>
-      prev.includes(subjectName) ? prev.filter((x) => x !== subjectName) : [...prev, subjectName]
+      prev.includes(subject.subjectName)
+        ? prev.filter((x) => x !== subject.subjectName)
+        : [...prev, subject.subjectName]
+    );
+    setSubjectIds((prev) =>
+      prev.includes(subject.subjectId)
+        ? prev.filter((x) => x !== subject.subjectId)
+        : [...prev, subject.subjectId]
     );
   };
 
@@ -132,7 +141,7 @@ const OnboardingStep1 = () => {
       setError("الرجاء تعبئة جميع الحقول"); return;
     }
     setError("");
-    localStorage.setItem("onboarding", JSON.stringify({ branch, difficult, hours, goal }));
+    localStorage.setItem("onboarding", JSON.stringify({ branch, difficult, subjectIds, hours, goal }));
     navigate("/onboarding/2");
   };
 
@@ -229,8 +238,8 @@ const OnboardingStep1 = () => {
               <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                 {subjects.map((s) => (
                   <Chip key={s.subjectId} label={s.subjectName}
-                    selected={difficult.includes(s.subjectName)}
-                    onClick={() => toggleDifficult(s.subjectName)} />
+                    selected={subjectIds.includes(s.subjectId)}
+                    onClick={() => toggleDifficult(s)} />
                 ))}
               </div>
             )}

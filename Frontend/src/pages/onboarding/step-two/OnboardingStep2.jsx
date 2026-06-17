@@ -144,7 +144,16 @@ const OnboardingStep2 = () => {
     setError("");
     const step1Data = JSON.parse(localStorage.getItem("onboarding") || "{}");
     const token = localStorage.getItem("token");
-    const payload = { branch: step1Data.branch, difficult: step1Data.difficult || [], hours: step1Data.hours, goal: step1Data.goal, methods, level, examExp };
+    const payload = {
+      branch: step1Data.branch,
+      difficult: step1Data.difficult || [],
+      subjectIds: step1Data.subjectIds || [],
+      hours: step1Data.hours,
+      goal: step1Data.goal,
+      methods,
+      level,
+      examExp,
+    };
 
     try {
       setLoading(true);

@@ -78,18 +78,55 @@ const subjectChatbots = {
   },
 };
 
-const getChatStorageKey = (lesson, subject) => {
+const getTokenPayload = (token) => {
+  try {
+    if (!token) return null;
+
+    const payloadBase64 = token.split(".")[1];
+    if (!payloadBase64) return null;
+
+    const normalized = payloadBase64.replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = atob(normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "="));
+
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+};
+
+const getCurrentUserStorageId = () => {
+  const storedUserId =
+    sessionStorage.getItem("userId") ||
+    localStorage.getItem("userId");
+
+  if (storedUserId && storedUserId !== "undefined" && storedUserId !== "null") {
+    return storedUserId;
+  }
+
+  const payload = getTokenPayload(getAuthToken());
+  return (
+    payload?.nameid ||
+    payload?.sub ||
+    payload?.[
+      "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+    ] ||
+    ""
+  );
+};
+
+const getChatStorageKey = (lesson, subject, userId = getCurrentUserStorageId()) => {
   if (!lesson?.lessonId && !lesson?.title) return "";
+  if (!userId) return "";
 
   const subjectPart = lesson?.subjectId || subject?.id || "subject";
   const lessonPart =
     lesson?.lessonId ||
     `${lesson?.lessonNumber || "lesson"}-${lesson?.title || "untitled"}`;
 
-  return `edunext-ai-chat-history:${subjectPart}:${lessonPart}`;
+  return `edunext-ai-chat-history:${encodeURIComponent(userId)}:${subjectPart}:${lessonPart}`;
 };
 
-const persistChatHistory = (key, messages) => {
+const persistChatHistory = (key, messages, context = {}) => {
   if (!key) return;
 
   try {
@@ -99,6 +136,9 @@ const persistChatHistory = (key, messages) => {
       imageName: message.imageName || "",
       hasImage: Boolean(message.image || message.hasImage),
       createdAt: message.createdAt || new Date().toISOString(),
+      subjectName: message.subjectName || context.subjectName || "",
+      subjectKey: message.subjectKey || context.subjectKey || "",
+      lessonTitle: message.lessonTitle || context.lessonTitle || "",
     }));
 
     localStorage.setItem(key, JSON.stringify(compactMessages));
@@ -142,6 +182,21 @@ const getSubjectChatbotConfig = (...labels) => {
   }
 
   return null;
+};
+
+const getChatHistoryContext = (lesson, subject) => {
+  const chatbotConfig = getSubjectChatbotConfig(
+    lesson?.subjectTitle,
+    subject?.title,
+    subject?.desc,
+    subject?.iconKey
+  );
+
+  return {
+    subjectName: lesson?.subjectTitle || subject?.title || "",
+    subjectKey: chatbotConfig?.key || "",
+    lessonTitle: lesson?.title || "",
+  };
 };
 
 const getAuthToken = () => {
@@ -370,6 +425,7 @@ const normalizeUnlockedAchievement = (achievement) => {
 
 const Subjects = () => {
   const token = getAuthToken();
+  const currentUserId = useMemo(() => getCurrentUserStorageId(), [token]);
   const location = useLocation();
   const pendingNavigationRef = useRef(location.state || null);
   const lessonOpenedAtRef = useRef(null);
@@ -432,7 +488,7 @@ const Subjects = () => {
   useEffect(() => {
     if (!lessonDetails?.lessonId) return;
 
-    const historyKey = getChatStorageKey(lessonDetails, currentSubject);
+    const historyKey = getChatStorageKey(lessonDetails, currentSubject, currentUserId);
     skipNextChatPersistRef.current = true;
 
     try {
@@ -445,7 +501,7 @@ const Subjects = () => {
     setChatMsg("");
     setChatImage(null);
     setChatHistoryOpen(false);
-  }, [lessonDetails?.lessonId, currentSubject?.id]);
+  }, [lessonDetails?.lessonId, currentSubject?.id, currentUserId]);
 
   useEffect(() => {
     const messagesElement = chatMessagesRef.current;
@@ -461,8 +517,12 @@ const Subjects = () => {
       return;
     }
 
-    persistChatHistory(getChatStorageKey(lessonDetails, currentSubject), chatMessages);
-  }, [chatMessages, lessonDetails?.lessonId, currentSubject?.id]);
+    persistChatHistory(
+      getChatStorageKey(lessonDetails, currentSubject, currentUserId),
+      chatMessages,
+      getChatHistoryContext(lessonDetails, currentSubject)
+    );
+  }, [chatMessages, lessonDetails?.lessonId, currentSubject?.id, currentUserId]);
 
   const toggleUnit = (unitId) => {
     setOpenUnits((prev) => ({
@@ -819,7 +879,7 @@ const Subjects = () => {
   };
 
   const clearChatHistory = () => {
-    const historyKey = getChatStorageKey(lessonDetails, currentSubject);
+    const historyKey = getChatStorageKey(lessonDetails, currentSubject, currentUserId);
     if (historyKey) {
       localStorage.removeItem(historyKey);
     }
@@ -840,7 +900,8 @@ const Subjects = () => {
 
     if (!chatbotConfig) return;
 
-    const historyKey = getChatStorageKey(lessonDetails, currentSubject);
+    const historyKey = getChatStorageKey(lessonDetails, currentSubject, currentUserId);
+    const historyContext = getChatHistoryContext(lessonDetails, currentSubject);
     const userMessage = {
       role: "user",
       text: msg || "حلل الصورة المرفقة وأجب عن السؤال الظاهر فيها.",
@@ -848,11 +909,12 @@ const Subjects = () => {
       imageName: imageToSend?.name || "",
       hasImage: Boolean(imageToSend),
       createdAt: new Date().toISOString(),
+      ...historyContext,
     };
 
     setChatMessages((prev) => {
       const next = [...prev, userMessage];
-      persistChatHistory(historyKey, next);
+      persistChatHistory(historyKey, next, historyContext);
       return next;
     });
     setChatMsg("");
