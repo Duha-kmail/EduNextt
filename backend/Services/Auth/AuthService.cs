@@ -98,11 +98,112 @@ public class AuthService : IAuthService
             );
         }
 
+        var otp = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+        var pendingRegistration = new PendingRegistration(
+            fullName,
+            email,
+            BCrypt.Net.BCrypt.HashPassword(password),
+            dto.AcceptedTerms
+        );
+
+        _memoryCache.Set(GetRegistrationOtpCacheKey(email), otp, TimeSpan.FromMinutes(1));
+        _memoryCache.Set(GetPendingRegistrationCacheKey(email), pendingRegistration, TimeSpan.FromMinutes(10));
+
+        try
+        {
+            await _emailSender.SendRegistrationOtpAsync(
+                email,
+                fullName,
+                otp,
+                CancellationToken.None
+            );
+
+            return AuthResult<AuthResponseDto>.Ok(
+                new AuthResponseDto(),
+                "تم إرسال رمز التحقق إلى بريدك الإلكتروني."
+            );
+        }
+        catch
+        {
+            _memoryCache.Remove(GetRegistrationOtpCacheKey(email));
+            _memoryCache.Remove(GetPendingRegistrationCacheKey(email));
+
+            return AuthResult<AuthResponseDto>.Fail(
+                503,
+                "تعذر إرسال رمز التحقق. تأكد من إعدادات البريد ثم حاول مرة أخرى."
+            );
+        }
+    }
+
+    public async Task<AuthResult<AuthResponseDto>> VerifyRegistrationAsync(VerifyRegistrationRequestDto dto)
+    {
+        if (dto == null)
+        {
+            return AuthResult<AuthResponseDto>.Fail(
+                400,
+                "الطلب غير صالح."
+            );
+        }
+
+        var email = NormalizeEmail(dto.Email);
+        var otp = dto.Otp?.Trim() ?? "";
+        var errors = new Dictionary<string, List<string>>();
+
+        if (string.IsNullOrWhiteSpace(email))
+            AddError(errors, "email", "البريد الإلكتروني مطلوب.");
+
+        if (string.IsNullOrWhiteSpace(otp) || !Regex.IsMatch(otp, @"^\d{6}$"))
+            AddError(errors, "otp", "رمز التحقق يجب أن يتكون من 6 أرقام.");
+
+        if (errors.Any())
+        {
+            return AuthResult<AuthResponseDto>.Fail(
+                400,
+                "يرجى إدخال رمز تحقق صالح.",
+                errors
+            );
+        }
+
+        if (
+            !_memoryCache.TryGetValue(GetRegistrationOtpCacheKey(email), out string? cachedOtp) ||
+            cachedOtp != otp ||
+            !_memoryCache.TryGetValue(GetPendingRegistrationCacheKey(email), out PendingRegistration? pendingRegistration)
+        )
+        {
+            AddError(errors, "otp", "رمز التحقق غير صحيح أو انتهت صلاحيته.");
+
+            return AuthResult<AuthResponseDto>.Fail(
+                400,
+                "رمز التحقق غير صحيح أو انتهت صلاحيته.",
+                errors
+            );
+        }
+
+        var emailExists = await _db.users
+            .AsNoTracking()
+            .AnyAsync(user => user.email == email);
+
+        if (emailExists)
+        {
+            _memoryCache.Remove(GetRegistrationOtpCacheKey(email));
+            _memoryCache.Remove(GetPendingRegistrationCacheKey(email));
+
+            AddError(errors, "email", "هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول أو استخدام بريد آخر.");
+
+            return AuthResult<AuthResponseDto>.Fail(
+                400,
+                "البريد الإلكتروني مستخدم مسبقاً.",
+                errors
+            );
+        }
+
+        var registration = pendingRegistration!;
+
         var newUser = new user
         {
-            full_name = fullName,
-            email = email,
-            password_hash = BCrypt.Net.BCrypt.HashPassword(password),
+            full_name = registration.FullName,
+            email = registration.Email,
+            password_hash = registration.PasswordHash,
             role = "student",
             is_active = true,
             onboarding_completed = false
@@ -121,6 +222,9 @@ public class AuthService : IAuthService
             var token = _jwtTokenService.GenerateToken(newUser);
 
             await transaction.CommitAsync();
+
+            _memoryCache.Remove(GetRegistrationOtpCacheKey(email));
+            _memoryCache.Remove(GetPendingRegistrationCacheKey(email));
 
             var response = new AuthResponseDto
             {
@@ -143,7 +247,7 @@ public class AuthService : IAuthService
 
             return AuthResult<AuthResponseDto>.Fail(
                 500,
-                "حدث خطأ غير متوقع أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى."
+                "تعذر إنشاء الحساب. يرجى المحاولة مرة أخرى."
             );
         }
     }
@@ -338,7 +442,7 @@ public class AuthService : IAuthService
 
         var otp = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
 
-        _memoryCache.Set(GetOtpCacheKey(normalizedEmail), otp, TimeSpan.FromMinutes(3));
+        _memoryCache.Set(GetOtpCacheKey(normalizedEmail), otp, TimeSpan.FromMinutes(1));
         _memoryCache.Remove(GetVerifiedCacheKey(normalizedEmail));
 
         await _emailSender.SendPasswordResetOtpAsync(
@@ -431,7 +535,7 @@ public class AuthService : IAuthService
     {
         var refreshTokenValue = Guid.NewGuid().ToString("N");
         var tokenHash = BCrypt.Net.BCrypt.HashPassword(refreshTokenValue);
-        var expiresAt = DateTime.UtcNow.AddDays(14);// صلاحية الـ refresh token لمدة 14 يومًا
+        var expiresAt = DateTime.UtcNow.AddDays(14);
 
         var refreshToken = new RefreshToken
         {
@@ -458,13 +562,13 @@ public class AuthService : IAuthService
             );
         }
 
-        // البحث عن جميع الـ tokens غير المنتهية الصلاحية والغير مُلغاة
+        
         var activeTokens = await _db.RefreshTokens
             .AsNoTracking()
             .Where(rt => rt.ExpiresAt > DateTime.UtcNow && rt.RevokedAt == null)
             .ToListAsync(cancellationToken);
 
-        // البحث عن الـ token الذي يطابق الـ hash
+        
         RefreshToken? storedToken = null;
         foreach (var token in activeTokens)
         {
@@ -478,7 +582,7 @@ public class AuthService : IAuthService
             }
             catch
             {
-                // استمر مع الـ token التالي
+                
                 continue;
             }
         }
@@ -491,7 +595,7 @@ public class AuthService : IAuthService
             );
         }
 
-        // الحصول على المستخدم
+        
         var user = await _db.users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.id == storedToken.UserId, cancellationToken: cancellationToken);
@@ -504,7 +608,7 @@ public class AuthService : IAuthService
             );
         }
 
-        // إلغاء الـ token القديم وإنشاء واحد جديد
+        
         storedToken.RevokedAt = DateTime.UtcNow;
         _db.RefreshTokens.Update(storedToken);
         await _db.SaveChangesAsync(cancellationToken);
@@ -608,4 +712,21 @@ public class AuthService : IAuthService
     {
         return $"password-reset:verified:{email}";
     }
+
+    private static string GetRegistrationOtpCacheKey(string email)
+    {
+        return $"registration:otp:{email}";
+    }
+
+    private static string GetPendingRegistrationCacheKey(string email)
+    {
+        return $"registration:pending:{email}";
+    }
+
+    private sealed record PendingRegistration(
+        string FullName,
+        string Email,
+        string PasswordHash,
+        bool AcceptedTerms
+    );
 }

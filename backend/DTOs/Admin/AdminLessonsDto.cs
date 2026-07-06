@@ -55,9 +55,27 @@ public class AdminLessonSubjectDto
     public string Department { get; set; } = "";
 }
 
+public class AdminLessonUnitDto
+{
+    public Guid Id { get; set; }
+
+    public string Title { get; set; } = "";
+
+    public int OrderNumber { get; set; }
+}
+
+public class CreateAdminLessonUnitDto
+{
+    public string Title { get; set; } = "";
+
+    public int OrderNumber { get; set; } = 1;
+}
+
 public class CreateAdminLessonDto
 {
     public Guid SubjectId { get; set; }
+
+    public Guid UnitId { get; set; }
 
     public string Title { get; set; } = "";
 
@@ -73,6 +91,8 @@ public class CreateAdminLessonDto
 public class UpdateAdminLessonDto
 {
     public Guid SubjectId { get; set; }
+
+    public Guid UnitId { get; set; }
 
     public string Title { get; set; } = "";
 

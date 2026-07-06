@@ -1,8 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
 
-/* =============================================
-   DESIGN TOKENS — مأخوذة من Home Page
-   ============================================= */
+
 :root {
   --edn-bg: #f8fbfd;
   --edn-card: #ffffff;
@@ -11,7 +9,7 @@
   --edn-border: #dfe7ef;
   --edn-teal: #08b7aa;
   --edn-blue: #2f9be7;
-  --edn-purple: #9b75f6;
+  --edn-purple: #08b7aa;
   --edn-red: #ef4444;
   --edn-shadow: 0 20px 50px rgba(34, 62, 88, 0.08);
   --edn-shadow-sm: 0 4px 16px rgba(34, 62, 88, 0.06);
@@ -25,10 +23,10 @@
   box-sizing: border-box;
 }
 
-/* =============================================
-   LAYOUT WRAPPER
-   ============================================= */
+
 .admin-main-sub {
+  display: flex;
+  flex-direction: column;
   padding: 32px 36px 60px;
   min-height: 100vh;
   background: var(--edn-bg);
@@ -37,14 +35,7 @@
   color: var(--edn-ink);
 }
 
-.app-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
 
-/* =============================================
-   PAGE HEADER
-   ============================================= */
 .page-header-sub {
   display: flex;
   align-items: center;
@@ -76,9 +67,7 @@
   flex-shrink: 0;
 }
 
-/* =============================================
-   BUTTONS
-   ============================================= */
+
 .btn-primary-sub {
   display: inline-flex;
   align-items: center;
@@ -202,10 +191,9 @@
   background: rgba(8, 183, 170, 0.08);
 }
 
-/* =============================================
-   SEARCH BAR
-   ============================================= */
+
 .search-bar1 {
+  order: 2;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -271,10 +259,9 @@
   background: rgba(8, 183, 170, 0.06);
 }
 
-/* =============================================
-   FILTER PANEL
-   ============================================= */
+
 .filter-panel-al1 {
+  order: 3;
   display: flex;
   align-items: center;
   gap: 20px;
@@ -325,10 +312,9 @@
   border-color: var(--edn-teal);
 }
 
-/* =============================================
-   STATS CARDS
-   ============================================= */
+
 .stats-grid-sub {
+  order: 1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
@@ -414,13 +400,12 @@
 
 .stat-icon-sub.purple {
   color: var(--edn-purple);
-  background: rgba(155, 117, 246, 0.12);
+  background: rgba(8, 183, 170, 0.12);
 }
 
-/* =============================================
-   SUBJECTS SECTION
-   ============================================= */
+
 .subjects-section-sub {
+  order: 4;
   border: 1px solid var(--edn-border);
   border-radius: var(--edn-radius);
   background: var(--edn-card);
@@ -443,9 +428,7 @@
   color: var(--edn-ink);
 }
 
-/* =============================================
-   TABLE
-   ============================================= */
+
 .table-container-sub {
   overflow-x: auto;
 }
@@ -492,7 +475,7 @@
   border-bottom: none;
 }
 
-/* Subject Name Cell */
+
 .subject-name-cell-sub {
   display: flex;
   align-items: center;
@@ -505,7 +488,7 @@
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(8, 183, 170, 0.15), rgba(47, 155, 231, 0.12));
+  background: rgba(8, 183, 170, 0.13);
   color: var(--edn-teal);
   font-size: 14px;
   font-weight: 900;
@@ -532,7 +515,7 @@
   color: var(--edn-muted);
 }
 
-/* Actions */
+
 .actions-cell-sub {
   display: flex;
   align-items: center;
@@ -597,10 +580,9 @@
   border-color: rgba(239, 68, 68, 0.35);
 }
 
-/* =============================================
-   PAGINATION
-   ============================================= */
+
 .pagination-sub {
+  order: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -662,9 +644,7 @@
   cursor: not-allowed;
 }
 
-/* =============================================
-   MODALS
-   ============================================= */
+
 .modal-overlay-sub {
   position: fixed;
   inset: 0;
@@ -730,7 +710,7 @@
   color: var(--edn-ink);
 }
 
-/* Form Groups */
+
 .form-group-sub {
   margin-bottom: 18px;
 }
@@ -777,7 +757,7 @@
   margin-top: 24px;
 }
 
-/* Delete Modal */
+
 .delete-icon-sub {
   width: 60px;
   height: 60px;
@@ -796,9 +776,7 @@
   margin: 0 0 20px;
 }
 
-/* =============================================
-   LESSONS MODAL
-   ============================================= */
+
 .empty-lessons-sub {
   text-align: center;
   padding: 48px 20px;
@@ -877,7 +855,7 @@
   min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(8, 183, 170, 0.12), rgba(47, 155, 231, 0.1));
+  background: rgba(8, 183, 170, 0.11);
   color: var(--edn-teal);
   font-size: 12px;
   font-weight: 900;
@@ -885,9 +863,7 @@
   border: 1px solid rgba(8, 183, 170, 0.18);
 }
 
-/* =============================================
-   LOADING SPINNER ANIMATION
-   ============================================= */
+
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
@@ -897,9 +873,7 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* =============================================
-   RESPONSIVE
-   ============================================= */
+
 @media (max-width: 900px) {
   .admin-main-sub {
     padding: 20px 18px 40px;
@@ -954,3 +928,4 @@
     gap: 12px;
   }
 }
+

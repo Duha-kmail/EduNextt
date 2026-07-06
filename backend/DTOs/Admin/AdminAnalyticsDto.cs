@@ -35,10 +35,10 @@ public class AdminPopularSubjectDto
 {
     public string Name { get; set; } = "";
 
-    // النسبة من إجمالي دقائق الدراسة للمواد
+    
     public int Value { get; set; }
 
-    // عدد دقائق الدراسة الفعلي
+    
     public int ActivityCount { get; set; }
 
     public string Unit { get; set; } = "دقيقة";

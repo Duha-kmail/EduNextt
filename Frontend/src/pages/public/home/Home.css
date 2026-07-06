@@ -414,7 +414,7 @@ body {
   background: rgba(8, 183, 170, 0.12);
 }
 
-/* ── Float card positions — organic layout ── */
+
 .float-card.progress {
   top: 24px;
   left: 12px;
@@ -470,7 +470,7 @@ body {
   background: rgba(155, 117, 246, 0.12);
 }
 
-/* Card swap fade animation */
+
 @keyframes cardFadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -1435,7 +1435,7 @@ body {
     justify-content: center;
   }
 
-  /* ===== Hero Parallax Cards ===== */
+  
 
   .float-card {
     transition:
@@ -1464,7 +1464,7 @@ body {
     left: 20px;
   }
 
-  /* Animation */
+  
 
   @keyframes fadeCard {
     from {
@@ -1482,7 +1482,7 @@ body {
     animation: fadeCard .6s ease;
   }
 
-  /* Hero Glow */
+  
 
   .hero-image-panel::before {
     content: "";
@@ -1510,7 +1510,7 @@ body {
     pointer-events: none;
   }
 
-  /* Mobile */
+  
 
   @media (max-width: 820px) {
     .float-card.rank {

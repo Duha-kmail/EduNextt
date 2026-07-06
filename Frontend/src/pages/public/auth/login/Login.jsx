@@ -1,11 +1,7 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 
-import React, { useState } from "react";
+
+import React, { useEffect, useState } from "react";
 import "./Login.css";
-import { API_BASE_URL } from "@/config/api";
 import { GOOGLE_CLIENT_ID } from "@/config/google";
 import { GoogleLogin } from "@react-oauth/google";
 import { motion as Motion } from "framer-motion";
@@ -20,6 +16,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PublicNavbar from "../../../../components/public-navbar/PublicNavbar.jsx";
+import apiClient from "@/services/apiClient";
+import { preloadAdminHome, preloadStudentHome } from "@/routes/routePreload";
 
 
 export default function Login() {
@@ -35,6 +33,21 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const isGoogleLoginConfigured = Boolean(GOOGLE_CLIENT_ID);
+
+  useEffect(() => {
+    const preload = () => {
+      preloadAdminHome();
+      preloadStudentHome();
+    };
+
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(preload, { timeout: 1200 });
+      return () => window.cancelIdleCallback?.(idleId);
+    }
+
+    const timeoutId = window.setTimeout(preload, 350);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const errorTextStyle = {
     color: "#dc2626",
@@ -100,12 +113,14 @@ export default function Login() {
     localStorage.setItem("isOnboardingCompleted", String(onboardingCompleted));
 
     if (normalizedRole === "admin") {
+      preloadAdminHome();
       navigate("/admin-dashboard", { replace: true });
       return;
     }
 
     if (normalizedRole === "student") {
       if (onboardingCompleted) {
+        preloadStudentHome();
         navigate("/dashboard", { replace: true });
       } else {
         navigate("/onboarding/1", { replace: true });
@@ -145,76 +160,56 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-          rememberMe,
-        }),
+      const { data } = await apiClient.post("/api/auth/login", {
+        email: email.trim(),
+        password,
+        rememberMe,
       });
 
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        setGeneralError(
-          data.message || "تعذر تسجيل الدخول. يرجى المحاولة مرة أخرى."
-        );
-        setFieldErrors(data.errors || {});
-        return;
-      }
-
       navigateAfterLogin(data);
-    } catch {
+    } catch (error) {
+      const data = error?.response?.data || {};
+
       setGeneralError(
-        "حدث خطأ في الاتصال بالسيرفر. تأكد من تشغيل الباك ثم حاول مرة أخرى."
+        data.message ||
+          data.Message ||
+          "Unable to sign in. Please try again."
       );
+      setFieldErrors(data.errors || data.Errors || {});
     } finally {
       setIsSubmitting(false);
     }
   }
-
   const handleGoogleSuccess = async (credentialResponse) => {
     setGeneralError("");
     setFieldErrors({});
 
     if (!credentialResponse?.credential) {
-      setGeneralError("تعذر الحصول على بيانات حساب جوجل. يرجى المحاولة مرة أخرى.");
+      setGeneralError("Unable to read Google account data. Please try again.");
       return;
     }
 
     setIsGoogleSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/google-login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          idToken: credentialResponse.credential,
-        }),
+      const { data } = await apiClient.post("/api/auth/google-login", {
+        idToken: credentialResponse.credential,
       });
 
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        setGeneralError(data.message || "تعذر تسجيل الدخول باستخدام جوجل.");
-        setFieldErrors(data.errors || {});
-        return;
-      }
-
       navigateAfterLogin(data);
-    } catch {
-      setGeneralError("حدث خطأ أثناء تسجيل الدخول باستخدام جوجل. يرجى المحاولة مرة أخرى.");
+    } catch (error) {
+      const data = error?.response?.data || {};
+
+      setGeneralError(
+        data.message ||
+          data.Message ||
+          "Unable to sign in with Google."
+      );
+      setFieldErrors(data.errors || data.Errors || {});
     } finally {
       setIsGoogleSubmitting(false);
     }
   };
-
   const handleGoogleError = () => {
     setGeneralError("تعذر تسجيل الدخول باستخدام جوجل.");
     setIsGoogleSubmitting(false);

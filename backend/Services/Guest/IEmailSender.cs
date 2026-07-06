@@ -16,4 +16,11 @@ public interface IEmailSender
         string otp,
         CancellationToken cancellationToken
     );
+
+    Task SendRegistrationOtpAsync(
+        string recipientEmail,
+        string recipientName,
+        string otp,
+        CancellationToken cancellationToken
+    );
 }

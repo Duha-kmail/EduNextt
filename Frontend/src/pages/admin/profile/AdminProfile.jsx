@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Mail, Phone, Edit3, Save, BookOpen, Trophy, Star,
@@ -46,11 +46,11 @@ const isValidInternationalPhone = (value) => {
   return /^\+[1-9]\d{7,14}$/.test(value);
 };
 
-/* ── Design tokens (match Home page) ── */
+
 const C = {
   teal: "#08b7aa",
   blue: "#2f9be7",
-  purple: "#9b75f6",
+  purple: "#08b7aa",
   ink: "#111827",
   muted: "#667085",
   border: "#dfe7ef",
@@ -60,14 +60,14 @@ const C = {
   dangerBg: "hsla(0,84%,60%,0.10)",
   tealBg: "rgba(8,183,170,0.10)",
   blueBg: "rgba(47,155,231,0.10)",
-  purpleBg: "rgba(155,117,246,0.12)",
+  purpleBg: "rgba(8, 183, 170, 0.12)",
   green: "hsl(142,71%,45%)",
   shadow: "0 20px 50px rgba(34,62,88,0.08)",
   r: "22px",
   rIcon: "14px",
 };
 
-const grad = `linear-gradient(135deg, ${C.blue}, ${C.teal})`;
+const grad = "#08b7aa";
 
 const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: C.r, boxShadow: "0 2px 6px rgba(25,38,52,0.03)" };
 const lbl = { fontSize: "13px", fontWeight: 700, color: C.muted, marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px", fontFamily: "'Tajawal',system-ui,sans-serif" };
@@ -79,11 +79,11 @@ const btnO = { ...btnB, background: C.card, color: C.teal, border: `1px solid ${
 const btnD = { ...btnB, background: C.danger, color: "#fff" };
 const font = "'Tajawal',system-ui,sans-serif";
 
-/* ── icon color helpers ── */
+
 const iconBgColor = (c) => c === "blue" ? C.blueBg : c === "green" ? "rgba(34,197,94,.10)" : c === "amber" ? "rgba(245,132,31,.10)" : C.purpleBg;
 const iconTextColor = (c) => c === "blue" ? C.blue : c === "green" ? "#22c55e" : c === "amber" ? "#f5841f" : C.purple;
 
-/* ─────────────────────────────────────────── */
+
 const Profile = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -97,7 +97,7 @@ const Profile = () => {
   const [phoneError, setPhoneError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
-  /* password lives inside the info card, shown only while editing */
+  
   const [showPassFields, setShowPassFields] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordChanged, setPasswordChanged] = useState(false);
@@ -118,7 +118,7 @@ const Profile = () => {
     setPhoneError(cleaned && !isValidInternationalPhone(cleaned) ? "رقم الهاتف يجب أن يكون بصيغة دولية مثل: +970599123456" : "");
   };
 
-  /* ── fetch ── */
+  
   const fetchProfile = async () => {
     if (!token) { navigate("/login"); return; }
     try {
@@ -134,9 +134,9 @@ const Profile = () => {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchProfile(); }, [token]); // eslint-disable-line
+  useEffect(() => { fetchProfile(); }, [token]); 
 
-  /* ── save profile ── */
+  
   const handleSaveProfile = async () => {
     if (!formData.fullName.trim()) { setPageError("الاسم مطلوب."); return; }
     if (!isValidInternationalPhone(formData.phone)) { setPhoneError("رقم الهاتف يجب أن يكون بصيغة دولية مثل: +970599123456"); return; }
@@ -161,7 +161,7 @@ const Profile = () => {
     setEditing(false); setShowPassFields(false); setPageError(""); setPhoneError(""); setPasswordError(""); setPassData({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
   };
 
-  /* ── change password ── */
+  
   const handleChangePassword = async () => {
     if (!passData.currentPassword) { setPasswordError("كلمة المرور الحالية مطلوبة."); return; }
     if (!passData.newPassword) { setPasswordError("كلمة المرور الجديدة مطلوبة."); return; }
@@ -180,7 +180,7 @@ const Profile = () => {
     finally { setChangingPassword(false); }
   };
 
-  /* ── delete account ── */
+  
   const handleDeleteAccount = async () => {
     try {
       setDeletingAccount(true); setPageError("");
@@ -194,40 +194,40 @@ const Profile = () => {
     finally { setDeletingAccount(false); setShowDeleteConfirm(false); }
   };
 
-  /* ── Loading / Error screens ── */
+  
   if (loading) return (
-    <DashboardLayout title="👤 الملف الشخصي" subtitle="جاري تحميل بياناتك">
+    <SideBar title="👤 الملف الشخصي" subtitle="جاري تحميل بياناتك">
       <div style={{ ...card, padding: "2rem", minHeight: "260px", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem" }}>
         <Loader2 style={{ color: C.teal }} className="animate-spin" />
         <span style={{ color: C.muted, fontFamily: font, fontWeight: 600 }}>جاري تحميل الملف الشخصي...</span>
       </div>
-    </DashboardLayout>
+    </SideBar>
   );
 
   if (pageError && !profileData) return (
-    <DashboardLayout title="👤 الملف الشخصي" subtitle="حدثت مشكلة">
+    <SideBar title="👤 الملف الشخصي" subtitle="حدثت مشكلة">
       <div style={{ ...card, padding: "2rem", textAlign: "center" }}>
         <p style={{ marginBottom: "1rem", fontWeight: 700, color: C.danger }}>{pageError}</p>
         <button style={{ ...btnP, margin: "0 auto", minWidth: "180px" }} onClick={fetchProfile}>
           <RefreshCw size={16} /> إعادة المحاولة
         </button>
       </div>
-    </DashboardLayout>
+    </SideBar>
   );
 
 
   return (
-    <DashboardLayout title="الملف الشخصي" subtitle="معلوماتك الشخصية ونشاطك" titleIcon={User}>
+    <SideBar title="الملف الشخصي" subtitle="معلوماتك الشخصية ونشاطك" titleIcon={User}>
 
-      {/* outer wrapper */}
+      
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", alignItems: "start" }}>
 
-        {/* ══ LEFT COL: info card (+ password inline) ══ */}
+        
         <motion.div
           style={{ ...card, padding: "2.25rem", display: "flex", flexDirection: "column", gap: "2rem" }}
           initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }}
         >
-          {/* ── avatar + name row ── */}
+          
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <div style={{ width: 60, height: 60, borderRadius: "50%", background: grad, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "24px", fontWeight: 800, boxShadow: "0 8px 20px rgba(8,183,170,0.28)", fontFamily: font, flexShrink: 0 }}>
               {(formData.fullName || "A").charAt(0).toUpperCase()}
@@ -241,7 +241,7 @@ const Profile = () => {
               </p>
             </div>
 
-            {/* edit / save / cancel buttons */}
+            
             <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
               {editing && <button style={btnO} onClick={handleCancelEdit} disabled={savingProfile}>إلغاء</button>}
               <button
@@ -256,7 +256,7 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* ── success / error banners ── */}
+          
           {profileSaved && (
             <div style={{ color: C.green, display: "flex", alignItems: "center", gap: "6px", fontWeight: 700, fontSize: "14px", fontFamily: font }}>
               <CheckCircle size={15} /> تم حفظ البيانات بنجاح
@@ -266,7 +266,7 @@ const Profile = () => {
             <div style={{ color: C.danger, fontWeight: 700, fontSize: "14px", fontFamily: font }}>{pageError}</div>
           )}
 
-          {/* ── profile fields ── */}
+          
           <div style={{ display: "flex", flexDirection: "column" }}>
             {[
               { label: "الاسم", icon: <User size={13} />, field: "fullName", editable: true, ph: "" },
@@ -296,7 +296,7 @@ const Profile = () => {
             ))}
           </div>
 
-          {/* ── password section — visible only while editing ── */}
+          
           <AnimatePresence>
             {editing && (
               <motion.div
@@ -304,10 +304,10 @@ const Profile = () => {
                 initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
                 style={{ overflow: "hidden" }}
               >
-                {/* divider */}
+                
                 <div style={{ borderTop: `1px dashed ${C.border}`, marginBottom: "1.25rem" }} />
 
-                {/* toggle row */}
+                
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: showPassFields ? "1rem" : 0 }}>
                   <h4 style={{ margin: 0, fontSize: "14px", fontWeight: 800, color: C.ink, display: "flex", alignItems: "center", gap: "7px", fontFamily: font }}>
                     <span style={{ color: C.teal, display: "flex" }}><Lock size={16} /></span>
@@ -372,7 +372,7 @@ const Profile = () => {
           </AnimatePresence>
         </motion.div>
 
-        {/* ══ DANGER ZONE — full width ══ */}
+        
         <motion.div
           style={{ ...card, padding: "1.5rem", gridColumn: "1 / -1", borderColor: C.danger, marginTop: "8px" }}
           initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
@@ -393,7 +393,7 @@ const Profile = () => {
         </motion.div>
       </div>
 
-      {/* ══ Delete confirm modal ══ */}
+      
       {showDeleteConfirm && (
         <div style={{ position: "fixed", inset: 0, background: "hsla(0,0%,0%,.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
           onClick={() => setShowDeleteConfirm(false)}>
@@ -416,8 +416,9 @@ const Profile = () => {
           </motion.div>
         </div>
       )}
-    </DashboardLayout>
+    </SideBar>
   );
 };
 
 export default Profile;
+

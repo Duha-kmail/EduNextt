@@ -7,8 +7,8 @@ namespace backend.DTOs.Admin
     public record CreateExamDto(
     [Required] string Title,
     [Required] Guid SubjectId,
-    Guid? LessonId, // اختياري إذا كان امتحان لدرس معين
-    [Required] ExamType Type, // شامل أو قصير
+    Guid? LessonId, 
+    [Required] ExamType Type, 
     [Required, MinLength(1, ErrorMessage = "الامتحان لازم يحتوي على سؤال واحد على الأقل")] 
     List<CreateQuestionDto> Questions
 );

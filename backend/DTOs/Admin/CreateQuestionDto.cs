@@ -7,5 +7,5 @@ public record CreateQuestionDto(
     [Required] string OptionB,
     [Required] string OptionC,
     [Required] string OptionD,
-    [Required] string CorrectAnswer // تخزن فيه الرمز (A, B, C, أو D)
+    [Required] string CorrectAnswer 
 );}

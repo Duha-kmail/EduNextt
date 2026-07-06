@@ -16,8 +16,9 @@ import {
   Eye,
   Trash2,
 } from "lucide-react";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import { API_BASE_URL } from "@/config/api";
+import "./Exams.css";
 
 const iconMap = {
   math: BookMarked,
@@ -187,19 +188,10 @@ const Exams = () => {
   const showNoRecords = !loading && !pageError && filteredRecords.length === 0;
 
   return (
-    <DashboardLayout title="الامتحانات" subtitle="اختبر معلوماتك وتابع تقدمك" titleIcon={FileText}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "1rem",
-          flexWrap: "wrap",
-          gap: "0.75rem",
-        }}
-      >
-        <div className="exams-filter-row" style={{ marginBottom: 0 }}>
-          <Filter size={16} style={{ color: "var(--muted-foreground)" }} />
+    <SideBar title="الامتحانات" subtitle="اختبر معلوماتك وتابع تقدمك" titleIcon={FileText}>
+      <div className="exams-toolbar">
+        <div className="exams-filter-row exams-filter-row-compact">
+          <Filter size={16} className="exams-filter-icon" />
 
           {[
             ["all", "الكل"],
@@ -208,24 +200,17 @@ const Exams = () => {
           ].map(([key, label]) => (
             <button
               key={key}
-              className={`chip ${filterType === key ? "chip-selected" : ""}`}
+              className={`exams-chip ${filterType === key ? "exams-chip-selected" : ""}`}
               onClick={() => setFilterType(key)}
             >
               {label}
             </button>
           ))}
 
-          <span
-            style={{
-              width: "1px",
-              height: "1.5rem",
-              background: "var(--border)",
-              margin: "0 0.25rem",
-            }}
-          />
+          <span className="exams-filter-divider" />
 
           <button
-            className={`chip ${filterSubject === "all" ? "chip-selected" : ""}`}
+            className={`exams-chip ${filterSubject === "all" ? "exams-chip-selected" : ""}`}
             onClick={() => setFilterSubject("all")}
           >
             كل المواد
@@ -234,7 +219,7 @@ const Exams = () => {
           {uniqueSubjects.map((subject) => (
             <button
               key={subject.key}
-              className={`chip ${filterSubject === subject.key ? "chip-selected" : ""}`}
+              className={`exams-chip ${filterSubject === subject.key ? "exams-chip-selected" : ""}`}
               onClick={() => setFilterSubject(subject.key)}
             >
               {subject.name}
@@ -243,7 +228,7 @@ const Exams = () => {
         </div>
 
         <button
-          className="btn btn-primary btn-sm"
+          className="exams-btn exams-btn-primary exams-toolbar-start"
           onClick={() => navigate("/exams/new")}
         >
           <Plus size={16} />
@@ -252,47 +237,33 @@ const Exams = () => {
       </div>
 
       {pendingDeleteExam && (
-        <div
-          style={{
-            marginBottom: "1rem",
-            padding: "1rem",
-            borderRadius: "20px",
-            background: "rgba(252, 231, 243, 0.95)",
-            border: "1px solid rgba(236, 72, 153, 0.45)",
-            display: "grid",
-            gridTemplateColumns: "1fr auto",
-            gap: "1rem",
-            alignItems: "center",
-          }}
-        >
+        <div className="exams-delete-confirm">
           <div>
-            <strong style={{ display: "block", marginBottom: "0.25rem" }}>
+            <strong className="exams-delete-title">
               تأكيد حذف نتيجة الامتحان
             </strong>
-            <p style={{ margin: 0, color: "#6b7280" }}>
+            <p className="exams-delete-text">
               هل أنت متأكد من حذف نتيجة الامتحان لـ
               <strong> {pendingDeleteExam.subjectName} </strong> بتاريخ
               <strong> {pendingDeleteExam.date} </strong>؟
               هذه العملية لا يمكن التراجع عنها.
             </p>
             {deleteError && (
-              <p style={{ marginTop: "0.75rem", color: "#b91c1c" }}>
+              <p className="exams-delete-error">
                 {deleteError}
               </p>
             )}
           </div>
 
-          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+          <div className="exams-delete-actions">
             <button
-              className="btn btn-outline"
-              style={{ minWidth: "8rem" }}
+              className="exams-btn exams-btn-outline exams-confirm-btn"
               onClick={() => setPendingDeleteExam(null)}
             >
               إلغاء
             </button>
             <button
-              className="btn btn-danger"
-              style={{ minWidth: "8rem" }}
+              className="exams-btn exams-btn-danger exams-confirm-btn"
               disabled={deletingResultId === pendingDeleteExam.examResultId}
               onClick={() => handleDeleteResult(pendingDeleteExam.examResultId)}
             >
@@ -303,44 +274,43 @@ const Exams = () => {
       )}
 
       {loading ? (
-        <div className="card" style={{ padding: "3rem", textAlign: "center" }}>
+        <div className="exams-card exams-state-card">
           <Loader2
-            className="animate-spin"
-            style={{ marginBottom: "1rem", color: "var(--muted-foreground)" }}
+            className="animate-spin exams-state-icon"
           />
 
-          <h3 style={{ fontSize: "1.125rem", fontWeight: 600, marginBottom: "0.5rem" }}>
+          <h3 className="exams-state-title">
             جاري تحميل الامتحانات
           </h3>
 
-          <p style={{ color: "var(--muted-foreground)" }}>يرجى الانتظار قليلاً...</p>
+          <p className="exams-state-text">يرجى الانتظار قليلاً...</p>
         </div>
       ) : pageError ? (
-        <div className="card" style={{ padding: "3rem", textAlign: "center", color: "red" }}>
-          <FileText size={48} style={{ marginBottom: "1rem" }} />
+        <div className="exams-card exams-state-card exams-state-error">
+          <FileText size={48} className="exams-state-icon" />
 
-          <h3 style={{ fontSize: "1.125rem", fontWeight: 600, marginBottom: "0.5rem" }}>
+          <h3 className="exams-state-title">
             حدثت مشكلة
           </h3>
 
           <p>{pageError}</p>
         </div>
       ) : showNoRecords ? (
-        <div className="card" style={{ padding: "3rem", textAlign: "center" }}>
+        <div className="exams-card exams-state-card">
           <FileText
             size={48}
-            style={{ color: "var(--muted-foreground)", marginBottom: "1rem" }}
+            className="exams-state-icon"
           />
 
-          <h3 style={{ fontSize: "1.125rem", fontWeight: 600, marginBottom: "0.5rem" }}>
+          <h3 className="exams-state-title">
             لا توجد امتحانات
           </h3>
 
-          <p style={{ color: "var(--muted-foreground)", marginBottom: "1.5rem" }}>
+          <p className="exams-empty-text">
             لم يتم العثور على امتحانات بهذا الفلتر. جرب فلتر آخر أو ابدأ اختبار جديد.
           </p>
 
-          <button className="btn btn-primary" onClick={() => navigate("/exams/new")}>
+          <button className="exams-btn exams-btn-primary" onClick={() => navigate("/exams/new")}>
             <Plus size={16} />
             ابدأ اختبار جديد
           </button>
@@ -355,7 +325,7 @@ const Exams = () => {
             return (
               <motion.div
                 key={exam.examResultId || `${exam.examId}-${index}`}
-                className="card exam-card"
+                className="exams-card exam-card"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.06 }}
@@ -375,13 +345,7 @@ const Exams = () => {
 
                 <h3 className="rec-title">{exam.subjectName}</h3>
 
-                <p
-                  style={{
-                    fontSize: "0.8125rem",
-                    color: "var(--muted-foreground)",
-                    marginBottom: "0.75rem",
-                  }}
-                >
+                <p className="exam-card-subtitle">
                   {exam.type === "comprehensive"
                     ? "امتحان شامل"
                     : isShortExam && exam.lessonTitle
@@ -400,49 +364,25 @@ const Exams = () => {
                     <span>النتيجة: {exam.percentage}٪</span>
                   </div>
 
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "6px",
-                      borderRadius: "3px",
-                      background: "var(--accent)",
-                      marginTop: "0.5rem",
-                    }}
-                  >
+                  <div className="exam-score-progress">
                     <div
+                      className="exam-score-progress-fill"
                       style={{
                         width: `${Math.min(100, Math.max(0, exam.percentage))}%`,
-                        height: "100%",
-                        borderRadius: "3px",
                         background:
                           exam.percentage >= 80
                             ? "hsl(152, 70%, 45%)"
                             : exam.percentage >= 60
                               ? "hsl(38, 90%, 50%)"
                               : "hsl(0, 84%, 55%)",
-                        transition: "width 0.8s ease",
                       }}
                     />
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "0.75rem",
-                    marginTop: "1rem",
-                  }}
-                >
+                <div className="exam-card-actions">
                   <button
-                    className="btn btn-outline"
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "0.5rem",
-                    }}
+                    className="exams-btn exams-btn-outline exam-action-btn"
                     onClick={() =>
                       navigate(`/exams/take?resultId=${exam.examResultId}&mode=review`)
                     }
@@ -452,16 +392,7 @@ const Exams = () => {
                   </button>
 
                   <button
-                    className="btn btn-outline"
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "0.5rem",
-                      borderColor: "#dc2626",
-                      color: "#dc2626",
-                    }}
+                    className="exams-btn exams-btn-outline exam-action-btn exam-action-danger"
                     disabled={deletingResultId === exam.examResultId}
                     onClick={() => setPendingDeleteExam(exam)}
                   >
@@ -474,7 +405,7 @@ const Exams = () => {
           })}
         </motion.div>
       )}
-    </DashboardLayout>
+    </SideBar>
   );
 };
 

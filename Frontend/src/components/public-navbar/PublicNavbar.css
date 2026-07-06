@@ -60,7 +60,7 @@
   font-weight: 800;
   line-height: 1;
   color: var(--edn-ink);
-  background: linear-gradient(135deg, var(--edn-blue), var(--edn-teal));
+  background: var(--edn-teal);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -73,7 +73,7 @@
   place-items: center;
   border-radius: 999px;
   color: #fff;
-  background: linear-gradient(135deg, var(--edn-blue), var(--edn-teal));
+  background: var(--edn-teal);
   box-shadow: 0 12px 24px rgba(8, 183, 170, 0.22);
 }
 

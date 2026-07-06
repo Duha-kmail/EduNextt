@@ -1,6 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
 
-/* ===== Design Tokens (from Home page) ===== */
+
 :root {
   --edn-bg: #f8fbfd;
   --edn-card: #ffffff;
@@ -9,11 +9,11 @@
   --edn-border: #dfe7ef;
   --edn-teal: #08b7aa;
   --edn-blue: #2f9be7;
-  --edn-purple: #9b75f6;
+  --edn-purple: #08b7aa;
   --edn-shadow: 0 20px 50px rgba(34, 62, 88, 0.08);
 }
 
-/* ===== Page ===== */
+
 .admin-messages-page {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
@@ -22,7 +22,7 @@
   direction: rtl;
 }
 
-/* ===== Shared card base ===== */
+
 .admin-messages-alert,
 .admin-messages-toolbar,
 .admin-messages-table-wrap,
@@ -34,7 +34,7 @@
   box-shadow: 0 2px 12px rgba(34, 62, 88, 0.04);
 }
 
-/* ===== Alert banner ===== */
+
 .admin-messages-alert {
   display: flex;
   align-items: center;
@@ -44,7 +44,7 @@
   padding: 16px 20px;
   border-radius: 18px;
   border-color: rgba(8, 183, 170, 0.25);
-  background: linear-gradient(135deg, rgba(8, 183, 170, 0.08), rgba(47, 155, 231, 0.06));
+  background: rgba(8, 183, 170, 0.08);
 }
 
 .admin-messages-alert div {
@@ -66,7 +66,7 @@
   font-weight: 500;
 }
 
-/* ===== Shared buttons ===== */
+
 .admin-messages-alert button,
 .admin-messages-refresh,
 .admin-message-modal-actions button,
@@ -95,7 +95,7 @@
   box-shadow: 0 6px 16px rgba(8, 183, 170, 0.12);
 }
 
-/* ===== Toolbar ===== */
+
 .admin-messages-toolbar {
   display: flex;
   align-items: center;
@@ -152,7 +152,7 @@
   transform: none;
 }
 
-/* ===== Feedback ===== */
+
 .admin-messages-feedback {
   display: flex;
   align-items: center;
@@ -176,7 +176,7 @@
   border: 1px solid #bbf7d0;
 }
 
-/* ===== Table ===== */
+
 .admin-messages-table-wrap {
   overflow-x: auto;
   border-radius: 22px;
@@ -220,7 +220,60 @@
   background: rgba(8, 183, 170, 0.03);
 }
 
-/* ===== Status badge ===== */
+
+.admin-messages-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--edn-border);
+  border-radius: 18px;
+  background: var(--edn-card);
+  box-shadow: 0 2px 12px rgba(34, 62, 88, 0.04);
+}
+
+.admin-messages-pagination span {
+  color: var(--edn-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-messages-pagination div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-messages-pagination button {
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--edn-border);
+  border-radius: 12px;
+  background: var(--edn-card);
+  color: var(--edn-muted);
+  cursor: pointer;
+  font-family: "Tajawal", inherit;
+  font-weight: 800;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.admin-messages-pagination button:hover:not(:disabled),
+.admin-messages-pagination button.active {
+  border-color: rgba(8, 183, 170, 0.4);
+  background: rgba(8, 183, 170, 0.1);
+  color: var(--edn-teal);
+}
+
+.admin-messages-pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+
 .admin-message-status {
   display: inline-flex;
   align-items: center;
@@ -242,7 +295,7 @@
   background: rgba(102, 112, 133, 0.1);
 }
 
-/* ===== Sender cell ===== */
+
 .admin-message-sender {
   display: flex;
   align-items: center;
@@ -258,7 +311,7 @@
   height: 40px;
   flex: 0 0 40px;
   border-radius: 14px;
-  background: linear-gradient(135deg, var(--edn-blue), var(--edn-teal));
+  background: var(--edn-teal);
   color: #fff;
   font-weight: 800;
   font-size: 15px;
@@ -297,7 +350,7 @@
   font-weight: 500;
 }
 
-/* ===== Row actions ===== */
+
 .admin-message-actions {
   display: flex;
   gap: 8px;
@@ -330,7 +383,7 @@
   color: #fff;
 }
 
-/* ===== Empty state ===== */
+
 .admin-messages-empty {
   min-height: 280px;
   display: grid;
@@ -358,7 +411,7 @@
   font-weight: 500;
 }
 
-/* ===== Modal backdrop ===== */
+
 .admin-message-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -369,7 +422,7 @@
   background: rgba(12, 21, 35, 0.5);
 }
 
-/* ===== Modal & Confirm ===== */
+
 .admin-message-modal,
 .admin-message-confirm {
   width: min(620px, 100%);
@@ -467,7 +520,7 @@
   font-weight: 500;
 }
 
-/* ===== Modal actions ===== */
+
 .admin-message-modal-actions {
   display: flex;
   gap: 10px;
@@ -485,7 +538,7 @@
   box-shadow: 0 16px 36px rgba(8, 183, 170, 0.32);
 }
 
-/* ===== Confirm dialog ===== */
+
 .admin-message-confirm {
   text-align: center;
 }
@@ -514,7 +567,7 @@
   gap: 10px;
 }
 
-/* ===== Sidebar badge ===== */
+
 .sidebar-message-badge {
   margin-inline-start: auto;
   display: inline-flex;
@@ -530,7 +583,7 @@
   font-weight: 800;
 }
 
-/* ===== Inline alert ===== */
+
 .admin-message-alert {
   display: inline-flex;
   align-items: center;
@@ -544,7 +597,7 @@
   font-weight: 800;
 }
 
-/* ===== Spinner ===== */
+
 .spin {
   animation: admin-message-spin 0.9s linear infinite;
 }
@@ -553,7 +606,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ===== Responsive ===== */
+
 @media (max-width: 780px) {
   .admin-messages-page {
     width: min(100% - 20px, 1180px);
@@ -561,9 +614,14 @@
   }
 
   .admin-messages-alert,
-  .admin-messages-toolbar {
+  .admin-messages-toolbar,
+  .admin-messages-pagination {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .admin-messages-pagination div {
+    justify-content: center;
   }
 
   .admin-message-alert {
@@ -576,3 +634,4 @@
     flex-direction: column;
   }
 }
+

@@ -15,8 +15,9 @@ import {
   BookOpen,
   Loader2,
 } from "lucide-react";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import { API_BASE_URL } from "@/config/api";
+import "./Dashboard.css";
 
 const allowedColors = ["blue", "green", "amber", "purple"];
 
@@ -33,15 +34,15 @@ const iconMap = {
 };
 
 const subjectColorMap = {
-  الرياضيات: "hsl(220, 85%, 55%)",
-  الفيزياء: "hsl(152, 70%, 45%)",
+  "الرياضيات": "#08b7aa",
+  "الفيزياء": "hsl(152, 70%, 45%)",
   "اللغة العربية": "hsl(38, 90%, 50%)",
-  الكيمياء: "hsl(270, 70%, 55%)",
+  "الكيمياء": "#08b7aa",
   "اللغة الإنجليزية": "hsl(199, 80%, 50%)",
-  الأحياء: "hsl(152, 70%, 45%)",
+  "الأحياء": "hsl(152, 70%, 45%)",
 };
 
-const fallbackColor = "hsl(220, 85%, 55%)";
+const fallbackColor = "#08b7aa";
 
 const StatCard = ({ stat, index }) => {
   const color = allowedColors.includes(stat.color) ? stat.color : "blue";
@@ -280,33 +281,7 @@ const RecommendationCard = ({ rec, index }) => {
 
       <button
         onClick={handleStart}
-        style={{
-          width: "100%",
-          minHeight: "52px",
-          borderRadius: "14px",
-          border: "none",
-          background: "#08b7aa",
-          color: "#ffffff",
-          fontSize: "16px",
-          fontWeight: 800,
-          fontFamily: "inherit",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "8px",
-          marginTop: "1rem",
-          boxShadow: "0 4px 18px rgba(8, 183, 170, 0.30)",
-          transition: "opacity 0.2s ease, transform 0.2s ease",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.opacity = "0.92";
-          e.currentTarget.style.transform = "translateY(-1px)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.opacity = "1";
-          e.currentTarget.style.transform = "translateY(0)";
-        }}
+        className="dashboard-rec-start-btn"
       >
         {buttonLabel}
         <ChevronLeft size={18} />
@@ -399,7 +374,7 @@ const Dashboard = () => {
   const headerTitle = normalizedData?.header?.title || normalizedData?.header?.Title || "أهلاً بك";
   const headerSubtitle =
     normalizedData?.header?.subtitle ||
-    normalizedData?.header?.Subtitle ;
+    normalizedData?.header?.Subtitle;
 
   const statsData = normalizedData?.stats || [];
   const weeklyProgress = normalizedData?.weeklyProgress || [];
@@ -435,35 +410,27 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <DashboardLayout title="جاري التحميل..." subtitle="نقوم بجلب بياناتك الآن">
-        <div
-          style={{
-            minHeight: "300px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "12px",
-          }}
-        >
+      <SideBar title="جاري التحميل..." subtitle="نقوم بجلب بياناتك الآن">
+        <div className="dashboard-loading-state">
           <Loader2 className="animate-spin" />
           <span>جاري تحميل لوحة التحكم...</span>
         </div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout title="لوحة التحكم" subtitle="حدثت مشكلة أثناء التحميل">
-        <div className="card" style={{ padding: "2rem", textAlign: "center", color: "red" }}>
+      <SideBar title="لوحة التحكم" subtitle="حدثت مشكلة أثناء التحميل">
+        <div className="card dashboard-error-state">
           {error}
         </div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   return (
-    <DashboardLayout title={headerTitle} subtitle={headerSubtitle}>
+    <SideBar title={headerTitle} subtitle={headerSubtitle}>
       <motion.div
         className="stats-grid"
         initial={{ opacity: 0, y: 20 }}
@@ -515,7 +482,7 @@ const Dashboard = () => {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <div className="ai-recommendations-header">
-            <Sparkles size={20} style={{ color: "var(--primary)" }} />
+            <Sparkles size={20} className="dashboard-section-icon" />
             <h2 className="card-title-dash">
               {recommendationsTitle}
               {normalizedData?.isAiRecommendations ? (
@@ -530,15 +497,16 @@ const Dashboard = () => {
                 <RecommendationCard key={rec.id} rec={rec} index={i} />
               ))
             ) : (
-              <div className="card" style={{ padding: "1.25rem", textAlign: "center" }}>
+              <div className="card dashboard-empty-recommendations">
                 {recommendationsEmptyMessage}
               </div>
             )}
           </div>
         </motion.section>
       </div>
-    </DashboardLayout>
+    </SideBar>
   );
 };
 
 export default Dashboard;
+

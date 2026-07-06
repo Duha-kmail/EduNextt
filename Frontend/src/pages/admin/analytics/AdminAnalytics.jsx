@@ -21,10 +21,10 @@ import {
 } from "recharts";
 
 import "./AdminAnalytics.css";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar.jsx";
 import { API_BASE_URL } from "@/config/api";
 
-const defaultColors = ["#135bec", "#8b5cf6", "#f59e0b", "#22c55e", "#ef4444"];
+const defaultColors = ["#08b7aa", "#2f9be7", "#f59e0b", "#22c55e", "#ef4444"];
 
 export default function AdminAnalytics() {
   const [analyticsData, setAnalyticsData] = useState(null);
@@ -147,14 +147,14 @@ export default function AdminAnalytics() {
 
   useEffect(() => {
     loadAnalytics({ silent: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   useEffect(() => {
     if (!loading) {
       loadAnalytics({ silent: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [days]);
 
   const normalizedData = useMemo(() => {
@@ -197,61 +197,35 @@ export default function AdminAnalytics() {
 
   if (loading) {
     return (
-      <DashboardLayout
+      <SideBar
         title="تحليلات النظام"
         subtitle="إحصائيات وتقارير أداء المنصة والطلاب."
         titleIcon={BarChart3}
       >
-        <div
-          className="analytics-main rtl"
-          style={{
-            minHeight: "350px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "12px",
-          }}
-        >
+        <div className="analytics-main admin-page-loading rtl">
           <Loader2 className="animate-spin" />
           <span>جاري تحميل التحليلات...</span>
         </div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   return (
-    <DashboardLayout
+    <SideBar
       title="تحليلات النظام"
       subtitle="إحصائيات وتقارير أداء المنصة والطلاب."
       titleIcon={BarChart3}
     >
-      <div className="app-container" dir="rtl">
+      <>
         <main className="analytics-main rtl">
           {error && (
-            <div
-              style={{
-                marginBottom: "16px",
-                padding: "12px 16px",
-                borderRadius: "12px",
-                background: "#fef2f2",
-                color: "#dc2626",
-                border: "1px solid #fecaca",
-              }}
-            >
+            <div className="admin-page-message admin-page-message-error admin-page-message-spaced">
               {error}
             </div>
           )}
 
           {tableLoading && (
-            <div
-              style={{
-                marginBottom: "12px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                color: "#64748b",
-              }}
-            >
+            <div className="admin-table-loading analytics-refresh-loading">
               <Loader2 className="animate-spin" size={16} />
               <span>تحديث البيانات...</span>
             </div>
@@ -259,10 +233,7 @@ export default function AdminAnalytics() {
 
           <div className="analytics-stats-row">
             <div className="analytics-stat-card">
-              <div
-                className="analytics-stat-icon"
-                style={{ backgroundColor: "#e8f5e9" }}
-              >
+              <div className="analytics-stat-icon analytics-stat-icon-green">
                 <CheckSquare size={24} color="#4caf50" />
               </div>
 
@@ -280,11 +251,8 @@ export default function AdminAnalytics() {
             </div>
 
             <div className="analytics-stat-card">
-              <div
-                className="analytics-stat-icon"
-                style={{ backgroundColor: "#e3f2fd" }}
-              >
-                <UsersRound size={24} color="#135bec" />
+              <div className="analytics-stat-icon analytics-stat-icon-blue">
+                <UsersRound size={24} color="#08b7aa" />
               </div>
 
               <div className="analytics-stat-info">
@@ -330,12 +298,12 @@ export default function AdminAnalytics() {
                       >
                         <stop
                           offset="5%"
-                          stopColor="#135bec"
+                          stopColor="#08b7aa"
                           stopOpacity={0.3}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#135bec"
+                          stopColor="#08b7aa"
                           stopOpacity={0}
                         />
                       </linearGradient>
@@ -348,7 +316,7 @@ export default function AdminAnalytics() {
                     <Area
                       type="monotone"
                       dataKey="value"
-                      stroke="#135bec"
+                      stroke="#08b7aa"
                       strokeWidth={2.5}
                       fill="url(#colorValue)"
                     />
@@ -360,14 +328,7 @@ export default function AdminAnalytics() {
             <div className="analytics-chart-card analytics-chart-small">
               <h3 className="analytics-chart-title">توزيع نشاط المواد</h3>
 
-              <div
-                style={{
-                  color: "#64748b",
-                  fontSize: "13px",
-                  marginBottom: "10px",
-                  textAlign: "right",
-                }}
-              >
+              <div className="analytics-helper-text analytics-helper-text-tight">
                 النسبة محسوبة من إجمالي دقائق الدراسة خلال آخر {days} يوم.
               </div>
 
@@ -430,20 +391,13 @@ export default function AdminAnalytics() {
                 نسب إكمال الدروس حسب المادة
               </h3>
 
-              <div
-                style={{
-                  color: "#64748b",
-                  fontSize: "13px",
-                  marginBottom: "14px",
-                  textAlign: "right",
-                }}
-              >
+              <div className="analytics-helper-text">
                 النسبة = الدروس المكتملة من الطلاب النشطين ÷ الدروس المطلوبة لهم.
               </div>
 
               <div className="analytics-completion-list">
                 {normalizedData.lessonCompletion.length === 0 ? (
-                  <div style={{ color: "#94a3b8", padding: "20px" }}>
+                  <div className="analytics-empty-state">
                     لا توجد بيانات تقدم دروس كافية
                   </div>
                 ) : (
@@ -477,14 +431,7 @@ export default function AdminAnalytics() {
             <div className="analytics-chart-card analytics-chart-small">
               <h3 className="analytics-chart-title">أوقات النشاط</h3>
 
-              <div
-                style={{
-                  color: "#64748b",
-                  fontSize: "13px",
-                  marginBottom: "14px",
-                  textAlign: "right",
-                }}
-              >
+              <div className="analytics-helper-text">
                 محسوبة حسب دقائق جلسات الدراسة خلال آخر {days} يوم.
               </div>
 
@@ -518,7 +465,8 @@ export default function AdminAnalytics() {
             </div>
           </div>
         </main>
-      </div>
-    </DashboardLayout>
+      </>
+    </SideBar>
   );
 }
+

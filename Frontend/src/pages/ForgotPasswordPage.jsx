@@ -1,29 +1,26 @@
 import React, { useState } from "react";
-import "../styles/ForgotPasswordPage.css";
+import "./public/auth/password-reset/AuthFlow.css";
 import { motion as Motion } from "framer-motion";
 import { ArrowLeft, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "@/config/api";
 import PublicNavbar from "../components/public-navbar/PublicNavbar.jsx";
+import apiClient, { getApiErrorMessage } from "@/services/apiClient";
 
 async function postJson(path, body) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
+  try {
+    const response = await apiClient.post(path, body);
+    return response.data;
+  } catch (error) {
     throw new Error(
-      data?.message ||
+      getApiErrorMessage(
+        error,
         "تعذر إرسال رمز التحقق. تأكد من إعدادات البريد الإلكتروني ثم حاول مرة أخرى."
+      )
     );
   }
-
-  return data;
 }
+
+const OTP_EXPIRY_MS = 60 * 1000;
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -43,6 +40,7 @@ export default function ForgotPasswordPage() {
       await postJson("/api/auth/forgot-password", { email: email.trim() });
 
       sessionStorage.setItem("resetEmail", email.trim());
+      sessionStorage.setItem("resetOtpExpiresAt", String(Date.now() + OTP_EXPIRY_MS));
       sessionStorage.removeItem("otpVerified");
 
       setMessage("تم إرسال رمز التحقق إلى بريدك الإلكتروني.");
@@ -57,22 +55,22 @@ export default function ForgotPasswordPage() {
   return (
     <div className="layout-wrapper auth-flow-page" dir="rtl">
       <PublicNavbar compact />
-      <main className="main-content">
+      <main className="auth-flow-main">
         <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="card-container"
+          className="auth-flow-card"
         >
-          <div className="form-section">
+          <div className="auth-flow-form-section">
             <Motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="form-header"
+              className="auth-flow-form-header"
             >
-              <h2 className="form-title">استعادة كلمة المرور</h2>
-              <p className="form-subtitle">أدخل بريدك الإلكتروني لإرسال رمز تحقق آمن.</p>
+              <h2 className="auth-flow-form-title">استعادة كلمة المرور</h2>
+              <p className="auth-flow-form-subtitle">أدخل بريدك الإلكتروني لإرسال رمز تحقق آمن.</p>
             </Motion.div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -83,13 +81,13 @@ export default function ForgotPasswordPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="form-group"
+                className="auth-flow-form-group"
               >
-                <label className="form-label" htmlFor="email">
+                <label className="auth-flow-form-label" htmlFor="email">
                   البريد الإلكتروني
                 </label>
-                <div className="input-wrapper">
-                  <span className="input-icon">
+                <div className="auth-flow-input-wrapper">
+                  <span className="auth-flow-input-icon">
                     <Mail size={20} />
                   </span>
                   <input
@@ -97,7 +95,7 @@ export default function ForgotPasswordPage() {
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    className="form-input form-input-email"
+                    className="auth-flow-input auth-flow-input-email"
                     placeholder="example@gmail.com"
                     autoComplete="email"
                     required
@@ -109,36 +107,36 @@ export default function ForgotPasswordPage() {
                 whileHover={!isSubmitting ? { scale: 1.01 } : undefined}
                 whileTap={!isSubmitting ? { scale: 0.99 } : undefined}
                 type="submit"
-                className="submit-btn"
+                className="auth-flow-submit-btn"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "جاري الإرسال..." : "إرسال رمز التحقق"}
               </Motion.button>
             </form>
 
-            <div className="footer-link-section">
-              <button type="button" className="footer-link" onClick={() => navigate("/login")}>
+            <div className="auth-flow-footer-link-section">
+              <button type="button" className="auth-flow-footer-link" onClick={() => navigate("/login")}>
                 <ArrowLeft size={14} className="rotate-180 ml-1" />
                 العودة إلى تسجيل الدخول
               </button>
             </div>
           </div>
 
-          <div className="visual-section">
+          <div className="auth-flow-visual-section">
             <div className="bg-blur-1"></div>
             <div className="bg-blur-2"></div>
-            <div className="visual-content">
+            <div className="auth-flow-visual-content">
               <Motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
-                className="robot-image-wrapper"
+                className="auth-flow-robot-image-wrapper"
               >
-                <div className="robot-image"></div>
+                <div className="auth-flow-robot-image"></div>
               </Motion.div>
               <div className="hero-text">
-                <h3 className="hero-title">استعد الوصول إلى حسابك</h3>
-                <p className="hero-description">سنرسل رمز تحقق صالحا لمدة 3 دقائق.</p>
+                <h3 className="auth-flow-hero-title">استعد الوصول إلى حسابك</h3>
+                <p className="auth-flow-hero-description">سنرسل رمز تحقق صالحا لمدة دقيقة واحدة.</p>
               </div>
             </div>
           </div>

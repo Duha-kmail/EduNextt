@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import "./AdminUsers.css";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import { API_BASE_URL } from "@/config/api";
 
 const ITEMS_PER_PAGE = 4;
@@ -62,81 +62,6 @@ export default function AdminUsers() {
       Authorization: `Bearer ${token}`,
     };
   }, [token]);
-
-  const errorBoxStyle = {
-    marginBottom: "12px",
-    padding: "10px 14px",
-    borderRadius: "12px",
-    background: "#fef2f2",
-    color: "#dc2626",
-    border: "1px solid #fecaca",
-    fontSize: "14px",
-    textAlign: "right",
-    width: "fit-content",
-    maxWidth: "100%",
-    marginInlineStart: "auto",
-  };
-
-  const successBoxStyle = {
-    marginBottom: "12px",
-    padding: "10px 14px",
-    borderRadius: "12px",
-    background: "#f0fdf4",
-    color: "#16a34a",
-    border: "1px solid #bbf7d0",
-    fontSize: "14px",
-    textAlign: "right",
-    width: "fit-content",
-    maxWidth: "100%",
-    marginInlineStart: "auto",
-  };
-
-  const modalMessageStyle = {
-    marginTop: "14px",
-    marginBottom: "0",
-    padding: "10px 12px",
-    borderRadius: "12px",
-    fontSize: "14px",
-    textAlign: "right",
-    width: "100%",
-    boxSizing: "border-box",
-  };
-
-  const getModalSuccessStyle = () => ({
-    ...modalMessageStyle,
-    background: "#f0fdf4",
-    color: "#16a34a",
-    border: "1px solid #bbf7d0",
-  });
-
-  const getModalErrorStyle = () => ({
-    ...modalMessageStyle,
-    background: "#fef2f2",
-    color: "#dc2626",
-    border: "1px solid #fecaca",
-  });
-
-  const getToastStyle = (type) => ({
-    position: "fixed",
-    top: "24px",
-    left: "24px",
-    zIndex: 9999,
-    minWidth: "260px",
-    maxWidth: "420px",
-    padding: "12px 16px",
-    borderRadius: "14px",
-    boxShadow: "0 12px 32px rgba(15, 23, 42, 0.16)",
-    fontSize: "14px",
-    fontWeight: 700,
-    textAlign: "right",
-    direction: "rtl",
-    background: type === "success" ? "#f0fdf4" : "#fef2f2",
-    color: type === "success" ? "#16a34a" : "#dc2626",
-    border:
-      type === "success"
-        ? "1px solid #bbf7d0"
-        : "1px solid #fecaca",
-  });
 
   const normalizeUser = (user) => ({
     id: user.id || user.Id,
@@ -286,14 +211,14 @@ export default function AdminUsers() {
     };
 
     initialLoad();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   useEffect(() => {
     if (!loading) {
       loadUsers({ silent: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [currentPage, roleFilter, statusFilter]);
 
   useEffect(() => {
@@ -305,7 +230,7 @@ export default function AdminUsers() {
     }, 400);
 
     return () => clearTimeout(delay);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [searchQuery]);
 
   const getRoleBadgeClass = (roleLabel) => {
@@ -517,57 +442,52 @@ export default function AdminUsers() {
 
   if (loading) {
     return (
-      <DashboardLayout
+      <SideBar
         title="إدارة المستخدمين"
         subtitle="عرض وإدارة كافة مستخدمي المنصة وتعديل أدوارهم."
         titleIcon={Users}
       >
-        <div
-          className="au-main rtl"
-          style={{
-            minHeight: "350px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "12px",
-          }}
-        >
+        <div className="au-main admin-page-loading rtl">
           <Loader2 className="animate-spin" />
           <span>جاري تحميل المستخدمين...</span>
         </div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   return (
-    <DashboardLayout
+    <SideBar
       title="إدارة المستخدمين"
       subtitle="عرض وإدارة كافة مستخدمي المنصة وتعديل أدوارهم."
       titleIcon={Users}
       headerContent={
-         <div className="au-header-actions">
-              <button className="au-btn au-btn-outline" onClick={handleExport}>
-                <Download size={18} />
-                <span>تصدير البيانات</span>
-              </button>
-            </div>
+        <div className="au-header-actions">
+          <button className="au-btn au-btn-outline" onClick={handleExport}>
+            <Download size={18} />
+            <span>تصدير البيانات</span>
+          </button>
+        </div>
       }
     >
-      <div className="app-container rtl">
+      <>
         {actionSuccess && !roleChangeUser && (
-          <div style={getToastStyle("success")}>{actionSuccess}</div>
+          <div className="au-toast au-toast-success">{actionSuccess}</div>
         )}
 
         {actionError && !roleChangeUser && (
-          <div style={getToastStyle("error")}>{actionError}</div>
+          <div className="au-toast au-toast-error">{actionError}</div>
         )}
 
         <main className="au-main rtl">
-         
 
-          {pageError && <div style={errorBoxStyle}>{pageError}</div>}
 
-          <div className="au-stats" style={{ marginBottom: "18px" }}>
+          {pageError && (
+            <div className="admin-page-message admin-page-message-error au-page-message">
+              {pageError}
+            </div>
+          )}
+
+          <div className="au-stats au-stats-spaced">
             <div className="au-stat-card">
               <div className="au-stat-icon au-stat-blue">
                 <Users size={28} />
@@ -654,15 +574,7 @@ export default function AdminUsers() {
 
           <div className="au-table-container">
             {tableLoading && (
-              <div
-                style={{
-                  padding: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  color: "#64748b",
-                }}
-              >
+              <div className="admin-table-loading">
                 <Loader2 className="animate-spin" size={16} />
                 <span>تحديث البيانات...</span>
               </div>
@@ -683,14 +595,7 @@ export default function AdminUsers() {
               <tbody>
                 {users.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={6}
-                      style={{
-                        textAlign: "center",
-                        padding: "40px",
-                        color: "#999",
-                      }}
-                    >
+                    <td colSpan={6} className="admin-empty-cell">
                       لا توجد نتائج مطابقة
                     </td>
                   </tr>
@@ -853,9 +758,15 @@ export default function AdminUsers() {
                 بياناته من قاعدة البيانات.
               </p>
 
-              {deleteError && <div style={getModalErrorStyle()}>{deleteError}</div>}
+              {deleteError && (
+                <div className="admin-page-message admin-page-message-error au-modal-message">
+                  {deleteError}
+                </div>
+              )}
               {deleteSuccess && (
-                <div style={getModalSuccessStyle()}>{deleteSuccess}</div>
+                <div className="admin-page-message admin-page-message-success au-modal-message">
+                  {deleteSuccess}
+                </div>
               )}
 
               <div className="au-modal-actions">
@@ -973,11 +884,15 @@ export default function AdminUsers() {
               </select>
 
               {actionError && (
-                <div style={getModalErrorStyle()}>{actionError}</div>
+                <div className="admin-page-message admin-page-message-error au-modal-message">
+                  {actionError}
+                </div>
               )}
 
               {actionSuccess && (
-                <div style={getModalSuccessStyle()}>{actionSuccess}</div>
+                <div className="admin-page-message admin-page-message-success au-modal-message">
+                  {actionSuccess}
+                </div>
               )}
 
               <div className="au-modal-actions">
@@ -1005,7 +920,7 @@ export default function AdminUsers() {
             </div>
           </div>
         )}
-      </div>
-    </DashboardLayout>
+      </>
+    </SideBar>
   );
 }

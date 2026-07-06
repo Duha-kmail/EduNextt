@@ -7,8 +7,8 @@ namespace backend.DTOs.Admin
     int TotalExams,
     int TotalSubmittedExams,
     double AverageScore,
-    double OverallSuccessRate, // نسبة نجاح الطلاب
-    double LessonCompletionRate, // معدل إكمال الدروس
-    string MostActiveSubject // أكثر مادة تفاعلاً
+    double OverallSuccessRate, 
+    double LessonCompletionRate, 
+    string MostActiveSubject 
 );
 }

@@ -23,7 +23,7 @@ body {
   direction: rtl;
 }
 
-/* Main Content */
+
 .main-content {
   flex: 1;
   overflow-y: auto;
@@ -31,7 +31,7 @@ body {
   flex-direction: column;
 }
 
-/* Header */
+
 .header {
   background-color: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(8px);
@@ -116,7 +116,7 @@ body {
   object-fit: cover;
 }
 
-/* Dashboard Content */
+
 .dashboard-body {
   padding: 32px;
   max-width: 1400px;
@@ -138,7 +138,7 @@ body {
   color: var(--text-muted);
 }
 
-/* Stats Grid */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -187,7 +187,7 @@ body {
 .trend-up { color: #10b981; }
 .trend-stable { color: #94a3b8; }
 
-/* Charts Section */
+
 .charts-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -254,7 +254,7 @@ body {
   color: var(--text-muted);
 }
 
-/* Donut Chart */
+
 .donut-container {
   display: flex;
   flex-direction: column;
@@ -284,7 +284,7 @@ body {
   stroke: var(--primary);
   stroke-width: 15;
   stroke-dasharray: 502.4;
-  stroke-dashoffset: 125.6; /* 75% */
+  stroke-dashoffset: 125.6; 
 }
 
 .donut-text {
@@ -324,7 +324,7 @@ body {
   border-radius: 50%;
 }
 
-/* Bottom Grid */
+
 .bottom-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -400,7 +400,7 @@ body {
   font-weight: 700;
 }
 
-/* Activity List */
+
 .activity-list {
   position: relative;
   padding-right: 24px;

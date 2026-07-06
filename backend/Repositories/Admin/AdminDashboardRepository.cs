@@ -86,10 +86,7 @@ public class AdminDashboardRepository : IAdminDashboardRepository
 
     public Task<int> GetNewLessonsThisMonthAsync()
     {
-        /*
-         * جدول lessons عندك لا يحتوي created_at.
-         * لذلك حالياً لا يمكن حساب الدروس الجديدة هذا الشهر بدقة.
-         */
+        
         return Task.FromResult(0);
     }
 
@@ -106,10 +103,7 @@ public class AdminDashboardRepository : IAdminDashboardRepository
 
     public async Task<AdminLessonCompletionDto> GetLessonCompletionAsync()
     {
-        /*
-         * بقيت موجودة للتوافق فقط.
-         * الواجهة الرئيسية لم تعد تستخدم كرت معدل الإكمال.
-         */
+        
 
         var students = await _context.student_profiles
             .AsNoTracking()

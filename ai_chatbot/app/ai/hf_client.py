@@ -146,7 +146,7 @@ def ask_llm(
     except ValueError as exc:
         return str(exc)
 
-    # client = genai.Client(api_key=GEMINI_API_KEY)
+    
     text_prompt = f"{SYSTEM_PROMPT}\n\n{prompt or 'حلل الصورة المرفقة وأجب عن السؤال الظاهر فيها.'}"
 
     contents = [types.Part.from_text(text=text_prompt)]

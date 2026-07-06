@@ -15,7 +15,7 @@ const learningMethods = [
 const levels = ["مبتدئ", "متوسط", "متقدم"];
 const examOptions = ["نعم، عدة مرات", "مرة واحدة", "لا، لم أجرب بعد"];
 
-/* ── Design tokens (Home palette) ── */
+
 const C = {
   teal:     "#08b7aa",
   blue:     "#2f9be7",
@@ -27,7 +27,7 @@ const C = {
   danger:   "hsl(0,84%,60%)",
   tealBg:   "rgba(8,183,170,0.08)",
 };
-const grad = `linear-gradient(135deg, ${C.blue}, ${C.teal})`;
+const grad = "#08b7aa";
 const font = "'Tajawal', system-ui, sans-serif";
 
 const Chip = ({ label, selected, onClick }) => (
@@ -175,7 +175,7 @@ const OnboardingStep2 = () => {
     }
   };
 
-  /* ── Success screen ── */
+  
   if (done) {
     return (
       <div style={{
@@ -238,7 +238,7 @@ const OnboardingStep2 = () => {
     );
   }
 
-  /* ── Main form ── */
+  
   return (
     <div style={{
       minHeight: "100vh", background: C.bg, display: "flex",
@@ -256,7 +256,7 @@ const OnboardingStep2 = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* ── Header ── */}
+        
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: "8px", marginBottom: "1.75rem", textDecoration: "none" }}>
             <div style={{ width: "2rem", height: "2rem" }}>
@@ -269,7 +269,7 @@ const OnboardingStep2 = () => {
             }}>EduNext</span>
           </Link>
 
-          {/* progress bars — both active */}
+          
           <div style={{ display: "flex", gap: "8px", justifyContent: "center", marginBottom: "1.5rem" }}>
             {[true, true].map((active, i) => (
               <div key={i} style={{
@@ -287,7 +287,7 @@ const OnboardingStep2 = () => {
           </h1>
         </div>
 
-        {/* ── Card ── */}
+        
         <div style={{
           background: C.card, borderRadius: "22px",
           border: `1px solid ${C.border}`,
@@ -296,7 +296,7 @@ const OnboardingStep2 = () => {
           display: "flex", flexDirection: "column", gap: "1.75rem",
         }}>
 
-          {/* Learning methods */}
+          
           <div>
             <p style={{ fontSize: "15px", fontWeight: 700, color: C.ink, margin: "0 0 14px", fontFamily: font }}>
               طريقة التعلم المفضلة
@@ -315,7 +315,7 @@ const OnboardingStep2 = () => {
             </div>
           </div>
 
-          {/* Level */}
+          
           <div>
             <SectionHeader icon={BarChart3} label="مستواك الحالي" />
             <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
@@ -325,7 +325,7 @@ const OnboardingStep2 = () => {
             </div>
           </div>
 
-          {/* Exam experience */}
+          
           <div>
             <p style={{ fontSize: "15px", fontWeight: 700, color: C.ink, margin: "0 0 14px", fontFamily: font }}>
               هل سبق وأجريت اختبارات تجريبية؟
@@ -337,14 +337,14 @@ const OnboardingStep2 = () => {
             </div>
           </div>
 
-          {/* Error */}
+          
           {error && (
             <p style={{ color: C.danger, textAlign: "center", fontSize: "14px", fontFamily: font, fontWeight: 600, margin: 0 }}>
               {error}
             </p>
           )}
 
-          {/* Submit button */}
+          
           <button
             onClick={handleFinish}
             disabled={loading}

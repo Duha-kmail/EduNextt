@@ -10,10 +10,10 @@ namespace backend.DTOs.Admin
     [Required, MaxLength(150)] 
     string Title,
     [MaxLength(500)] 
-    string VideoUrl, // رابط الفيديو
-    string Summary, // ملخص الدرس
-    string Content, // محتوى الدرس
+    string VideoUrl, 
+    string Summary, 
+    string Content, 
     [Range(1, int.MaxValue)]
-     int OrderNumber // رقم ترتيب الدرس
+     int OrderNumber 
     );
 }

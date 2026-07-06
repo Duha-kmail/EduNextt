@@ -43,6 +43,23 @@ class QuestionExplanationRequest(BaseModel):
     isCorrect: bool = False
 
 
+class LessonPerformanceInput(BaseModel):
+    lessonId: str | None = None
+    lessonTitle: str = ""
+    averageScore: float = 0
+    lastScore: int | None = None
+    attempts: int = 0
+    isCompleted: bool = False
+
+
+class SuggestedExamInput(BaseModel):
+    examId: str | None = None
+    examTitle: str = ""
+    examType: str = ""
+    lessonId: str | None = None
+    lessonTitle: str = ""
+
+
 class SubjectProgressInput(BaseModel):
     subjectId: str | None = None
     subjectName: str = ""
@@ -53,6 +70,8 @@ class SubjectProgressInput(BaseModel):
     remainingLessons: int = 0
     nextLessonTitle: str | None = None
     nextLessonId: str | None = None
+    lessonPerformances: list[LessonPerformanceInput] = []
+    suggestedExams: list[SuggestedExamInput] = []
 
 
 class PersonalizedRecommendationRequest(BaseModel):
@@ -184,6 +203,24 @@ def _build_personalized_recommendation_prompt(req: PersonalizedRecommendationReq
             "totalLessons": s.totalLessons,
             "remainingLessons": s.remainingLessons,
             "nextLessonTitle": s.nextLessonTitle,
+            "lessonPerformances": [
+                {
+                    "lessonTitle": lp.lessonTitle,
+                    "averageScore": lp.averageScore,
+                    "lastScore": lp.lastScore,
+                    "attempts": lp.attempts,
+                    "isCompleted": lp.isCompleted,
+                }
+                for lp in s.lessonPerformances[:8]
+            ],
+            "suggestedExams": [
+                {
+                    "examTitle": exam.examTitle,
+                    "examType": exam.examType,
+                    "lessonTitle": exam.lessonTitle,
+                }
+                for exam in s.suggestedExams[:8]
+            ],
         }
         for s in req.subjects[:12]
     ]
@@ -210,15 +247,18 @@ def _build_personalized_recommendation_prompt(req: PersonalizedRecommendationReq
 - اختر كل المواد التي تحتاج تركيزاً فعلياً، وليس مادة واحدة فقط، خصوصاً إذا كانت ضمن المواد الصعبة أو علامتها أقل من 70 أو لديها دروس كثيرة متبقية.
 - لا تضع مادة في focusSubjects إذا لم تكن موجودة في بيانات المواد أو المواد الصعبة.
 - اربط كل حكم برقم واضح: علامة، نسبة تقدم، دروس مكتملة، أو الدرس التالي.
+- إذا كان lessonPerformances يحتوي درساً علامته أقل من 70، اجعل هذا الدرس أولوية واذكر العبارة بوضوح: بما أن علامتك في درس كذا كانت كذا% راجع الدرس ثم حل اختباراً عليه.
+- إذا توفّر suggestedExams لدرس ضعيف أو للدرس التالي، اذكر اسم الاختبار المحدد في lessonOrder بدل عبارة عامة.
+- إذا لم توجد نتيجة امتحان لدرس، لا تخترع علامة؛ قل إن الدرس لم يُختبر بعد واقترح اختباراً قصيراً متاحاً إن وجد.
 - weeklyStudyHours يجب أن يناسب وقت الدراسة المتاح. إذا الوقت قليل لا تقترح رقماً كبيراً.
-- lessonOrder خطوات عملية قابلة للتنفيذ، واذكر اسم المادة مع الدرس عندما تتوفر nextLessonTitle.
+- lessonOrder خطوات عملية مرتبة وقابلة للتنفيذ: مراجعة الدرس الضعيف، تدريب قصير، ثم اختبار محدد، واذكر اسم المادة مع الدرس.
 
 الشكل المطلوب:
 {{
   "recommendationText": "رسالة قصيرة توضّح من أين يبدأ الطالب ولماذا",
   "focusSubjects": ["مادة 1", "مادة 2"],
   "weeklyStudyHours": 8,
-  "lessonOrder": ["ابدأ في مادة كذا بدرس كذا", "راجع نقطة محددة", "حل اختباراً قصيراً"],
+  "lessonOrder": ["الرياضيات: بما أن علامتك في درس حساب التفاضل 55%، راجع الدرس أولاً", "الرياضيات: بعد المراجعة حل اختبار حساب التفاضل القصير", "الإنجليزي: أكمل الدرس التالي ثم اختبر نفسك"],
   "strengthAreas": ["قوة محددة مرتبطة برقم", "قوة محددة مرتبطة برقم"],
   "weakAreas": ["ضعف محدد مع السبب", "ضعف محدد مع السبب"],
   "subjectAnalyses": [
@@ -355,6 +395,7 @@ def _build_rule_based_recommendation(req: PersonalizedRecommendationRequest) -> 
         if s.subjectName and (
             s.subjectName in req.difficultSubjects
             or 0 < s.averageScore < 70
+            or any(lesson.attempts > 0 and 0 < lesson.averageScore < 70 for lesson in s.lessonPerformances)
             or s.progressPercent < 60
             or s.remainingLessons > 0
         )
@@ -366,10 +407,42 @@ def _build_rule_based_recommendation(req: PersonalizedRecommendationRequest) -> 
     for subject in subjects:
         if subject.subjectName not in focus_subjects:
             continue
-        if subject.nextLessonTitle:
+
+        weak_lessons = sorted(
+            [
+                lesson
+                for lesson in subject.lessonPerformances
+                if lesson.attempts > 0 and 0 < lesson.averageScore < 70
+            ],
+            key=lambda lesson: lesson.averageScore,
+        )
+
+        for lesson in weak_lessons[:2]:
+            matching_exam = next(
+                (
+                    exam
+                    for exam in subject.suggestedExams
+                    if exam.lessonTitle and exam.lessonTitle == lesson.lessonTitle
+                ),
+                None,
+            )
+            score_text = f"{lesson.averageScore:.0f}%"
+            lesson_order.append(
+                f"{subject.subjectName}: بما أن علامتك في درس {lesson.lessonTitle} كانت {score_text}، راجع الدرس من الملخص والأمثلة."
+            )
+            if matching_exam:
+                lesson_order.append(
+                    f"{subject.subjectName}: بعد المراجعة قدّم اختبار {matching_exam.examTitle} للتأكد من تحسن درس {lesson.lessonTitle}."
+                )
+
+        if subject.nextLessonTitle and not any(subject.nextLessonTitle == lesson.lessonTitle for lesson in weak_lessons):
             lesson_order.append(f"{subject.subjectName}: ابدأ بدرس {subject.nextLessonTitle}")
         else:
-            lesson_order.append(f"{subject.subjectName}: حل اختباراً قصيراً لتحديد أول نقطة ضعف")
+            matching_exam = next((exam for exam in subject.suggestedExams if exam.examTitle), None)
+            if matching_exam:
+                lesson_order.append(f"{subject.subjectName}: حل اختبار {matching_exam.examTitle} لتحديد أول نقطة ضعف بدقة.")
+            else:
+                lesson_order.append(f"{subject.subjectName}: حل اختباراً قصيراً لتحديد أول نقطة ضعف")
     lesson_order = lesson_order[:6]
 
     strength_areas = []
@@ -388,6 +461,16 @@ def _build_rule_based_recommendation(req: PersonalizedRecommendationRequest) -> 
 
         if subject.averageScore and subject.averageScore < 70:
             weaknesses.append(f"{subject_name} تحتاج مراجعة لأن متوسطك فيها {subject.averageScore:.0f}%.")
+        weak_lessons = [
+            lesson
+            for lesson in subject.lessonPerformances
+            if lesson.attempts > 0 and 0 < lesson.averageScore < 70
+        ]
+        if weak_lessons:
+            weakest_lesson = min(weak_lessons, key=lambda lesson: lesson.averageScore)
+            weaknesses.append(
+                f"درس {weakest_lesson.lessonTitle} يحتاج مراجعة لأن نتيجتك فيه {weakest_lesson.averageScore:.0f}%."
+            )
         if subject.remainingLessons > 0:
             weaknesses.append(f"ما زال عندك {_lesson_count_text(subject.remainingLessons)} غير مكتمل في {subject_name}.")
 

@@ -1,4 +1,4 @@
 ﻿export const GOOGLE_CLIENT_ID =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-  "250927835772-jqt9edpleqlb2h4ialt92c19igd1i2i9.apps.googleusercontent.com";
+  "930062170111-muc3vrs7qnl5uf9ldapdiq1s5bkdn75f.apps.googleusercontent.com";
 

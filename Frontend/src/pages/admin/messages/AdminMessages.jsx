@@ -13,12 +13,13 @@ import {
   X,
 } from "lucide-react";
 
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import { API_BASE_URL } from "@/config/api";
 import "./AdminMessages.css";
 
 const SEEN_MESSAGES_KEY = "edunext_admin_seen_contact_messages";
 const UNREAD_COUNT_KEY = "edunext_admin_unread_messages_count";
+const MESSAGES_PER_PAGE = 5;
 
 const getId = (message) => String(message.id || message.Id || "");
 const getName = (message) => message.name || message.Name || "مرسل بدون اسم";
@@ -52,6 +53,7 @@ export default function AdminMessages() {
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [messageToDelete, setMessageToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -118,6 +120,21 @@ export default function AdminMessages() {
     );
   }, [messages, searchQuery]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredMessages.length / MESSAGES_PER_PAGE));
+
+  const paginatedMessages = useMemo(() => {
+    const startIndex = (currentPage - 1) * MESSAGES_PER_PAGE;
+    return filteredMessages.slice(startIndex, startIndex + MESSAGES_PER_PAGE);
+  }, [filteredMessages, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
   const markMessageSeen = (message) => {
     const id = getId(message);
     if (!id) return;
@@ -155,7 +172,7 @@ export default function AdminMessages() {
     );
 
     window.open(
-      `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${subject}&body=${replyBody}`,
+      `https://mail.google.com/mail/?authuser=${encodeURIComponent("edunext.contact@gmail.com")}&view=cm&fs=1&to=${encodeURIComponent(email)}&su=${subject}&body=${replyBody}`,
       "_blank",
       "noopener,noreferrer"
     );
@@ -193,7 +210,7 @@ export default function AdminMessages() {
   };
 
   return (
-    <DashboardLayout
+    <SideBar
       title="رسائل التواصل"
       subtitle="راجع رسائل الزوار، افتح الرد عبر Gmail، واحذف الرسائل المنتهية."
       titleIcon={Mail}
@@ -260,6 +277,7 @@ export default function AdminMessages() {
             <p>{searchQuery ? "لا توجد نتائج مطابقة للبحث." : "كل شيء هادئ حالياً."}</p>
           </div>
         ) : (
+          <>
           <div className="admin-messages-table-wrap">
             <table className="admin-messages-table">
               <thead>
@@ -274,7 +292,7 @@ export default function AdminMessages() {
                 </tr>
               </thead>
               <tbody>
-                {filteredMessages.map((message) => {
+                {paginatedMessages.map((message) => {
                   const id = getId(message);
                   const isSeen = seenIds.has(id);
                   const body = getBody(message);
@@ -326,6 +344,42 @@ export default function AdminMessages() {
               </tbody>
             </table>
           </div>
+          {totalPages > 1 && (
+            <div className="admin-messages-pagination" aria-label="Messages pagination">
+              <span>
+                عرض {(currentPage - 1) * MESSAGES_PER_PAGE + 1}-
+                {Math.min(currentPage * MESSAGES_PER_PAGE, filteredMessages.length)} من {filteredMessages.length}
+              </span>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                >
+                  السابق
+                </button>
+                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                  <button
+                    type="button"
+                    key={page}
+                    className={page === currentPage ? "active" : ""}
+                    onClick={() => setCurrentPage(page)}
+                    aria-current={page === currentPage ? "page" : undefined}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  التالي
+                </button>
+              </div>
+            </div>
+          )}
+          </>
         )}
       </section>
 
@@ -378,6 +432,6 @@ export default function AdminMessages() {
           </article>
         </div>
       )}
-    </DashboardLayout>
+    </SideBar>
   );
 }

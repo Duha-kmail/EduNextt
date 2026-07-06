@@ -13,6 +13,10 @@ public interface IAdminLessonsService
         int pageSize
     );
 
+    Task<List<AdminLessonUnitDto>> GetUnitsBySubjectAsync(Guid subjectId);
+
+    Task<AdminLessonUnitDto> CreateUnitAsync(Guid subjectId, CreateAdminLessonUnitDto dto);
+
     Task<AdminLessonDto?> CreateLessonAsync(CreateAdminLessonDto dto);
 
     Task<AdminLessonDto?> UpdateLessonAsync(Guid id, UpdateAdminLessonDto dto);

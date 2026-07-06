@@ -39,6 +39,24 @@ public class AuthController : ControllerBase
         return Ok(result.Data);
     }
 
+    [HttpPost("verify-registration")]
+    public async Task<ActionResult<AuthResponseDto>> VerifyRegistration([FromBody] VerifyRegistrationRequestDto dto)
+    {
+        var result = await _authService.VerifyRegistrationAsync(dto);
+
+        if (!result.Success)
+        {
+            return StatusCode(result.StatusCode, new
+            {
+                message = result.Message,
+                errors = result.Errors,
+                passwordSuggestions = result.PasswordSuggestions
+            });
+        }
+
+        return Ok(result.Data);
+    }
+
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginRequestDto dto)
     {

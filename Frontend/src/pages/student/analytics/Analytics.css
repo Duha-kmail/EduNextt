@@ -1,14 +1,4 @@
-/* ====================================================
-   Analytics.css — متوافق مع ألوان Home.css
-   --edn-teal:   #08b7aa
-   --edn-blue:   #2f9be7
-   --edn-purple: #9b75f6
-   --edn-bg:     #f8fbfd
-   --edn-card:   #ffffff
-   --edn-ink:    #111827
-   --edn-muted:  #667085
-   --edn-border: #dfe7ef
-==================================================== */
+
 
 .perf-page {
   min-height: 100vh;
@@ -24,7 +14,7 @@
   margin: 0 auto;
 }
 
-/* ---- Header ---- */
+
 .perf-header {
   display: flex;
   justify-content: space-between;
@@ -67,7 +57,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2f9be7, #08b7aa);
+  background: #08b7aa;
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -76,7 +66,7 @@
   font-size: 12px;
 }
 
-/* ---- Sections ---- */
+
 .perf-section {
   margin-top: 26px;
 }
@@ -98,7 +88,7 @@
   background: #08b7aa;
 }
 
-/* ---- Stat cards ---- */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -134,7 +124,7 @@
   font-size: 20px;
 }
 
-.stat-icon.purple { background: rgba(155, 117, 246, 0.13); color: #9b75f6; }
+.stat-icon.purple { background: rgba(8, 183, 170, 0.13); color: #08b7aa; }
 .stat-icon.green  { background: rgba(8, 183, 170, 0.12);  color: #08b7aa; }
 .stat-icon.amber  { background: rgba(251, 191, 36, 0.15);  color: #b45309; }
 .stat-icon.blue   { background: rgba(47, 155, 231, 0.12);  color: #2f9be7; }
@@ -144,7 +134,7 @@
 .stat-card .stat-value { font-size: 22px; font-weight: 700; color: #111827; }
 .stat-card .stat-sub   { font-size: 11px; color: #94a3b8; }
 
-/* ---- Exam cards ---- */
+
 .exam-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -181,7 +171,7 @@
   bottom: 0;
   inset-inline-start: 0;
   width: 4px;
-  background: linear-gradient(180deg, #2f9be7, #08b7aa);
+  background: #08b7aa;
 }
 
 .exam-card .exam-name  { font-weight: 700; color: #111827; font-size: 15px; }
@@ -197,7 +187,7 @@
 
 .exam-card .exam-meta span { font-size: 1rem; }
 
-/* ---- Level badges ---- */
+
 .level-badge {
   display: inline-block;
   padding: 3px 10px;
@@ -208,11 +198,11 @@
 
 .level-ممتاز      { background: rgba(8, 183, 170, 0.12);  color: #047857; }
 .level-جيدجداً    { background: rgba(47, 155, 231, 0.12);  color: #2f9be7; }
-.level-جيد        { background: rgba(155, 117, 246, 0.13); color: #9b75f6; }
+.level-جيد        { background: rgba(8, 183, 170, 0.13); color: #08b7aa; }
 .level-متوسط      { background: rgba(251, 191, 36, 0.15);  color: #b45309; }
 .level-يحتاجتحسين { background: rgba(239, 68, 68, 0.10);   color: #b91c1c; }
 
-/* ---- Monthly chart ---- */
+
 .chart-card {
   background: #ffffff;
   border-radius: 18px;
@@ -244,7 +234,7 @@
 .chart-bar {
   width: 100%;
   max-width: 38px;
-  background: linear-gradient(180deg, #2f9be7, #08b7aa);
+  background: #08b7aa;
   border-radius: 8px 8px 4px 4px;
   position: relative;
   transition: height .4s ease;
@@ -262,7 +252,7 @@
 
 .chart-month { font-size: 12px; color: #667085; font-weight: 500; }
 
-/* ---- Subject cards ---- */
+
 .subject-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
@@ -338,7 +328,7 @@
 .progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #2f9be7, #08b7aa);
+  background: #08b7aa;
   transition: width .4s ease;
 }
 
@@ -377,7 +367,7 @@
 .sw-list.strengths h4 { color: #08b7aa; }
 .sw-list.weaknesses h4 { color: #b91c1c; }
 
-/* ---- AI Report card ---- */
+
 .analytics-ai-recommendation {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -388,7 +378,7 @@
   border: 1px solid rgba(47, 155, 231, 0.22);
   border-radius: 20px;
   background:
-    linear-gradient(135deg, rgba(248, 251, 253, 0.97), rgba(236, 253, 252, 0.92)),
+    rgba(248, 251, 253, 0.97),
     repeating-linear-gradient(135deg, rgba(8, 183, 170, 0.04) 0 1px, transparent 1px 20px);
   box-shadow: 0 16px 34px rgba(8, 183, 170, 0.08);
 }
@@ -429,7 +419,7 @@
   margin: 0;
 }
 
-/* ---- Monthly Progress ---- */
+
 .monthly-progress-panel {
   display: grid;
   gap: 18px;
@@ -462,7 +452,7 @@
   border-color: rgba(8, 183, 170, 0.25);
   background:
     radial-gradient(circle at 18% 18%, rgba(8, 183, 170, 0.14), transparent 34%),
-    linear-gradient(135deg, rgba(236, 253, 252, 0.98), rgba(248, 251, 253, 0.9));
+    rgba(236, 253, 252, 0.98);
 }
 
 .monthly-summary-primary strong,
@@ -474,7 +464,7 @@
   border-radius: 20px;
   background:
     radial-gradient(circle at 50% 8%, rgba(47, 155, 231, 0.06), transparent 32%),
-    linear-gradient(180deg, #ffffff 0%, #f8fbfd 100%);
+    #ffffff;
   padding: 12px 16px 20px;
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(8, 183, 170, 0.05);
@@ -517,9 +507,9 @@
   font-weight: 700;
 }
 
-/* ---- Report card ---- */
+
 .report-card {
-  background: linear-gradient(135deg, rgba(236, 253, 252, 0.8) 0%, rgba(239, 246, 255, 0.8) 60%, rgba(245, 243, 255, 0.7) 100%);
+  background: rgba(236, 253, 252, 0.8);
   border: 1px solid rgba(8, 183, 170, 0.18);
   border-radius: 20px;
   padding: 26px;
@@ -587,7 +577,7 @@
   line-height: 1.6;
 }
 
-/* ---- Responsive ---- */
+
 @media (max-width: 640px) {
   .perf-page { padding: 18px 12px 40px; }
   .perf-header h1 { font-size: 22px; }

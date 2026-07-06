@@ -14,14 +14,14 @@ using backend.Services.Guest;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// OpenAPI
+
 builder.Services.AddOpenApi();
 
-// Controllers
+
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
 
-// CORS
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
@@ -40,13 +40,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddEndpointsApiExplorer();
 
-// DbContext (PostgreSQL)
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
 
-// ====================== ADMIN SERVICES ======================
+
 builder.Services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
@@ -67,13 +67,13 @@ builder.Services.AddScoped<IAdminUsersService, AdminUsersService>();
 
 builder.Services.AddScoped<IAdminAchievementsRepository, AdminAchievementsRepository>();
 builder.Services.AddScoped<IAdminAchievementsService, AdminAchievementsService>();
-// ====================== AUTH SERVICES ======================
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPasswordValidator, PasswordValidator>();
 builder.Services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
 
-// ====================== STUDENT SERVICES ======================
+
 builder.Services.AddScoped<IStudentSetupService, StudentSetupService>();
 builder.Services.AddScoped<IStudentSetupRepository, StudentSetupRepository>();
 builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
@@ -97,7 +97,7 @@ builder.Services.AddScoped<IAdminProfileRepository, AdminProfileRepository>();
 builder.Services.AddScoped<IAdminProfileService, AdminProfileService>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IContactMessageService, ContactMessageService>();
-// JWT Configuration
+
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey))
     throw new InvalidOperationException("Jwt:Key is missing. Add it using user-secrets.");
@@ -127,7 +127,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// app.UseHttpsRedirection();
+
 
 app.UseCors("FrontendPolicy");
 

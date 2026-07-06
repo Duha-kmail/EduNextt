@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 import "./AdminLessons.css";
-import DashboardLayout from "../../../components/DashboardLayout";
+import DashboardLayout from "../../../components/SideBar";
 import { API_BASE_URL } from "@/config/api";
 
 const ITEMS_PER_PAGE = 4;
@@ -23,6 +23,7 @@ const ITEMS_PER_PAGE = 4;
 const emptyForm = {
   title: "",
   subjectId: "",
+  unitId: "",
   description: "",
   content: "",
   order: 1,
@@ -32,6 +33,7 @@ const emptyForm = {
 export default function AdminLessons() {
   const [lessons, setLessons] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [units, setUnits] = useState([]);
   const [departments, setDepartments] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,6 +44,11 @@ export default function AdminLessons() {
   const [showForm, setShowForm] = useState(false);
   const [editingLesson, setEditingLesson] = useState(null);
   const [formData, setFormData] = useState(emptyForm);
+  const [unitsLoading, setUnitsLoading] = useState(false);
+  const [showUnitForm, setShowUnitForm] = useState(false);
+  const [newUnitTitle, setNewUnitTitle] = useState("");
+  const [newUnitOrder, setNewUnitOrder] = useState(1);
+  const [creatingUnit, setCreatingUnit] = useState(false);
 
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [viewLesson, setViewLesson] = useState(null);
@@ -171,7 +178,7 @@ export default function AdminLessons() {
       whiteSpace: "pre-line",
     },
     link: {
-      color: "#135bec",
+      color: "#08b7aa",
       fontSize: "0.92rem",
       lineHeight: 1.8,
       overflowWrap: "anywhere",
@@ -189,8 +196,8 @@ export default function AdminLessons() {
       minHeight: "30px",
       padding: "0 12px",
       borderRadius: "999px",
-      background: "#eff6ff",
-      color: "#135bec",
+      background: "rgba(8, 183, 170, 0.1)",
+      color: "#087f78",
       fontSize: "0.85rem",
       fontWeight: 800,
       width: "fit-content",
@@ -231,6 +238,17 @@ export default function AdminLessons() {
     id: subject.id || subject.Id,
     name: subject.name || subject.Name || "",
     department: subject.department || subject.Department || "",
+  });
+
+  const normalizeUnit = (unit) => ({
+    id: unit.id || unit.Id,
+    title: unit.title || unit.Title || "",
+    orderNumber:
+      unit.orderNumber ??
+      unit.OrderNumber ??
+      unit.order_number ??
+      unit.Order_number ??
+      0,
   });
 
   const readResponseBody = async (response) => {
@@ -329,16 +347,138 @@ export default function AdminLessons() {
     }
   };
 
+  const loadUnitsBySubject = async (subjectId, selectedUnitId = "") => {
+    if (!subjectId) {
+      setUnits([]);
+      setFormData((prev) => ({ ...prev, unitId: "" }));
+      return;
+    }
+
+    try {
+      setUnitsLoading(true);
+      setFormError("");
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/admin/lessons/subjects/${subjectId}/units`,
+        {
+          method: "GET",
+          headers: authHeaders,
+        }
+      );
+
+      const data = await readResponseBody(response);
+
+      if (!response.ok) {
+        setUnits([]);
+        setFormData((prev) => ({ ...prev, unitId: "" }));
+        setFormError(data.message || "فشل تحميل الوحدات");
+        return;
+      }
+
+      const normalizedUnits = (Array.isArray(data) ? data : []).map(normalizeUnit);
+
+      setUnits(normalizedUnits);
+
+      const selectedExists = normalizedUnits.some(
+        (unit) => unit.id === selectedUnitId
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        unitId: selectedExists ? selectedUnitId : "",
+      }));
+    } catch (err) {
+      console.error(err);
+      setUnits([]);
+      setFormData((prev) => ({ ...prev, unitId: "" }));
+      setFormError("تعذر تحميل وحدات المادة");
+    } finally {
+      setUnitsLoading(false);
+    }
+  };
+
+  const handleCreateUnit = async () => {
+    if (!formData.subjectId) {
+      setFormSuccess("");
+      setFormError("اختاري المادة أولاً.");
+      return;
+    }
+
+    if (!newUnitTitle.trim()) {
+      setFormSuccess("");
+      setFormError("عنوان الوحدة مطلوب.");
+      return;
+    }
+
+    if (Number(newUnitOrder) <= 0) {
+      setFormSuccess("");
+      setFormError("رقم الوحدة يجب أن يكون أكبر من صفر.");
+      return;
+    }
+
+    try {
+      setCreatingUnit(true);
+      setFormError("");
+      setFormSuccess("");
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/admin/lessons/subjects/${formData.subjectId}/units`,
+        {
+          method: "POST",
+          headers: authHeaders,
+          body: JSON.stringify({
+            title: newUnitTitle.trim(),
+            orderNumber: Number(newUnitOrder),
+          }),
+        }
+      );
+
+      const data = await readResponseBody(response);
+
+      if (!response.ok) {
+        setFormError(data.message || "فشل إنشاء الوحدة.");
+        return;
+      }
+
+      const createdUnit = normalizeUnit(data);
+
+      setUnits((prev) =>
+        [...prev, createdUnit].sort((a, b) => {
+          if (a.orderNumber !== b.orderNumber) {
+            return a.orderNumber - b.orderNumber;
+          }
+
+          return a.title.localeCompare(b.title, "ar");
+        })
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        unitId: createdUnit.id,
+      }));
+
+      setNewUnitTitle("");
+      setNewUnitOrder(1);
+      setShowUnitForm(false);
+      setFormSuccess("تمت إضافة الوحدة، ويمكنك الآن حفظ الدرس داخلها.");
+    } catch (err) {
+      console.error(err);
+      setFormError("تعذر الاتصال بالسيرفر أثناء إنشاء الوحدة.");
+    } finally {
+      setCreatingUnit(false);
+    }
+  };
+
   useEffect(() => {
     loadLessons({ silent: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   useEffect(() => {
     if (!loading) {
       loadLessons({ silent: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [currentPage, sortBy, filterSubjectId, filterDepartment]);
 
   useEffect(() => {
@@ -350,7 +490,7 @@ export default function AdminLessons() {
     }, 400);
 
     return () => clearTimeout(delay);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [searchQuery]);
 
   const filteredSubjectsByDepartment =
@@ -367,6 +507,10 @@ export default function AdminLessons() {
   const handleAddNew = () => {
     setEditingLesson(null);
     setFormData(emptyForm);
+    setUnits([]);
+    setShowUnitForm(false);
+    setNewUnitTitle("");
+    setNewUnitOrder(1);
     setFormError("");
     setFormSuccess("");
     setShowForm(true);
@@ -378,14 +522,25 @@ export default function AdminLessons() {
     setFormData({
       title: lesson.title,
       subjectId: lesson.subjectId || "",
+      unitId: lesson.unitId || "",
       description: lesson.description || "",
       content: lesson.content || "",
       order: lesson.order || 1,
       videoUrl: lesson.videoUrl || "",
     });
+    setShowUnitForm(false);
+    setNewUnitTitle("");
+    setNewUnitOrder(1);
     setFormError("");
     setFormSuccess("");
     setShowForm(true);
+
+    if (lesson.subjectId) {
+      loadUnitsBySubject(lesson.subjectId, lesson.unitId || "");
+    } else {
+      setUnits([]);
+    }
+
     scrollToForm();
   };
 
@@ -393,6 +548,10 @@ export default function AdminLessons() {
     setShowForm(false);
     setEditingLesson(null);
     setFormData(emptyForm);
+    setUnits([]);
+    setShowUnitForm(false);
+    setNewUnitTitle("");
+    setNewUnitOrder(1);
     setFormError("");
     setFormSuccess("");
   };
@@ -401,6 +560,12 @@ export default function AdminLessons() {
     if (!formData.subjectId) {
       setFormSuccess("");
       setFormError("اختيار المادة مطلوب.");
+      return;
+    }
+
+    if (!formData.unitId) {
+      setFormSuccess("");
+      setFormError("اختيار الوحدة مطلوب. إذا لا توجد وحدات لهذه المادة، أضيفي وحدة جديدة أولاً.");
       return;
     }
 
@@ -432,6 +597,7 @@ export default function AdminLessons() {
         headers: authHeaders,
         body: JSON.stringify({
           subjectId: formData.subjectId,
+          unitId: formData.unitId,
           title: formData.title.trim(),
           description: formData.description.trim(),
           content: formData.content.trim(),
@@ -922,9 +1088,23 @@ export default function AdminLessons() {
                   <select
                     value={formData.subjectId}
                     onChange={(e) => {
-                      setFormData({ ...formData, subjectId: e.target.value });
+                      const selectedSubjectId = e.target.value;
+
+                      setFormData({
+                        ...formData,
+                        subjectId: selectedSubjectId,
+                        unitId: "",
+                      });
+                      setUnits([]);
+                      setShowUnitForm(false);
+                      setNewUnitTitle("");
+                      setNewUnitOrder(1);
                       setFormError("");
                       setFormSuccess("");
+
+                      if (selectedSubjectId) {
+                        loadUnitsBySubject(selectedSubjectId);
+                      }
                     }}
                   >
                     <option value="">اختر مادة من القائمة...</option>
@@ -940,12 +1120,174 @@ export default function AdminLessons() {
                 </div>
 
                 <div className="form-group">
+                  <label>اختر الوحدة</label>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr auto",
+                      gap: "10px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <select
+                      value={formData.unitId}
+                      disabled={!formData.subjectId || unitsLoading}
+                      onChange={(e) => {
+                        setFormData({ ...formData, unitId: e.target.value });
+                        setFormError("");
+                        setFormSuccess("");
+                      }}
+                    >
+                      <option value="">
+                        {unitsLoading
+                          ? "جاري تحميل الوحدات..."
+                          : !formData.subjectId
+                            ? "اختاري المادة أولاً"
+                            : units.length === 0
+                              ? "لا توجد وحدات بعد..."
+                              : "اختاري وحدة من القائمة..."}
+                      </option>
+
+                      {units.map((unit) => (
+                        <option key={unit.id} value={unit.id}>
+                          {unit.orderNumber
+                            ? `الوحدة ${unit.orderNumber} - ${unit.title}`
+                            : unit.title}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      className="btn-outline-al"
+                      disabled={!formData.subjectId || creatingUnit}
+                      onClick={() => {
+                        setShowUnitForm((prev) => !prev);
+                        setFormError("");
+                        setFormSuccess("");
+                      }}
+                      style={{
+                        minHeight: "52px",
+                        whiteSpace: "nowrap",
+                        paddingInline: "18px",
+                      }}
+                    >
+                      <Plus size={16} />
+                      <span>{showUnitForm ? "إغلاق" : "وحدة جديدة"}</span>
+                    </button>
+                  </div>
+
+                  {formData.subjectId && !unitsLoading && units.length === 0 && !showUnitForm && (
+                    <div
+                      style={{
+                        marginTop: "8px",
+                        color: "#64748b",
+                        fontSize: "13px",
+                      }}
+                    >
+                      لا توجد وحدات لهذه المادة، أضيفي وحدة جديدة أولاً.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {formData.subjectId && showUnitForm && (
+                <div
+                  style={{
+                    marginTop: "14px",
+                    marginBottom: "18px",
+                    padding: "16px",
+                    borderRadius: "16px",
+                    background: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "12px",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    <strong style={{ color: "#0f172a" }}>إضافة وحدة جديدة للمادة المختارة</strong>
+
+                    <button
+                      type="button"
+                      className="btn-text"
+                      onClick={() => {
+                        setShowUnitForm(false);
+                        setNewUnitTitle("");
+                        setNewUnitOrder(1);
+                      }}
+                      disabled={creatingUnit}
+                    >
+                      إلغاء
+                    </button>
+                  </div>
+
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label>عنوان الوحدة</label>
+
+                      <input
+                        type="text"
+                        placeholder="مثلاً: الوحدة الأولى"
+                        value={newUnitTitle}
+                        onChange={(e) => {
+                          setNewUnitTitle(e.target.value);
+                          setFormError("");
+                          setFormSuccess("");
+                        }}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>رقم الوحدة</label>
+
+                      <input
+                        type="number"
+                        min={1}
+                        value={newUnitOrder}
+                        onChange={(e) => {
+                          setNewUnitOrder(Number(e.target.value));
+                          setFormError("");
+                          setFormSuccess("");
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      marginTop: "14px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={handleCreateUnit}
+                      disabled={creatingUnit}
+                    >
+                      {creatingUnit ? "جاري إضافة الوحدة..." : "حفظ الوحدة واختيارها"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="form-grid">
+                <div className="form-group">
                   <label>عنوان الدرس</label>
 
                   <input
                     type="text"
                     placeholder="أدخل اسم الدرس هنا..."
                     value={formData.title}
+                    disabled={!formData.subjectId || !formData.unitId}
                     onChange={(e) => {
                       setFormData({ ...formData, title: e.target.value });
                       setFormError("");
@@ -1249,3 +1591,4 @@ export default function AdminLessons() {
     </DashboardLayout>
   );
 }
+

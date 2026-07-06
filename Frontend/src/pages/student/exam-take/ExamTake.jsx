@@ -13,8 +13,9 @@ import {
   Lightbulb,
   Loader2,
 } from "lucide-react";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import { API_BASE_URL } from "@/config/api";
+import "./ExamTake.css";
 
 const getAuthToken = () => {
   return sessionStorage.getItem("token") || localStorage.getItem("token");
@@ -292,46 +293,35 @@ const ExamTake = () => {
 
   if (loading) {
     return (
-      <DashboardLayout
+      <SideBar
         title={isReviewMode ? "جاري تحميل النتيجة..." : "جاري تحميل الامتحان..."}
         subtitle="يرجى الانتظار"
         hideSearch
       >
-        <div
-          className="card"
-          style={{
-            padding: "2rem",
-            textAlign: "center",
-            minHeight: "280px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.75rem",
-          }}
-        >
+        <div className="card et-state-card et-loading-card">
           <Loader2 className="animate-spin" />
           <span>{isReviewMode ? "جاري تحميل النتيجة..." : "جاري تحميل الامتحان..."}</span>
         </div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   if (pageError) {
     return (
-      <DashboardLayout title="الامتحان" subtitle="حدثت مشكلة" hideSearch>
-        <div className="card" style={{ padding: "2rem", textAlign: "center", color: "red" }}>
-          <p style={{ marginBottom: "1rem" }}>{pageError}</p>
+      <SideBar title="الامتحان" subtitle="حدثت مشكلة" hideSearch>
+        <div className="card et-state-card et-error-card">
+          <p className="et-error-message">{pageError}</p>
 
           <button className="btn btn-primary" onClick={() => navigate("/exams")}>
             العودة للامتحانات
           </button>
         </div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   return (
-    <DashboardLayout
+    <SideBar
       title={
         isReviewMode
           ? "مراجعة نتيجة الامتحان"
@@ -356,11 +346,9 @@ const ExamTake = () => {
               {questions.map((question, index) => (
                 <button
                   key={question.questionId}
-                  className={`et-qnav-btn ${
-                    index === current ? "et-qnav-active" : ""
-                  } ${answers[question.questionId] != null ? "et-qnav-answered" : ""} ${
-                    flagged.has(question.questionId) ? "et-qnav-flagged" : ""
-                  }`}
+                  className={`et-qnav-btn ${index === current ? "et-qnav-active" : ""
+                    } ${answers[question.questionId] != null ? "et-qnav-answered" : ""} ${flagged.has(question.questionId) ? "et-qnav-flagged" : ""
+                    }`}
                   onClick={() => setCurrent(index)}
                 >
                   {index + 1}
@@ -373,7 +361,7 @@ const ExamTake = () => {
             </button>
 
             {submitError && (
-              <p style={{ color: "red", marginTop: "0.75rem", fontSize: "0.875rem" }}>
+              <p className="et-submit-error">
                 {submitError}
               </p>
             )}
@@ -402,9 +390,8 @@ const ExamTake = () => {
                   </span>
 
                   <button
-                    className={`et-flag-btn ${
-                      flagged.has(q?.questionId) ? "et-flag-active" : ""
-                    }`}
+                    className={`et-flag-btn ${flagged.has(q?.questionId) ? "et-flag-active" : ""
+                      }`}
                     onClick={toggleFlag}
                   >
                     <Flag size={16} />
@@ -417,9 +404,8 @@ const ExamTake = () => {
                   {(q?.options || []).map((option, index) => (
                     <motion.button
                       key={option.key}
-                      className={`et-option ${
-                        answers[q.questionId] === option.key ? "et-option-selected" : ""
-                      }`}
+                      className={`et-option ${answers[q.questionId] === option.key ? "et-option-selected" : ""
+                        }`}
                       onClick={() => selectAnswer(option.key)}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -457,9 +443,8 @@ const ExamTake = () => {
           animate={{ opacity: 1, scale: 1 }}
         >
           <div
-            className={`et-results-icon ${
-              (result?.percentage || 0) >= 50 ? "et-results-pass" : "et-results-fail"
-            }`}
+            className={`et-results-icon ${(result?.percentage || 0) >= 50 ? "et-results-pass" : "et-results-fail"
+              }`}
           >
             {(result?.percentage || 0) >= 50 ? (
               <CheckCircle2 size={48} />
@@ -472,10 +457,10 @@ const ExamTake = () => {
             {(result?.percentage || 0) >= 90
               ? "ممتاز!"
               : (result?.percentage || 0) >= 70
-              ? "أحسنت!"
-              : (result?.percentage || 0) >= 50
-              ? "جيد، واصل التحسن!"
-              : "حاول مرة أخرى"}
+                ? "أحسنت!"
+                : (result?.percentage || 0) >= 50
+                  ? "جيد، واصل التحسن!"
+                  : "حاول مرة أخرى"}
           </h2>
 
           <p className="et-results-score">
@@ -496,14 +481,14 @@ const ExamTake = () => {
           </div>
 
           {result?.levelMessage && (
-            <div className="card" style={{ padding: "1rem", marginBottom: "1rem" }}>
-              <p style={{ textAlign: "center" }}>{result.levelMessage}</p>
+            <div className="card et-result-note">
+              <p>{result.levelMessage}</p>
             </div>
           )}
 
           {result?.recommendationText && (
-            <div className="card" style={{ padding: "1rem", marginBottom: "1rem" }}>
-              <p style={{ textAlign: "center" }}>{result.recommendationText}</p>
+            <div className="card et-result-note">
+              <p>{result.recommendationText}</p>
             </div>
           )}
 
@@ -511,7 +496,7 @@ const ExamTake = () => {
 
           <div className="et-results-review">
             {reviewItems.length === 0 ? (
-              <div className="card" style={{ padding: "1.5rem", textAlign: "center" }}>
+              <div className="card et-review-empty">
                 لا توجد تفاصيل مراجعة لهذا الامتحان.
               </div>
             ) : (
@@ -521,9 +506,8 @@ const ExamTake = () => {
                 return (
                   <motion.div
                     key={question.questionId}
-                    className={`et-review-item ${
-                      question.isCorrect ? "et-review-correct" : "et-review-wrong"
-                    }`}
+                    className={`et-review-item ${question.isCorrect ? "et-review-correct" : "et-review-wrong"
+                      }`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
@@ -543,9 +527,8 @@ const ExamTake = () => {
 
                       <div className="et-review-answers">
                         <div
-                          className={`et-review-answer-row ${
-                            question.isCorrect ? "et-answer-correct" : "et-answer-wrong"
-                          }`}
+                          className={`et-review-answer-row ${question.isCorrect ? "et-answer-correct" : "et-answer-wrong"
+                            }`}
                         >
                           <span className="et-answer-label">إجابتك:</span>
                           <span>{question.selectedAnswerText || "لم تُجب"}</span>
@@ -608,7 +591,7 @@ const ExamTake = () => {
           </div>
         </motion.div>
       )}
-    </DashboardLayout>
+    </SideBar>
   );
 };
 

@@ -88,10 +88,7 @@ public class StudentProfileService : IStudentProfileService
             user.full_name = cleanName;
         }
 
-        /*
-         * البريد الإلكتروني لا يتم تعديله من صفحة الملف الشخصي.
-         * الفرع الدراسي أيضاً لا يتم تعديله من هنا.
-         */
+        
 
         user.phone = string.IsNullOrWhiteSpace(dto.Phone)
             ? null
@@ -188,11 +185,7 @@ public class StudentProfileService : IStudentProfileService
             throw new InvalidOperationException("المستخدم غير موجود.");
         }
 
-        /*
-         * حذف آمن:
-         * لا نحذف السجل فعلياً من الداتا بيس حتى لا نخرب العلاقات
-         * مثل exam_results و lesson_progress و study_plans.
-         */
+        
         user.is_active = false;
 
         await _repository.SaveChangesAsync();
@@ -273,7 +266,7 @@ public class StudentProfileService : IStudentProfileService
         }
         catch
         {
-            // Try legacy hash formats below.
+            
         }
 
         try
@@ -292,7 +285,7 @@ public class StudentProfileService : IStudentProfileService
         }
         catch
         {
-            // Try legacy PBKDF2 format below.
+            
         }
 
         if (VerifyPbkdf2Password(password, passwordHash))

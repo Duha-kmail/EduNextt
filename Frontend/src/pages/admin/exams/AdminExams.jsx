@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 import "./AdminExams.css";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import { API_BASE_URL } from "@/config/api";
 
 const emptyQuestion = () => ({
@@ -41,7 +41,7 @@ const optionLabels = ["أ", "ب", "ج", "د"];
 
 const ROWS_PER_PAGE = 5;
 
-// Static subject list from the app (used as filter labels)
+
 const SUBJECT_FILTER_LIST = [
   "التربية الإسلامية",
   "الرياضيات",
@@ -65,8 +65,8 @@ export default function AdminExams() {
   });
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState(""); // "" | "short" | "comprehensive"
-  const [filterSubject, setFilterSubject] = useState(""); // subject name string
+  const [filterType, setFilterType] = useState(""); 
+  const [filterSubject, setFilterSubject] = useState(""); 
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -95,30 +95,6 @@ export default function AdminExams() {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
   }), [token]);
-
-  const errorBoxStyle = {
-    marginTop: "12px",
-    marginBottom: "8px",
-    padding: "10px 12px",
-    borderRadius: "10px",
-    background: "#fef2f2",
-    color: "#dc2626",
-    border: "1px solid #fecaca",
-    fontSize: "14px",
-    textAlign: "right",
-  };
-
-  const successBoxStyle = {
-    marginTop: "12px",
-    marginBottom: "8px",
-    padding: "10px 12px",
-    borderRadius: "10px",
-    background: "#f0fdf4",
-    color: "#16a34a",
-    border: "1px solid #bbf7d0",
-    fontSize: "14px",
-    textAlign: "right",
-  };
 
   const normalizeExam = (exam) => ({
     id: exam.id || exam.Id,
@@ -212,10 +188,10 @@ export default function AdminExams() {
     return () => clearTimeout(delay);
   }, [searchQuery]);
 
-  // Reset page when filters change
+  
   useEffect(() => { setCurrentPage(1); }, [searchQuery, filterType, filterSubject]);
 
-  // Client-side filtering
+  
   const filteredExams = useMemo(() => {
     return exams.filter((exam) => {
       if (filterType && exam.type !== filterType) return false;
@@ -240,7 +216,7 @@ export default function AdminExams() {
     return type;
   };
 
-  const getTypeColor = (type) => type === "comprehensive" ? "#2563eb" : "#d97706";
+  const getTypeColor = (type) => type === "comprehensive" ? "#08b7aa" : "#d97706";
 
   const resetForm = () => {
     setFormData({ ...emptyFormData });
@@ -364,21 +340,21 @@ export default function AdminExams() {
 
   if (loading) {
     return (
-      <DashboardLayout
+      <SideBar
         title="إدارة الامتحانات"
         subtitle="نظام إدارة وتقييم الاختبارات التعليمية للطلاب."
         titleIcon={ClipboardList}
       >
-        <div className="admin-main-ex rtl" style={{ minHeight: "350px", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
+        <div className="admin-main-ex admin-page-loading rtl">
           <Loader2 className="animate-spin" />
           <span>جاري تحميل الامتحانات...</span>
         </div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   return (
-    <DashboardLayout
+    <SideBar
       title="إدارة الامتحانات"
       subtitle="نظام إدارة وتقييم الاختبارات التعليمية للطلاب."
       titleIcon={ClipboardList}
@@ -391,10 +367,10 @@ export default function AdminExams() {
         </div>
       }
     >
-      <div className="app-container" dir="rtl">
+      <>
         <main className="admin-main-ex rtl">
           {pageError && (
-            <div style={{ marginBottom: "16px", padding: "12px 16px", borderRadius: "12px", background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
+            <div className="admin-page-message admin-page-message-error admin-page-message-spaced">
               {pageError}
             </div>
           )}
@@ -422,7 +398,7 @@ export default function AdminExams() {
               <h2>قائمة الامتحانات الحالية</h2>
 
               <div className="table-controls-ex">
-                {/* Subject filter */}
+                
                 <div className="filter-select-wrapper-ex">
                   <Filter size={15} className="filter-icon-ex" />
                   <select
@@ -437,7 +413,7 @@ export default function AdminExams() {
                   </select>
                 </div>
 
-                {/* Type filter */}
+                
                 <div className="type-filter-tabs-ex">
                   <button
                     className={`type-tab-ex ${filterType === "" ? "type-tab-ex--active" : ""}`}
@@ -453,7 +429,7 @@ export default function AdminExams() {
                   >شامل</button>
                 </div>
 
-                {/* Search */}
+                
                 <div className="search-input-wrapper-ex">
                   <Search size={18} className="search-icon-ex" />
                   <input
@@ -467,7 +443,7 @@ export default function AdminExams() {
             </div>
 
             {tableLoading && (
-              <div style={{ padding: "12px", display: "flex", alignItems: "center", gap: "8px", color: "#64748b" }}>
+              <div className="admin-table-loading">
                 <Loader2 className="animate-spin" size={16} />
                 <span>تحديث البيانات...</span>
               </div>
@@ -486,7 +462,7 @@ export default function AdminExams() {
               <tbody>
                 {paginatedExams.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>
+                    <td colSpan={5} className="admin-empty-cell">
                       لا توجد امتحانات مطابقة للبحث
                     </td>
                   </tr>
@@ -519,7 +495,7 @@ export default function AdminExams() {
               </tbody>
             </table>
 
-            {/* Pagination */}
+            
             {filteredExams.length > ROWS_PER_PAGE && (
               <div className="pagination-ex">
                 <span className="pagination-info-ex">
@@ -560,8 +536,8 @@ export default function AdminExams() {
                 <div className="modal-icon-ex"><Trash2 size={32} /></div>
                 <h3>تأكيد الحذف</h3>
                 <p>هل أنت متأكد من حذف امتحان "{deleteConfirm.title}"؟ لا يمكن التراجع عن هذا الإجراء.</p>
-                {deleteError && <div style={errorBoxStyle}>{deleteError}</div>}
-                {deleteSuccess && <div style={successBoxStyle}>{deleteSuccess}</div>}
+                {deleteError && <div className="admin-page-message admin-page-message-error">{deleteError}</div>}
+                {deleteSuccess && <div className="admin-page-message admin-page-message-success">{deleteSuccess}</div>}
                 <div className="modal-actions-ex">
                   <button className="btn-danger-ex" onClick={handleDelete} disabled={saving || Boolean(deleteSuccess)}>
                     <Trash2 size={16} /><span>{saving ? "جاري الحذف..." : "حذف"}</span>
@@ -692,8 +668,8 @@ export default function AdminExams() {
                 <Plus size={18} /><span>إضافة سؤال آخر</span>
               </button>
 
-              {formError && <div style={errorBoxStyle}>{formError}</div>}
-              {formSuccess && <div style={successBoxStyle}>{formSuccess}</div>}
+              {formError && <div className="admin-page-message admin-page-message-error">{formError}</div>}
+              {formSuccess && <div className="admin-page-message admin-page-message-success">{formSuccess}</div>}
 
               <div className="form-actions-ex">
                 <button className="btn-primary-ex" onClick={handleSave} disabled={saving || Boolean(formSuccess)}>
@@ -705,7 +681,7 @@ export default function AdminExams() {
             </div>
           )}
         </main>
-      </div>
-    </DashboardLayout>
+      </>
+    </SideBar>
   );
 }

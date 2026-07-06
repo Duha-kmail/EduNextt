@@ -15,12 +15,12 @@ import {
 } from "lucide-react";
 
 import "./MainDashboard.css";
-import DashboardLayout from "../../../components/DashboardLayout.jsx";
-import { API_BASE_URL } from "@/config/api";
+import SideBar from "../../../components/SideBar.jsx";
+import apiClient, { getApiErrorMessage } from "@/services/apiClient";
 
 const subjectIcons = [Sigma, FlaskConical, Languages, Monitor];
 const subjectIconClasses = ["math", "physics", "arabic", "cs"];
-const subjectColors = ["#135bec", "#8b5cf6", "#22c55e", "#f5841f"];
+const subjectColors = ["#08b7aa", "#2f9be7", "#22c55e", "#f5841f"];
 
 const badgeClassMap = {
   student_registered: "new",
@@ -59,30 +59,11 @@ const MainDashboard = () => {
 
       setError("");
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/dashboard`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const rawText = await response.text();
-      let data;
-
-      try {
-        data = JSON.parse(rawText);
-      } catch {
-        data = { message: rawText };
-      }
-
-      if (!response.ok) {
-        setError(data.message || "فشل تحميل بيانات لوحة التحكم");
-        return;
-      }
-
+      const { data } = await apiClient.get("/api/admin/dashboard");
       setDashboardData(data);
     } catch (err) {
       console.error(err);
-      setError("تعذر الاتصال بالسيرفر");
+      setError(getApiErrorMessage(err, "Unable to load dashboard data."));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -120,68 +101,38 @@ const MainDashboard = () => {
 
   if (loading) {
     return (
-      <DashboardLayout
+      <SideBar
         title="لوحة التحكم"
         subtitle="نظرة سريعة على ما يحدث في المنصة اليوم."
         titleIcon={LayoutDashboard}
       >
-        <div
-          className="dashboard1-content rtl"
-          style={{
-            minHeight: "300px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "12px",
-          }}
-        >
+        <div className="dashboard1-content rtl dashboard1-state dashboard1-state-loading">
           <Loader2 className="animate-spin" />
           <span>جاري تحميل لوحة التحكم...</span>
         </div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout
+      <SideBar
         title="لوحة التحكم"
         subtitle="نظرة سريعة على ما يحدث في المنصة اليوم."
         titleIcon={LayoutDashboard}
       >
-        <div
-          className="dashboard1-content rtl"
-          style={{
-            minHeight: "300px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "12px",
-            color: "red",
-          }}
-        >
+        <div className="dashboard1-content rtl dashboard1-state dashboard1-state-error">
           <p>{error}</p>
 
           <button
             type="button"
             onClick={() => fetchDashboard(true)}
-            style={{
-              width: "fit-content",
-              minWidth: "150px",
-              height: "40px",
-              borderRadius: "10px",
-              border: "none",
-              background: "#135bec",
-              color: "#fff",
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
+            className="dashboard1-retry-btn"
           >
             إعادة المحاولة
           </button>
         </div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
@@ -296,7 +247,7 @@ const MainDashboard = () => {
 
 
   return (
-    <DashboardLayout
+    <SideBar
       title={`مرحباً، ${adminName}`}
       subtitle={lastLoginMessage}
       titleIcon={LayoutDashboard}
@@ -306,21 +257,7 @@ const MainDashboard = () => {
             type="button"
             onClick={() => fetchDashboard(true)}
             disabled={refreshing}
-            style={{
-              minWidth: "118px",
-              height: "42px",
-              borderRadius: "12px",
-              border: "1px solid #d8e2f0",
-              background: "#ffffff",
-              color: "#08b7aa",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.45rem",
-              fontWeight: 700,
-              cursor: refreshing ? "not-allowed" : "pointer",
-              boxShadow: "0 6px 18px rgba(15, 23, 42, 0.05)",
-            }}
+            className="dashboard1-refresh-btn"
           >
             <RefreshCw
               size={16}
@@ -331,7 +268,7 @@ const MainDashboard = () => {
         </div>
       }
     >
-      <div className="app-container rtl">
+      <>
         <div className="dashboard1-main">
           <div className="dashboard1-content rtl">
             <div className="admin-summary-grid">
@@ -356,12 +293,7 @@ const MainDashboard = () => {
               ))}
             </div>
 
-            <div
-              className="charts-row"
-              style={{
-                gridTemplateColumns: "1fr",
-              }}
-            >
+            <div className="charts-row charts-row-single">
               <div className="chart-card">
                 <div className="chart-card-header">
                   <h3>اتجاهات أداء الطلاب</h3>
@@ -377,7 +309,7 @@ const MainDashboard = () => {
                           style={{
                             height: `${item.value * 2}px`,
                             background:
-                              item.value > 70 ? "#135bec" : "#c7d8fb",
+                              item.value > 70 ? "#08b7aa" : "rgba(8, 183, 170, 0.22)",
                           }}
                         />
 
@@ -399,14 +331,7 @@ const MainDashboard = () => {
                 {subjects.length === 0 ? (
                   <p>لا يوجد نشاط على المواد بعد.</p>
                 ) : (
-                  <div
-                    style={{
-                      maxHeight: "255px",
-                      overflowY: "auto",
-                      paddingInlineEnd: "0.25rem",
-                      scrollbarWidth: "thin",
-                    }}
-                  >
+                  <div className="dashboard1-scroll-list">
                     {subjects.map((sub, i) => {
                       const Icon = subjectIcons[i % subjectIcons.length];
                       const iconClass =
@@ -451,14 +376,7 @@ const MainDashboard = () => {
                 {activities.length === 0 ? (
                   <p>لا يوجد نشاط حديث.</p>
                 ) : (
-                  <div
-                    style={{
-                      maxHeight: "255px",
-                      overflowY: "auto",
-                      paddingInlineEnd: "0.25rem",
-                      scrollbarWidth: "thin",
-                    }}
-                  >
+                  <div className="dashboard1-scroll-list">
                     {activities.map((act) => (
                       <div className="activity-item" key={act.id}>
                         <span
@@ -480,9 +398,10 @@ const MainDashboard = () => {
             </div>
           </div>
         </div>
-      </div>
-    </ DashboardLayout >
+      </>
+    </SideBar>
   );
 };
 
 export default MainDashboard;
+

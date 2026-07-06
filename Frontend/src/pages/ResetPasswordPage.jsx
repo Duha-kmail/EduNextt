@@ -1,27 +1,22 @@
 import React, { useEffect, useState } from "react";
-import "../styles/ResetPasswordPage.css";
+import "./public/auth/password-reset/AuthFlow.css";
 import { motion as Motion } from "framer-motion";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "@/config/api";
 import PublicNavbar from "../components/public-navbar/PublicNavbar.jsx";
+import apiClient, { getApiErrorMessage } from "@/services/apiClient";
 
 async function postJson(path, body) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    const error = new Error(data.message || "تعذر تنفيذ الطلب. حاول مرة أخرى.");
-    error.suggestions = data.passwordSuggestions || [];
+  try {
+    const response = await apiClient.post(path, body);
+    return response.data;
+  } catch (requestError) {
+    const error = new Error(
+      getApiErrorMessage(requestError, "تعذر تنفيذ الطلب. حاول مرة أخرى.")
+    );
+    error.suggestions = requestError?.response?.data?.passwordSuggestions || [];
     throw error;
   }
-
-  return data;
 }
 
 export default function ResetPasswordPage() {
@@ -116,22 +111,22 @@ export default function ResetPasswordPage() {
   return (
     <div className="layout-wrapper auth-flow-page" dir="rtl">
       <PublicNavbar compact />
-      <main className="main-content">
+      <main className="auth-flow-main">
         <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="card-container"
+          className="auth-flow-card"
         >
-          <div className="form-section">
+          <div className="auth-flow-form-section">
             <Motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="form-header"
+              className="auth-flow-form-header"
             >
-              <h2 className="form-title">تعيين كلمة مرور جديدة</h2>
-              <p className="form-subtitle">اختر كلمة مرور قوية وآمنة لحساب {email}</p>
+              <h2 className="auth-flow-form-title">تعيين كلمة مرور جديدة</h2>
+              <p className="auth-flow-form-subtitle">اختر كلمة مرور قوية وآمنة لحساب {email}</p>
             </Motion.div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -141,13 +136,13 @@ export default function ResetPasswordPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="form-group"
+                className="auth-flow-form-group"
               >
-                <label className="form-label" htmlFor="newPassword">
+                <label className="auth-flow-form-label" htmlFor="newPassword">
                   كلمة المرور الجديدة
                 </label>
-                <div className="input-wrapper">
-                  <span className="input-icon">
+                <div className="auth-flow-input-wrapper">
+                  <span className="auth-flow-input-icon">
                     <Lock size={20} />
                   </span>
                   <input
@@ -155,7 +150,7 @@ export default function ResetPasswordPage() {
                     type={showPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(event) => setNewPassword(event.target.value)}
-                    className="form-input form-input-password"
+                    className="auth-flow-input auth-flow-input-password"
                     autoComplete="new-password"
                     required
                     minLength="8"
@@ -175,13 +170,13 @@ export default function ResetPasswordPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="form-group"
+                className="auth-flow-form-group"
               >
-                <label className="form-label" htmlFor="confirmPassword">
+                <label className="auth-flow-form-label" htmlFor="confirmPassword">
                   تأكيد كلمة المرور
                 </label>
-                <div className="input-wrapper">
-                  <span className="input-icon">
+                <div className="auth-flow-input-wrapper">
+                  <span className="auth-flow-input-icon">
                     <Lock size={20} />
                   </span>
                   <input
@@ -189,7 +184,7 @@ export default function ResetPasswordPage() {
                     type={showConfirm ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
-                    className="form-input form-input-password"
+                    className="auth-flow-input auth-flow-input-password"
                     autoComplete="new-password"
                     required
                     minLength="8"
@@ -209,7 +204,7 @@ export default function ResetPasswordPage() {
                 whileHover={!isSubmitting ? { scale: 1.01 } : undefined}
                 whileTap={!isSubmitting ? { scale: 0.99 } : undefined}
                 type="submit"
-                className="submit-btn"
+                className="auth-flow-submit-btn"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "جاري التحديث..." : "تحديث كلمة المرور"}
@@ -217,21 +212,21 @@ export default function ResetPasswordPage() {
             </form>
           </div>
 
-          <div className="visual-section">
+          <div className="auth-flow-visual-section">
             <div className="bg-blur-1"></div>
             <div className="bg-blur-2"></div>
-            <div className="visual-content">
+            <div className="auth-flow-visual-content">
               <Motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
-                className="robot-image-wrapper"
+                className="auth-flow-robot-image-wrapper"
               >
-                <div className="robot-image"></div>
+                <div className="auth-flow-robot-image"></div>
               </Motion.div>
               <div className="hero-text">
-                <h3 className="hero-title">كلمة مرور قوية</h3>
-                <p className="hero-description">استخدم حروفا كبيرة وصغيرة ورقما ورمزا خاصا.</p>
+                <h3 className="auth-flow-hero-title">كلمة مرور قوية</h3>
+                <p className="auth-flow-hero-description">استخدم حروفا كبيرة وصغيرة ورقما ورمزا خاصا.</p>
               </div>
             </div>
           </div>

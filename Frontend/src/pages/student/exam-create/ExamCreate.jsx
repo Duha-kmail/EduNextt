@@ -15,8 +15,9 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import { API_BASE_URL } from "@/config/api";
+import "./ExamCreate.css";
 
 const iconMap = {
   Sigma,
@@ -184,12 +185,12 @@ const ExamCreate = () => {
   const currentStep = !selectedSubject
     ? 0
     : !selectedType
-    ? 1
-    : isComprehensive
-    ? 2
-    : !selectedLesson
-    ? 2
-    : 3;
+      ? 1
+      : isComprehensive
+        ? 2
+        : !selectedLesson
+          ? 2
+          : 3;
 
   const selectedSubjectObj = useMemo(
     () => subjects.find((s) => s.subjectId === selectedSubject),
@@ -264,7 +265,7 @@ const ExamCreate = () => {
   };
 
   return (
-    <DashboardLayout
+    <SideBar
       title="بدء اختبار جديد"
       subtitle="خصّص تجربة الاختبار الخاصة بك للوصول إلى التميز في التوجيهي"
       hideSearch
@@ -287,20 +288,18 @@ const ExamCreate = () => {
             <div key={i} className="ec-stepper-item">
               {i > 0 && (
                 <div
-                  className={`ec-stepper-line ${
-                    currentStep >= stepIndex - 1 ? "ec-stepper-line-active" : ""
-                  }`}
+                  className={`ec-stepper-line ${currentStep >= stepIndex - 1 ? "ec-stepper-line-active" : ""
+                    }`}
                 />
               )}
 
               <motion.div
-                className={`ec-stepper-circle ${
-                  isDone
+                className={`ec-stepper-circle ${isDone
                     ? "ec-stepper-circle-done"
                     : isActive
-                    ? "ec-stepper-circle-active"
-                    : ""
-                }`}
+                      ? "ec-stepper-circle-active"
+                      : ""
+                  }`}
                 animate={isActive ? { scale: [1, 1.08, 1] } : {}}
                 transition={{ duration: 0.45, ease: "easeInOut" }}
               >
@@ -312,13 +311,12 @@ const ExamCreate = () => {
               </motion.div>
 
               <span
-                className={`ec-stepper-label ${
-                  isActive
+                className={`ec-stepper-label ${isActive
                     ? "ec-stepper-label-active"
                     : isDone
-                    ? "ec-stepper-label-done"
-                    : ""
-                }`}
+                      ? "ec-stepper-label-done"
+                      : ""
+                  }`}
               >
                 {label}
               </span>
@@ -337,16 +335,16 @@ const ExamCreate = () => {
           </div>
 
           {subjectsLoading ? (
-            <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
-              <Loader2 className="animate-spin" style={{ margin: "0 auto 1rem" }} />
+            <div className="card ec-state-card">
+              <Loader2 className="animate-spin ec-state-icon" />
               جاري تحميل المواد...
             </div>
           ) : subjectsError ? (
-            <div className="card" style={{ padding: "2rem", textAlign: "center", color: "red" }}>
+            <div className="card ec-state-card ec-state-error">
               {subjectsError}
             </div>
           ) : subjects.length === 0 ? (
-            <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
+            <div className="card ec-state-card">
               لا توجد مواد متاحة لهذا الطالب حالياً.
             </div>
           ) : (
@@ -357,9 +355,8 @@ const ExamCreate = () => {
                 return (
                   <motion.button
                     key={s.subjectId}
-                    className={`ec-subject-card ${
-                      selectedSubject === s.subjectId ? "ec-subject-card-active" : ""
-                    }`}
+                    className={`ec-subject-card ${selectedSubject === s.subjectId ? "ec-subject-card-active" : ""
+                      }`}
                     onClick={() => {
                       setSelectedSubject(s.subjectId);
                       setSelectedLesson(null);
@@ -448,31 +445,23 @@ const ExamCreate = () => {
                 <p className="ec-lessons-hint">اختر درسًا واحدًا لإنشاء اختبار قصير عليه</p>
 
                 {lessonsLoading ? (
-                  <div className="card" style={{ padding: "1.5rem", textAlign: "center" }}>
-                    <Loader2 className="animate-spin" style={{ margin: "0 auto 1rem" }} />
+                  <div className="card ec-state-card ec-state-card-compact">
+                    <Loader2 className="animate-spin ec-state-icon" />
                     جاري تحميل الدروس...
                   </div>
                 ) : lessonsError ? (
-                  <div className="card" style={{ padding: "1.5rem", textAlign: "center", color: "red" }}>
+                  <div className="card ec-state-card ec-state-card-compact ec-state-error">
                     {lessonsError}
                   </div>
                 ) : groupedLessons.length === 0 ? (
-                  <div className="card" style={{ padding: "1.5rem", textAlign: "center" }}>
+                  <div className="card ec-state-card ec-state-card-compact">
                     لا توجد دروس متاحة لهذه المادة حالياً.
                   </div>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <div className="ec-lessons-groups">
                     {groupedLessons.map((group, groupIndex) => (
                       <div key={`${group.unitTitle}-${groupIndex}`}>
-                        <div
-                          style={{
-                            padding: "0.75rem 1rem",
-                            borderRadius: "0.75rem",
-                            background: "var(--primary-light)",
-                            marginBottom: "0.75rem",
-                            fontWeight: 700,
-                          }}
-                        >
+                        <div className="ec-unit-title">
                           {group.unitTitle}
                         </div>
 
@@ -480,9 +469,8 @@ const ExamCreate = () => {
                           {group.lessons.map((l) => (
                             <motion.button
                               key={l.lessonId}
-                              className={`ec-lesson-pill ${
-                                selectedLesson === l.lessonId ? "ec-lesson-pill-active" : ""
-                              }`}
+                              className={`ec-lesson-pill ${selectedLesson === l.lessonId ? "ec-lesson-pill-active" : ""
+                                }`}
                               onClick={() => setSelectedLesson(l.lessonId)}
                               whileTap={{ scale: 0.96 }}
                             >
@@ -520,7 +508,7 @@ const ExamCreate = () => {
         </AnimatePresence>
 
         {startError && (
-          <div className="card" style={{ padding: "1rem", textAlign: "center", color: "red" }}>
+          <div className="card ec-start-error">
             {startError}
           </div>
         )}
@@ -551,7 +539,7 @@ const ExamCreate = () => {
           )}
         </motion.button>
       </div>
-    </DashboardLayout>
+    </SideBar>
   );
 };
 

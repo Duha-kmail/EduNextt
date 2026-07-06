@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import "./AdminSubjects.css";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import { API_BASE_URL } from "@/config/api";
 
 const ITEMS_PER_PAGE = 4;
@@ -110,30 +110,6 @@ export default function AdminSubjects() {
       Authorization: `Bearer ${token}`,
     };
   }, [token]);
-
-  const errorBoxStyle = {
-    marginTop: "12px",
-    marginBottom: "8px",
-    padding: "10px 12px",
-    borderRadius: "10px",
-    background: "#fef2f2",
-    color: "#dc2626",
-    border: "1px solid #fecaca",
-    fontSize: "14px",
-    textAlign: "right",
-  };
-
-  const successBoxStyle = {
-    marginTop: "12px",
-    marginBottom: "8px",
-    padding: "10px 12px",
-    borderRadius: "10px",
-    background: "#f0fdf4",
-    color: "#16a34a",
-    border: "1px solid #bbf7d0",
-    fontSize: "14px",
-    textAlign: "right",
-  };
 
   const normalizeSubject = (subject) => {
     const subjectName = subject.name || subject.Name || "";
@@ -239,14 +215,14 @@ export default function AdminSubjects() {
 
   useEffect(() => {
     loadSubjects({ silent: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   useEffect(() => {
     if (!loading) {
       loadSubjects({ silent: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [currentPage, sortBy, filterDept]);
 
   useEffect(() => {
@@ -258,7 +234,7 @@ export default function AdminSubjects() {
     }, 400);
 
     return () => clearTimeout(delay);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [searchQuery]);
 
   const handleAddNew = () => {
@@ -480,10 +456,10 @@ export default function AdminSubjects() {
           id: lesson.id || lesson.Id || index + 1,
           title: lesson.title || lesson.Title || "درس بدون عنوان",
 
-          // رقم الدرس التسلسلي داخل القائمة
+          
           displayOrder: index + 1,
 
-          // رقم الوحدة الحقيقي، وهذا الذي يظهر داخل badge على اليمين
+          
           unitOrder,
 
           unitTitle,
@@ -541,30 +517,21 @@ export default function AdminSubjects() {
 
   if (loading) {
     return (
-      <DashboardLayout
+      <SideBar
         title="إدارة المواد"
         subtitle="تتبع وإدارة كافة المواد التعليمية والدروس المرتبطة بها."
         titleIcon={BookOpen}
       >
-        <div
-          className="admin-main-sub rtl"
-          style={{
-            minHeight: "350px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "12px",
-          }}
-        >
+        <div className="admin-main-sub admin-page-loading rtl">
           <Loader2 className="animate-spin" />
           <span>جاري تحميل المواد...</span>
         </div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   return (
-    <DashboardLayout
+    <SideBar
       title="إدارة المواد"
       subtitle="تتبع وإدارة كافة المواد التعليمية والدروس المرتبطة بها."
       titleIcon={BookOpen}
@@ -582,19 +549,10 @@ export default function AdminSubjects() {
       }
     >
 
-      <div className="app-container" dir="rtl">
+      <>
         <main className="admin-main-sub rtl">
           {pageError && (
-            <div
-              style={{
-                marginBottom: "16px",
-                padding: "12px 16px",
-                borderRadius: "12px",
-                background: "#fef2f2",
-                color: "#dc2626",
-                border: "1px solid #fecaca",
-              }}
-            >
+            <div className="admin-page-message admin-page-message-error admin-page-message-spaced">
               {pageError}
             </div>
           )}
@@ -722,15 +680,7 @@ export default function AdminSubjects() {
 
             <div className="table-container-sub">
               {tableLoading && (
-                <div
-                  style={{
-                    padding: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    color: "#64748b",
-                  }}
-                >
+                <div className="admin-table-loading">
                   <Loader2 className="animate-spin" size={16} />
                   <span>تحديث البيانات...</span>
                 </div>
@@ -749,14 +699,7 @@ export default function AdminSubjects() {
                 <tbody>
                   {subjects.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={4}
-                        style={{
-                          textAlign: "center",
-                          padding: "40px",
-                          color: "#94a3b8",
-                        }}
-                      >
+                      <td colSpan={4} className="admin-empty-cell">
                         لا توجد مواد مطابقة للبحث
                       </td>
                     </tr>
@@ -908,9 +851,9 @@ export default function AdminSubjects() {
                 </select>
               </div>
 
-              {formError && <div style={errorBoxStyle}>{formError}</div>}
+              {formError && <div className="admin-page-message admin-page-message-error">{formError}</div>}
 
-              {formSuccess && <div style={successBoxStyle}>{formSuccess}</div>}
+              {formSuccess && <div className="admin-page-message admin-page-message-success">{formSuccess}</div>}
 
               <div className="form-actions-sub">
                 <button
@@ -961,10 +904,10 @@ export default function AdminSubjects() {
                 الدروس والامتحانات المرتبطة بها حسب علاقات قاعدة البيانات.
               </p>
 
-              {deleteError && <div style={errorBoxStyle}>{deleteError}</div>}
+              {deleteError && <div className="admin-page-message admin-page-message-error">{deleteError}</div>}
 
               {deleteSuccess && (
-                <div style={successBoxStyle}>{deleteSuccess}</div>
+                <div className="admin-page-message admin-page-message-success">{deleteSuccess}</div>
               )}
 
               <div className="form-actions-sub">
@@ -1004,18 +947,10 @@ export default function AdminSubjects() {
 
               <h3>دروس مادة {viewLessons.name}</h3>
 
-              {lessonsError && <div style={errorBoxStyle}>{lessonsError}</div>}
+              {lessonsError && <div className="admin-page-message admin-page-message-error">{lessonsError}</div>}
 
               {lessonsLoading ? (
-                <div
-                  style={{
-                    minHeight: "120px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "10px",
-                  }}
-                >
+                <div className="admin-modal-loading">
                   <Loader2 className="animate-spin" />
                   <span>جاري تحميل الدروس...</span>
                 </div>
@@ -1055,7 +990,7 @@ export default function AdminSubjects() {
             </div>
           </div>
         )}
-      </div>
-    </DashboardLayout>
+      </>
+    </SideBar>
   );
 }

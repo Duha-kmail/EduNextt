@@ -26,8 +26,10 @@ import {
   PenTool,
   Loader2,
   Check,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import AchievementPopup from "../../../components/achievement-popup/AchievementPopup.jsx";
 import { downloadLessonPdf } from "../../../utils/downloadLessonPdf.js";
 import { API_BASE_URL } from "@/config/api";
@@ -54,7 +56,7 @@ const subjectChatbots = {
     intro: "أرسل سؤالك أو صورة المسألة، وسأرتب لك الحل مثل دفتر الرياضيات: المعطيات، القانون، الخطوات، والجواب النهائي.",
     placeholder: "اكتب سؤال رياضيات أو أرفق صورة...",
     searchingText: "أحلل السؤال وأبني الحل خطوة بخطوة...",
-    accent: "#2563eb",
+    accent: "#08b7aa",
     icon: Calculator,
     actions: [
       { icon: Lightbulb, label: "حل مثال رياضيات مع الشرح" },
@@ -68,7 +70,7 @@ const subjectChatbots = {
     intro: "Send a question or a photo from the lesson. I can explain grammar, answer reading questions, and create practice questions with model answers.",
     placeholder: "Ask in English or attach an image...",
     searchingText: "Reading your question and preparing a clear answer...",
-    accent: "#0ea5e9",
+    accent: "#08b7aa",
     icon: GraduationCap,
     actions: [
       { icon: Lightbulb, label: "Explain grammar" },
@@ -108,7 +110,7 @@ const getCurrentUserStorageId = () => {
     payload?.nameid ||
     payload?.sub ||
     payload?.[
-      "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
     ] ||
     ""
   );
@@ -450,6 +452,7 @@ const Subjects = () => {
   const [unlockedAchievement, setUnlockedAchievement] = useState(null);
 
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatExpanded, setChatExpanded] = useState(false);
   const [chatMsg, setChatMsg] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [chatImage, setChatImage] = useState(null);
@@ -1002,7 +1005,7 @@ const Subjects = () => {
       currentLessonIndex > 0 ? lessons[currentLessonIndex - 1] : null;
 
     return (
-      <DashboardLayout
+      <SideBar
         title={lesson?.title || "تفاصيل الدرس"}
         subtitle={currentSubject.title}
         hideSearch
@@ -1247,7 +1250,7 @@ const Subjects = () => {
                           <CheckCircle2
                             size={17}
                             style={{
-                              color: "#2563eb",
+                              color: "#08b7aa",
                               flexShrink: 0,
                               marginTop: "0.25rem",
                             }}
@@ -1268,8 +1271,8 @@ const Subjects = () => {
                   style={{
                     padding: "1.25rem 1.5rem",
                     marginBottom: "1rem",
-                    border: lesson.completed ? "1px solid #86efac" : "1px solid #bfdbfe",
-                    background: lesson.completed ? "#ecfdf5" : "#eff6ff",
+                    border: lesson.completed ? "1px solid #86efac" : "1px solid rgba(8, 183, 170, 0.24)",
+                    background: lesson.completed ? "#ecfdf5" : "rgba(8, 183, 170, 0.08)",
                   }}
                 >
                   <div
@@ -1288,7 +1291,7 @@ const Subjects = () => {
                           marginBottom: "0.35rem",
                           fontSize: "1rem",
                           fontWeight: 800,
-                          color: lesson.completed ? "#15803d" : "#1d4ed8",
+                          color: lesson.completed ? "#15803d" : "#087f78",
                         }}
                       >
                         {lesson.completed
@@ -1316,9 +1319,9 @@ const Subjects = () => {
                       disabled={completionLoading}
                       onClick={() => markLessonCompletion(!lesson.completed)}
                       style={{
-                        background: lesson.completed ? "#dcfce7" : "#2563eb",
+                        background: lesson.completed ? "#dcfce7" : "#08b7aa",
                         color: lesson.completed ? "#15803d" : "#ffffff",
-                        border: lesson.completed ? "1px solid #86efac" : "1px solid #2563eb",
+                        border: lesson.completed ? "1px solid #86efac" : "1px solid #08b7aa",
                         minWidth: "170px",
                         height: "44px",
                         fontWeight: 800,
@@ -1407,7 +1410,7 @@ const Subjects = () => {
           <AnimatePresence>
             {chatOpen && lesson && chatbotConfig && (
               <motion.div
-                className="chatbot-panel"
+                className={`chatbot-panel ${chatExpanded ? "is-expanded" : ""}`}
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -1433,6 +1436,14 @@ const Subjects = () => {
                   </div>
 
                   <div className="chatbot-header-actions">
+                    <button
+                      onClick={() => setChatExpanded((expanded) => !expanded)}
+                      className="chatbot-close-btn"
+                      title={chatExpanded ? "تصغير المحادثة" : "تكبير المحادثة"}
+                      type="button"
+                    >
+                      {chatExpanded ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
+                    </button>
                     {chatMessages.length > 0 && (
                       <button
                         onClick={() => setChatHistoryOpen((open) => !open)}
@@ -1454,7 +1465,10 @@ const Subjects = () => {
                       </button>
                     )}
                     <button
-                      onClick={() => setChatOpen(false)}
+                      onClick={() => {
+                        setChatExpanded(false);
+                        setChatOpen(false);
+                      }}
                       className="chatbot-close-btn"
                       title="إغلاق"
                       type="button"
@@ -1600,12 +1614,17 @@ const Subjects = () => {
                   />
 
                   <button
-                    className="btn btn-primary btn-icon"
+                    type="button"
+                    className="chatbot-send-btn"
                     disabled={chatSending || (!chatMsg.trim() && !chatImage)}
-                    style={{ width: "2.75rem", height: "2.75rem", flexShrink: 0 }}
                     onClick={sendChat}
+                    title="إرسال"
                   >
-                    {chatSending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                    {chatSending ? (
+                      <Loader2 size={18} className="chatbot-send-icon animate-spin" />
+                    ) : (
+                      <Send size={18} className="chatbot-send-icon" strokeWidth={2.4} />
+                    )}
                   </button>
                 </div>
               </motion.div>
@@ -1618,13 +1637,13 @@ const Subjects = () => {
             achievement={unlockedAchievement}
           />
         </motion.div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   if (selectedSubjectId) {
     return (
-      <DashboardLayout
+      <SideBar
         title={currentSubject?.title || "تفاصيل المادة"}
         subtitle={currentSubject?.desc || ""}
       >
@@ -1821,12 +1840,12 @@ const Subjects = () => {
             </div>
           ) : null}
         </motion.div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   return (
-    <DashboardLayout title="المواد الدراسية" subtitle="اختر مادة للبدء في التعلم" titleIcon={BookOpen}>
+    <SideBar title="المواد الدراسية" subtitle="اختر مادة للبدء في التعلم" titleIcon={BookOpen}>
       {subjectsLoading ? (
         <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
           <Loader2 className="animate-spin" style={{ margin: "0 auto 1rem" }} />
@@ -1884,7 +1903,7 @@ const Subjects = () => {
           ))}
         </motion.div>
       )}
-    </DashboardLayout>
+    </SideBar>
   );
 };
 

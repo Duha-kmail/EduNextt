@@ -28,6 +28,27 @@ public class AiSubjectProgressDto
     public int RemainingLessons { get; set; }
     public string? NextLessonTitle { get; set; }
     public Guid? NextLessonId { get; set; }
+    public List<AiLessonPerformanceDto> LessonPerformances { get; set; } = new();
+    public List<AiSuggestedExamDto> SuggestedExams { get; set; } = new();
+}
+
+public class AiLessonPerformanceDto
+{
+    public Guid LessonId { get; set; }
+    public string LessonTitle { get; set; } = "";
+    public double AverageScore { get; set; }
+    public int? LastScore { get; set; }
+    public int Attempts { get; set; }
+    public bool IsCompleted { get; set; }
+}
+
+public class AiSuggestedExamDto
+{
+    public Guid ExamId { get; set; }
+    public string ExamTitle { get; set; } = "";
+    public string ExamType { get; set; } = "";
+    public Guid? LessonId { get; set; }
+    public string LessonTitle { get; set; } = "";
 }
 
 public class AiPersonalizedRecommendationResponseDto

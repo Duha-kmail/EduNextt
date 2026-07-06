@@ -7,13 +7,13 @@ public class ExamHistoryDto
 
     public Guid SubjectId { get; set; }
     public string SubjectName { get; set; } = "";
-    public string SubjectKey { get; set; } = ""; // math / physics / arabic ...
+    public string SubjectKey { get; set; } = ""; 
 
     public Guid? LessonId { get; set; }
     public string? LessonTitle { get; set; }
 
-    public string Type { get; set; } = "";      // quick / comprehensive
-    public string TypeName { get; set; } = "";  // قصير / شامل
+    public string Type { get; set; } = "";      
+    public string TypeName { get; set; } = "";  
 
     public int Score { get; set; }
     public int QuestionsCount { get; set; }

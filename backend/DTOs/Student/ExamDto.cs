@@ -9,7 +9,7 @@ public class ExamDto
     public Guid? LessonId { get; set; }
     public string? LessonTitle { get; set; }
 
-    public string Type { get; set; } = ""; // short/comprehensive
+    public string Type { get; set; } = ""; 
     public int QuestionsCount { get; set; }
 
     public bool HasAttempt { get; set; }

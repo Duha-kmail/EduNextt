@@ -40,36 +40,80 @@ public class AdminLessonsController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateLesson([FromBody] CreateAdminLessonDto dto)
+    [HttpGet("subjects/{subjectId:guid}/units")]
+    public async Task<IActionResult> GetUnitsBySubject(Guid subjectId)
     {
-        var result = await _lessonsService.CreateLessonAsync(dto);
+        var result = await _lessonsService.GetUnitsBySubjectAsync(subjectId);
+        return Ok(result);
+    }
 
-        if (result == null)
+    [HttpPost("subjects/{subjectId:guid}/units")]
+    public async Task<IActionResult> CreateUnit(Guid subjectId, [FromBody] CreateAdminLessonUnitDto dto)
+    {
+        try
+        {
+            var result = await _lessonsService.CreateUnitAsync(subjectId, dto);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
         {
             return BadRequest(new
             {
-                message = "المادة وعنوان الدرس مطلوبان، أو يوجد درس بنفس الاسم ضمن نفس المادة."
+                message = ex.Message
             });
         }
+    }
 
-        return Ok(result);
+    [HttpPost]
+    public async Task<IActionResult> CreateLesson([FromBody] CreateAdminLessonDto dto)
+    {
+        try
+        {
+            var result = await _lessonsService.CreateLessonAsync(dto);
+
+            if (result == null)
+            {
+                return BadRequest(new
+                {
+                    message = "البيانات غير صحيحة، أو يوجد درس بنفس الاسم داخل نفس الوحدة."
+                });
+            }
+
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
+        }
     }
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateLesson(Guid id, [FromBody] UpdateAdminLessonDto dto)
     {
-        var result = await _lessonsService.UpdateLessonAsync(id, dto);
+        try
+        {
+            var result = await _lessonsService.UpdateLessonAsync(id, dto);
 
-        if (result == null)
+            if (result == null)
+            {
+                return BadRequest(new
+                {
+                    message = "الدرس غير موجود، أو البيانات غير صحيحة، أو يوجد درس بنفس الاسم داخل نفس الوحدة."
+                });
+            }
+
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
         {
             return BadRequest(new
             {
-                message = "الدرس غير موجود، أو البيانات غير صحيحة، أو يوجد درس بنفس الاسم ضمن نفس المادة."
+                message = ex.Message
             });
         }
-
-        return Ok(result);
     }
 
     [HttpDelete("{id:guid}")]

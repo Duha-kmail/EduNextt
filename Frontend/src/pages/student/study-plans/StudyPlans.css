@@ -1,14 +1,4 @@
-/* ====================================================
-   StudyPlans.css — متوافق مع ألوان Home.css
-   --edn-teal:   #08b7aa
-   --edn-blue:   #2f9be7
-   --edn-purple: #9b75f6
-   --edn-bg:     #f8fbfd
-   --edn-card:   #ffffff
-   --edn-ink:    #111827
-   --edn-muted:  #667085
-   --edn-border: #dfe7ef
-==================================================== */
+
 
 .sp-units-list {
   margin-top: 1rem;
@@ -174,7 +164,7 @@
   padding: 0.9rem;
   border: 1px solid rgba(8, 183, 170, 0.22);
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(8, 183, 170, 0.08), rgba(47, 155, 231, 0.06));
+  background: rgba(8, 183, 170, 0.08);
 }
 
 .sp-ai-switcher-header {
@@ -482,7 +472,7 @@
   }
 }
 
-/* ---- Plan Topics ---- */
+
 .sp-plan-topics {
   margin-top: 1rem;
   border-top: 1px solid #f1f5f9;
@@ -613,3 +603,4 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+

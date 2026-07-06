@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   BookOpen,
   FileText,
   CalendarDays,
   BarChart3,
+  GraduationCap,
   Trophy,
   User,
   Sparkles,
@@ -17,10 +18,12 @@ import {
   Mail,
 } from "lucide-react";
 import logo from "../assets/EDU.svg";
+import "./SideBar.css";
 
 const studentSidebarItems = [
   { icon: LayoutDashboard, label: "لوحة التحكم", path: "/dashboard" },
   { icon: BookOpen, label: "المواد", path: "/subjects" },
+  { icon: GraduationCap, label: "المعلمون المتاحون", path: "/teachers" },
   { icon: FileText, label: "الامتحانات", path: "/exams" },
   { icon: CalendarDays, label: "خطط الدراسة", path: "/plans" },
   { icon: BarChart3, label: "تحليل الأداء", path: "/analytics" },
@@ -35,6 +38,7 @@ const adminSidebarItems = [
   { icon: FileText, label: "إدارة الدروس", path: "/admin-lessons" },
   { icon: CircleHelp, label: "إدارة الامتحانات", path: "/admin-exams" },
   { icon: User, label: "إدارة المستخدمين", path: "/admin-users" },
+  { icon: GraduationCap, label: "إدارة المعلمين", path: "/admin-teachers" },
   { icon: Mail, label: "رسائل التواصل", path: "/admin-messages" },
 
   { icon: BarChart3, label: "تحليلات النظام", path: "/admin-analytics" },
@@ -67,7 +71,7 @@ const sidebarTips = [
 
 const UNREAD_COUNT_KEY = "edunext_admin_unread_messages_count";
 
-const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titleIcon: TitleIcon, headerContent }) => {
+const SideBar = ({ children, title, subtitle, hideSearch, fullName, titleIcon: TitleIcon, headerContent }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem("sidebarCollapsed");
@@ -79,6 +83,7 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
   });
   
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleUnreadUpdate = (e) => {
@@ -113,6 +118,14 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
     : studentSidebarItems;
   const profilePath = role === "admin" ? "/admin-profile" : "/profile";
   const activeTip = sidebarTips[tipIndex];
+  const activeSidebarItem = sidebarItems.find((item) => {
+    if (item.path === "/dashboard" || item.path === "/admin-dashboard") {
+      return location.pathname === item.path;
+    }
+
+    return location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+  });
+  const HeaderIcon = TitleIcon || activeSidebarItem?.icon;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -182,7 +195,7 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
         <div className="sidebar-footer-section">
           {role !== "admin" && !sidebarCollapsed && (
             <div className="sidebar-footer-card">
-              <Sparkles size={20} style={{ color: "var(--primary)" }} />
+              <Sparkles size={20} className="sidebar-footer-icon" />
               <p className="sidebar-footer-title" key={`tip-title-${activeTip.title}`}>{activeTip.title}</p>
               <p className="sidebar-footer-desc" key={`tip-desc-${activeTip.description}`}>
                 {activeTip.description}
@@ -198,36 +211,38 @@ const DashboardLayout = ({ children, title, subtitle, hideSearch, fullName, titl
       </aside>
 
       <main className="dashboard-main">
-        <header className="dashboard-header">
-          <div className="dashboard-header-right">
-            <button className="sidebar-toggle-btn" onClick={() => setSidebarOpen(true)}>
-              <Menu size={35} />
-            </button>
+        <div className="dashboard-page-shell">
+          <header className="dashboard-header">
+            <div className="dashboard-header-right">
+              <button className="sidebar-toggle-btn" onClick={() => setSidebarOpen(true)}>
+                <Menu size={35} />
+              </button>
 
-            <div>
-              <h1 className="dashboard-greeting">
-                {TitleIcon && (
-                  <span className="dashboard-title-icon" aria-hidden="true">
-                    <TitleIcon size={22} />
-                  </span>
-                )}
-                <span>{title}</span>
-              </h1>
-              {subtitle && <p className="dashboard-subgreeting">{subtitle}</p>}
+              <div>
+                <h1 className="dashboard-greeting">
+                  {HeaderIcon && (
+                    <span className="dashboard-title-icon" aria-hidden="true">
+                      <HeaderIcon size={22} />
+                    </span>
+                  )}
+                  <span>{title}</span>
+                </h1>
+                {subtitle && <p className="dashboard-subgreeting">{subtitle}</p>}
+              </div>
             </div>
-          </div>
 
-          {headerContent && (
-            <div className="dashboard-header-content">
-              {headerContent}
-            </div>
-          )}
-        </header>
+            {headerContent && (
+              <div className="dashboard-header-content">
+                {headerContent}
+              </div>
+            )}
+          </header>
 
-        {children}
+          {children}
+        </div>
       </main>
     </div>
   );
 };
 
-export default DashboardLayout;
+export default SideBar;

@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 import "./AdminAchievements.css";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar.jsx";
 import { API_BASE_URL } from "@/config/api";
 
 const achievementTypes = [
@@ -48,7 +48,7 @@ const typeIcons = {
 };
 
 const typeColors = {
-  lessons: "#135bec",
+  lessons: "#08b7aa",
   exams: "#e74c3c",
   streaks: "#f39c12",
   points: "#9b59b6",
@@ -158,7 +158,7 @@ export default function AdminAchievements() {
       item.typeColor ||
       item.TypeColor ||
       typeColors[item.type || item.Type] ||
-      "#135bec",
+      "#08b7aa",
     targetValue: item.targetValue ?? item.TargetValue ?? 0,
     reward: item.reward || item.Reward || "points",
     rewardLabel: item.rewardLabel || item.RewardLabel || "",
@@ -180,7 +180,7 @@ export default function AdminAchievements() {
       item.typeColor ||
       item.TypeColor ||
       typeColors[item.type || item.Type] ||
-      "#135bec",
+      "#08b7aa",
     unlockedBy: item.unlockedBy ?? item.UnlockedBy ?? 0,
   });
 
@@ -255,14 +255,14 @@ export default function AdminAchievements() {
 
   useEffect(() => {
     loadAchievements({ silent: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   useEffect(() => {
     if (!loading) {
       loadAchievements({ silent: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [currentPage, typeFilter, statusFilter]);
 
   useEffect(() => {
@@ -274,7 +274,7 @@ export default function AdminAchievements() {
     }, 400);
 
     return () => clearTimeout(delay);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [searchQuery]);
 
   const getTypeLabel = (type) => {
@@ -491,7 +491,7 @@ export default function AdminAchievements() {
       descAr: formData.descAr,
       descEn: formData.descEn,
       type: formData.type,
-      typeColor: typeColors[formData.type] || "#135bec",
+      typeColor: typeColors[formData.type] || "#08b7aa",
       targetValue: Number(formData.targetValue) || 1,
       reward: formData.reward,
       rewardValue: Number(formData.rewardValue) || 0,
@@ -511,7 +511,7 @@ export default function AdminAchievements() {
 
   if (loading) {
     return (
-      <DashboardLayout
+      <SideBar
         title="إدارة الإنجازات"
         subtitle="إنشاء وتعديل وإدارة إنجازات الطلاب على المنصة."
         titleIcon={Trophy}
@@ -529,12 +529,12 @@ export default function AdminAchievements() {
           <Loader2 className="animate-spin" />
           <span>جاري تحميل الإنجازات...</span>
         </div>
-      </DashboardLayout>
+      </SideBar>
     );
   }
 
   return (
-    <DashboardLayout
+    <SideBar
       title="إدارة الإنجازات"
       subtitle="إنشاء وتعديل وإدارة إنجازات الطلاب على المنصة."
       titleIcon={Trophy}
@@ -549,7 +549,7 @@ export default function AdminAchievements() {
         </div>
       }
     >
-      <div className="app-container rtl">
+      <div className="rtl">
         <main className="aa-main rtl">
           {pageError && <div style={errorBoxStyle}>{pageError}</div>}
 
@@ -879,7 +879,7 @@ export default function AdminAchievements() {
                       const color =
                         achievement.typeColor ||
                         typeColors[achievement.type] ||
-                        "#135bec";
+                        "#08b7aa";
 
                       return (
                         <tr key={achievement.id}>
@@ -1072,7 +1072,7 @@ export default function AdminAchievements() {
                           backgroundColor:
                             item.typeColor ||
                             typeColors[item.type] ||
-                            "#135bec",
+                            "#08b7aa",
                         }}
                       />
                     </div>
@@ -1255,14 +1255,14 @@ export default function AdminAchievements() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </SideBar>
   );
 }
 
 function AchievementPreviewCard({ achievement }) {
   const TypeIcon = typeIcons[achievement.type] || Star;
   const color =
-    achievement.typeColor || typeColors[achievement.type] || "#135bec";
+    achievement.typeColor || typeColors[achievement.type] || "#08b7aa";
 
   const targetValue = Number(achievement.targetValue) || 1;
   const progress =
@@ -1316,3 +1316,4 @@ function AchievementPreviewCard({ achievement }) {
     </div>
   );
 }
+

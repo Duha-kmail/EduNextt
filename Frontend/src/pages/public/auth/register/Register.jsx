@@ -1,9 +1,6 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 
-import React, { useMemo, useState } from "react";
+
+import React, { useEffect, useMemo, useState } from "react";
 import "./Register.css";
 import { API_BASE_URL } from "@/config/api";
 import { GOOGLE_CLIENT_ID } from "@/config/google";
@@ -34,7 +31,12 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [legalModal, setLegalModal] = useState(null); // 'terms' | 'privacy' | null
+  const [legalModal, setLegalModal] = useState(null); 
+  const [registrationStep, setRegistrationStep] = useState("form");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [registrationCodeSendCount, setRegistrationCodeSendCount] = useState(0);
+  const [resendCooldownSeconds, setResendCooldownSeconds] = useState(0);
 
   const [fieldErrors, setFieldErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
@@ -46,9 +48,31 @@ export default function Register() {
   const [isPasswordAutoSuggested, setIsPasswordAutoSuggested] = useState(false);
   const isGoogleLoginConfigured = Boolean(GOOGLE_CLIENT_ID);
 
+  const FIRST_RESEND_COOLDOWN_SECONDS = 60;
+  const NEXT_RESEND_COOLDOWN_SECONDS = 600;
+
+  useEffect(() => {
+    if (registrationStep !== "verify" || resendCooldownSeconds <= 0) {
+      return undefined;
+    }
+
+    const timerId = window.setInterval(() => {
+      setResendCooldownSeconds((previousSeconds) => Math.max(previousSeconds - 1, 0));
+    }, 1000);
+
+    return () => window.clearInterval(timerId);
+  }, [registrationStep, resendCooldownSeconds]);
+
   const handleLoginClick = (event) => {
     event.preventDefault();
     navigate("/login");
+  };
+
+  const formatResendCooldown = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
   };
 
   function getSecureRandomIndex(max) {
@@ -168,7 +192,7 @@ export default function Register() {
     border: "none",
     padding: 0,
     margin: "0 4px",
-    color: "#105bf0",
+    color: "#08b7aa",
     fontSize: "12px",
     fontWeight: 700,
     cursor: "pointer",
@@ -211,6 +235,15 @@ export default function Register() {
   const clearAllErrors = () => {
     setFieldErrors({});
     setGeneralError("");
+  };
+
+  const saveAuthAndNavigate = (data) => {
+    localStorage.setItem("token", data.token || data.Token || "");
+    localStorage.setItem("userId", data.userId || data.UserId || "");
+    localStorage.setItem("fullName", data.fullName || data.FullName || "");
+    localStorage.setItem("role", data.role || data.Role || "student");
+
+    navigate("/onboarding/1");
   };
 
   const addFieldError = (errors, fieldName, message) => {
@@ -360,15 +393,23 @@ export default function Register() {
 
       if (!response.ok) {
         setFieldErrors(data.errors || {});
+        setGeneralError(data.message || "");
         return;
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.userId);
-      localStorage.setItem("fullName", data.fullName);
-      localStorage.setItem("role", data.role);
+      const nextSendCount =
+        registrationStep === "verify" ? registrationCodeSendCount + 1 : 1;
 
-      navigate("/onboarding/1");
+      setRegistrationCodeSendCount(nextSendCount);
+      setResendCooldownSeconds(
+        nextSendCount <= 1
+          ? FIRST_RESEND_COOLDOWN_SECONDS
+          : NEXT_RESEND_COOLDOWN_SECONDS
+      );
+      setPendingEmail(email.trim());
+      setVerificationCode("");
+      setRegistrationStep("verify");
+      setGeneralError("تم إرسال رمز التحقق إلى بريدك الإلكتروني.");
     } catch {
       setFieldErrors({
         email: ["حدث خطأ في الاتصال بالسيرفر. تأكد من تشغيل الباك ثم حاول مرة أخرى."],
@@ -377,6 +418,54 @@ export default function Register() {
       setIsSubmitting(false);
     }
   }
+
+  async function verifyRegistration() {
+    clearAllErrors();
+
+    if (!/^\d{6}$/.test(verificationCode)) {
+      setFieldErrors({
+        otp: ["أدخل رمز التحقق المكون من 6 أرقام."],
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/verify-registration`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: pendingEmail || email.trim(),
+          otp: verificationCode,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setFieldErrors(data.errors || {});
+        setGeneralError(data.message || "رمز التحقق غير صحيح أو انتهت صلاحيته.");
+        return;
+      }
+
+      saveAuthAndNavigate(data);
+    } catch {
+      setGeneralError("حدث خطأ أثناء التحقق. تأكد من تشغيل الباك ثم حاول مرة أخرى.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  const resendRegistrationCode = () => {
+    if (resendCooldownSeconds > 0 || isSubmitting) {
+      return;
+    }
+
+    register();
+  };
 
   const navigateAfterGoogleAuth = (data) => {
     const token = data.token || data.Token || "";
@@ -553,12 +642,18 @@ export default function Register() {
               className="form"
               onSubmit={(event) => {
                 event.preventDefault();
-                register();
+                if (registrationStep === "verify") {
+                  verifyRegistration();
+                } else {
+                  register();
+                }
               }}
               noValidate
             >
               {generalError && <p style={errorTextStyle}>{generalError}</p>}
 
+              {registrationStep === "form" ? (
+                <>
               <Motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -804,6 +899,90 @@ export default function Register() {
                 <p style={{ ...errorTextStyle, color: "#64748b" }}>
                   جاري التسجيل باستخدام جوجل...
                 </p>
+              )}
+                </>
+              ) : (
+                <Motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                  className="registration-verify"
+                >
+                  <div className="registration-verify-icon">
+                    <Mail size={24} />
+                  </div>
+                  <div>
+                    <h3 className="registration-verify-title">تحقق من بريدك الإلكتروني</h3>
+                    <p className="registration-verify-text">
+                      أدخل رمز التحقق المرسل إلى <strong>{pendingEmail || email}</strong> لإكمال إنشاء الحساب.
+                    </p>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="label" htmlFor="registrationOtp">رمز التحقق</label>
+                    <div className="input-wrapper">
+                      <Lock className="input-icon" size={20} />
+                      <input
+                        id="registrationOtp"
+                        className="input registration-otp-input ltr"
+                        inputMode="numeric"
+                        maxLength={6}
+                        placeholder="000000"
+                        type="text"
+                        value={verificationCode}
+                        onChange={(event) => {
+                          const value = event.target.value.replace(/\D/g, "").slice(0, 6);
+                          setVerificationCode(value);
+                          clearFieldError("otp");
+                        }}
+                        autoComplete="one-time-code"
+                      />
+                    </div>
+
+                    {getFieldErrors("otp").map((message) => (
+                      <p style={errorTextStyle} key={message}>
+                        {message}
+                      </p>
+                    ))}
+                  </div>
+
+                  <Motion.button
+                    whileHover={!isSubmitting && verificationCode.length === 6 ? { scale: 1.01 } : undefined}
+                    whileTap={!isSubmitting && verificationCode.length === 6 ? { scale: 0.98 } : undefined}
+                    className="submit-button"
+                    type="submit"
+                    disabled={isSubmitting || verificationCode.length !== 6}
+                  >
+                    <span>{isSubmitting ? "جاري التحقق..." : "تأكيد وإنشاء الحساب"}</span>
+                    <ArrowLeft size={20} />
+                  </Motion.button>
+
+                  <div className="registration-verify-actions">
+                    <button
+                      type="button"
+                      className="registration-link-button"
+                      onClick={() => {
+                        setRegistrationStep("form");
+                        setVerificationCode("");
+                        setRegistrationCodeSendCount(0);
+                        setResendCooldownSeconds(0);
+                        clearAllErrors();
+                      }}
+                    >
+                      تعديل البريد
+                    </button>
+                    <button
+                      type="button"
+                      className="registration-link-button"
+                      onClick={resendRegistrationCode}
+                      disabled={isSubmitting || resendCooldownSeconds > 0}
+                    >
+                      {resendCooldownSeconds > 0
+                        ? `إعادة إرسال الرمز خلال ${formatResendCooldown(resendCooldownSeconds)}`
+                        : "إعادة إرسال الرمز"}
+                    </button>
+                  </div>
+                </Motion.div>
               )}
             </form>
 

@@ -31,7 +31,7 @@ export default function Contact() {
     const payload = Object.fromEntries(formData.entries());
 
     try {
-      // 1. حفظ بالداتا بيس
+      
       await fetch(`${API_BASE_URL}/api/contact-messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -43,7 +43,7 @@ export default function Contact() {
         }),
       });
 
-      // 2. إرسال للجيميل عبر formsubmit
+      
       const response = await fetch(FORMSUBMIT_AJAX_ENDPOINT, {
         method: 'POST',
         headers: {

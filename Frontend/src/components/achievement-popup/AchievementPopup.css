@@ -67,7 +67,7 @@
   width: 88px;
   height: 88px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #135bec, #4f8cff);
+  background: #08b7aa;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,7 +142,7 @@
   width: 100%;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(135deg, #135bec, #2f6df2);
+  background: #08b7aa;
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;

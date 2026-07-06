@@ -13,8 +13,9 @@ import {
   CheckCircle2,
   Lock,
 } from "lucide-react";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import { API_BASE_URL } from "@/config/api";
+import "./Achievements.css";
 
 const achievementStyleMap = {
   "أول درس مكتمل": { icon: BookOpen, color: "green" },
@@ -26,7 +27,7 @@ const achievementStyleMap = {
   "كاتب الملاحظات": { icon: Star, color: "purple" },
   "أول امتحان ناجح": { icon: Target, color: "amber" },
 
-  // القديم لو ظل موجود بالداتا
+  
   "القارئ النهم": { icon: BookOpen, color: "green" },
   "نجم الرياضيات": { icon: Star, color: "blue" },
   "المثابر": { icon: Flame, color: "amber" },
@@ -157,67 +158,47 @@ const Achievements = () => {
   }, [hub, orderedAchievements]);
 
   return (
-    <DashboardLayout title="الإنجازات" subtitle="اجمع الشارات وكن الأفضل!" titleIcon={Trophy}>
+    <SideBar title="الإنجازات" subtitle="اجمع الشارات وكن الأفضل!" titleIcon={Trophy}>
       {loading ? (
-        <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
+        <div className="card achievements-state-card">
           جاري تحميل الإنجازات...
         </div>
       ) : error ? (
         <div
-          className="card"
-          style={{ padding: "2rem", textAlign: "center", color: "red" }}
+          className="card achievements-state-card achievements-state-error"
         >
           {error}
         </div>
       ) : (
         <>
           <motion.div
-            className="card"
-            style={{
-              padding: "1.5rem",
-              marginBottom: "1.5rem",
-              textAlign: "center",
-            }}
+            className="card achievements-summary-card"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="achievements-summary">
               <div className="achievements-summary-circle">
-                <Trophy size={32} style={{ color: "hsl(38, 90%, 50%)" }} />
+                <Trophy size={32} className="achievements-trophy-icon" />
               </div>
               <div>
-                <p
-                  style={{
-                    fontSize: "1.5rem",
-                    fontWeight: 700,
-                    direction: "ltr",
-                    display: "inline-block",
-                  }}
-                >
+                <p className="achievements-count">
                   {earnedCount} / {totalCount}
                 </p>
-                <p
-                  style={{
-                    color: "var(--muted-foreground)",
-                    fontSize: "0.875rem",
-                  }}
-                >
+                <p className="achievements-count-label">
                   إنجازات مكتملة
                 </p>
               </div>
             </div>
 
             <div
-              className="lesson-progress-bar-bg"
-              style={{ maxWidth: "20rem", margin: "1rem auto 0" }}
+              className="lesson-progress-bar-bg achievements-summary-progress"
             >
               <motion.div
                 className="lesson-progress-bar-fill"
                 initial={{ width: 0 }}
                 animate={{
-                  width: `${
-                    totalCount === 0 ? 0 : (earnedCount / totalCount) * 100
-                  }%`,
+                  width: `${totalCount === 0 ? 0 : (earnedCount / totalCount) * 100
+                    }%`,
                 }}
                 transition={{ duration: 1 }}
               />
@@ -227,12 +208,7 @@ const Achievements = () => {
           <div className="achievements-grid">
             {orderedAchievements.length === 0 ? (
               <div
-                className="card"
-                style={{
-                  padding: "2rem",
-                  textAlign: "center",
-                  color: "var(--muted-foreground)",
-                }}
+                className="card achievements-state-card achievements-empty-card"
               >
                 لا توجد إنجازات متاحة حالياً.
               </div>
@@ -252,19 +228,17 @@ const Achievements = () => {
                 return (
                   <motion.div
                     key={a.achievementId}
-                    className={`card achievement-card ${
-                      !a.earned ? "achievement-locked" : ""
-                    }`}
+                    className={`card achievement-card ${!a.earned ? "achievement-locked" : ""
+                      }`}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.06 }}
                   >
                     <div
-                      className={`achievement-icon-wrap ${
-                        a.earned
+                      className={`achievement-icon-wrap ${a.earned
                           ? `rec-icon-${color}`
                           : "achievement-icon-locked"
-                      }`}
+                        }`}
                     >
                       {a.earned ? <Icon size={28} /> : <Lock size={24} />}
                     </div>
@@ -284,7 +258,7 @@ const Achievements = () => {
           </div>
         </>
       )}
-    </DashboardLayout>
+    </SideBar>
   );
 };
 

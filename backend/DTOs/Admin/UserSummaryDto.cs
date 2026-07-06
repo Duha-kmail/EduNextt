@@ -4,7 +4,7 @@ using backend.Models.Enums;
 namespace backend.DTOs.Admin
 {
 
-// لعرض قائمة المستخدمين ونشاطهم (مطلوب في الإدارة)
+
 public record UserSummaryDto(
     string Id,
     string FullName,
@@ -12,5 +12,5 @@ public record UserSummaryDto(
     UserRole Role,
     bool IsActive,
     DateTime CreatedAt,
-    int ExamsTakenCount // عرض نشاط المستخدم
+    int ExamsTakenCount 
 );}

@@ -14,6 +14,7 @@ const OnboardingStep2 = lazy(() => import("./pages/onboarding/step-two/Onboardin
 
 const Dashboard = lazy(() => import("./pages/student/dashboard/Dashboard.jsx"));
 const Subjects = lazy(() => import("./pages/student/subjects/Subjects.jsx"));
+const StudentTeachers = lazy(() => import("./pages/student/teachers/StudentTeachers.jsx"));
 const Exams = lazy(() => import("./pages/student/exams/Exams.jsx"));
 const ExamCreate = lazy(() => import("./pages/student/exam-create/ExamCreate.jsx"));
 const ExamTake = lazy(() => import("./pages/student/exam-take/ExamTake.jsx"));
@@ -27,14 +28,15 @@ const AdminSubjects = lazy(() => import("./pages/admin/subjects/AdminSubjects.js
 const AdminLessons = lazy(() => import("./pages/admin/lessons/AdminLessons.jsx"));
 const AdminExams = lazy(() => import("./pages/admin/exams/AdminExams.jsx"));
 const AdminUsers = lazy(() => import("./pages/admin/users/AdminUsers.jsx"));
+const AdminTeachers = lazy(() => import("./pages/admin/teachers/AdminTeachers.jsx"));
 const AdminMessages = lazy(() => import("./pages/admin/messages/AdminMessages.jsx"));
 const AdminAnalytics = lazy(() => import("./pages/admin/analytics/AdminAnalytics.jsx"));
 const AdminAchievements = lazy(() => import("./pages/admin/achievements/AdminAchievements.jsx"));
 const AdminProfile = lazy(() => import("./pages/admin/profile/AdminProfile.jsx"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPasswordPage.jsx"));
-//OtpVerificationPage
+
 const OtpVerificationPage = lazy(() => import("./pages/OtpVerificationPage.jsx"));
-//ResetPasswordPage
+
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage.jsx"));
 
 
@@ -70,6 +72,7 @@ const App = () => (
           <Route element={<StudentRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/subjects" element={<Subjects />} />
+            <Route path="/teachers" element={<StudentTeachers />} />
             <Route path="/exams" element={<Exams />} />
             <Route path="/exams/new" element={<ExamCreate />} />
             <Route path="/exams/take" element={<ExamTake />} />
@@ -85,6 +88,7 @@ const App = () => (
             <Route path="/admin-lessons" element={<AdminLessons />} />
             <Route path="/admin-exams" element={<AdminExams />} />
             <Route path="/admin-users" element={<AdminUsers />} />
+            <Route path="/admin-teachers" element={<AdminTeachers />} />
             <Route path="/admin-messages" element={<AdminMessages />} />
             <Route path="/admin-analytics" element={<AdminAnalytics />} />
             <Route path="/admin-achievements" element={<AdminAchievements />} />

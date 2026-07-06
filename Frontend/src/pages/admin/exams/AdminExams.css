@@ -1,8 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
 
-/* =============================================
-   DESIGN TOKENS
-   ============================================= */
+
 :root {
   --edn-bg: #f8fbfd;
   --edn-card: #ffffff;
@@ -11,7 +9,7 @@
   --edn-border: #dfe7ef;
   --edn-teal: #08b7aa;
   --edn-blue: #2f9be7;
-  --edn-purple: #9b75f6;
+  --edn-purple: #08b7aa;
   --edn-red: #ef4444;
   --edn-amber: #f59e0b;
   --edn-shadow: 0 20px 50px rgba(34, 62, 88, 0.08);
@@ -24,9 +22,7 @@
 
 * { box-sizing: border-box; }
 
-/* =============================================
-   MAIN CONTENT
-   ============================================= */
+
 .admin-main-ex {
   flex: 1;
   padding: 32px 40px;
@@ -38,9 +34,7 @@
   direction: rtl;
 }
 
-/* =============================================
-   PAGE HEADER
-   ============================================= */
+
 .page-header-ex {
   display: flex;
   justify-content: space-between;
@@ -79,7 +73,7 @@
   font-weight: 800;
 }
 
-/* Hero Panel */
+
 .exam-hero-panel {
   min-width: 230px;
   height: 118px;
@@ -87,7 +81,7 @@
   border: 1px solid var(--edn-border);
   border-radius: 20px;
   background:
-    linear-gradient(135deg, rgba(255,255,255,0.96), rgba(240,249,255,0.92)),
+    rgba(255,255,255,0.96),
     repeating-linear-gradient(45deg, rgba(8,183,170,0.06) 0 1px, transparent 1px 14px);
   box-shadow: 0 18px 45px rgba(8, 183, 170, 0.1);
   overflow: hidden;
@@ -146,9 +140,7 @@
 .exam-floating-badge-one { right: 14px; bottom: 16px; color: var(--edn-teal); }
 .exam-floating-badge-two { left: 16px; top: 14px; color: var(--edn-amber); }
 
-/* =============================================
-   PRIMARY BUTTON
-   ============================================= */
+
 .btn-primary-ex {
   display: inline-flex;
   align-items: center;
@@ -175,9 +167,7 @@
 
 .btn-primary-ex:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* =============================================
-   STATS ROW
-   ============================================= */
+
 .ex-stats-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -234,9 +224,7 @@
 
 .ex-stat-label { font-size: 13px; color: var(--edn-muted); font-weight: 700; }
 
-/* =============================================
-   TABLE SECTION
-   ============================================= */
+
 .table-section-ex {
   border: 1px solid var(--edn-border);
   border-radius: var(--edn-radius);
@@ -264,7 +252,7 @@
   flex-shrink: 0;
 }
 
-/* Controls row (filters + search) */
+
 .table-controls-ex {
   display: flex;
   align-items: center;
@@ -272,9 +260,7 @@
   flex-wrap: wrap;
 }
 
-/* =============================================
-   SUBJECT FILTER SELECT
-   ============================================= */
+
 .filter-select-wrapper-ex {
   display: flex;
   align-items: center;
@@ -309,9 +295,7 @@
   direction: rtl;
 }
 
-/* =============================================
-   TYPE FILTER TABS
-   ============================================= */
+
 .type-filter-tabs-ex {
   display: flex;
   align-items: center;
@@ -350,11 +334,9 @@
 }
 
 .type-tab-ex--short.type-tab-ex--active  { color: #d97706; }
-.type-tab-ex--comp.type-tab-ex--active   { color: #2563eb; }
+.type-tab-ex--comp.type-tab-ex--active   { color: #08b7aa; }
 
-/* =============================================
-   SEARCH INPUT
-   ============================================= */
+
 .search-input-wrapper-ex {
   display: flex;
   align-items: center;
@@ -386,9 +368,7 @@
 
 .search-input-wrapper-ex input::placeholder { color: #aab4c0; }
 
-/* =============================================
-   TABLE
-   ============================================= */
+
 .exams-table {
   width: 100%;
   border-collapse: collapse;
@@ -432,9 +412,7 @@
   font-size: 12px; font-weight: 800;
 }
 
-/* =============================================
-   PAGINATION
-   ============================================= */
+
 .pagination-ex {
   display: flex;
   align-items: center;
@@ -491,9 +469,7 @@
 
 .pag-num-ex { min-width: 36px; padding: 0; }
 
-/* =============================================
-   ACTION BUTTONS
-   ============================================= */
+
 .actions-cell-ex { display: flex; gap: 8px; align-items: center; }
 
 .aa-action-btn {
@@ -567,9 +543,7 @@
   border-color: rgba(47, 155, 231, 0.5);
 }
 
-/* =============================================
-   FORM CARD
-   ============================================= */
+
 .form-card-ex {
   border: 1.5px solid var(--edn-border);
   border-radius: var(--edn-radius);
@@ -638,9 +612,7 @@
 
 .form-group-ex select:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* =============================================
-   EXAM TYPE SELECTOR
-   ============================================= */
+
 .exam-type-selector { display: flex; gap: 12px; }
 
 .type-card {
@@ -670,9 +642,7 @@
 .type-card-sub { font-size: 11px; color: var(--edn-muted); }
 .type-card--active .type-card-sub { color: rgba(8, 183, 170, 0.75); }
 
-/* =============================================
-   QUESTION CARD
-   ============================================= */
+
 .question-card {
   background: var(--edn-bg);
   border: 1.5px solid var(--edn-border);
@@ -707,9 +677,7 @@
 
 .question-counter { font-size: 13px; color: var(--edn-muted); font-weight: 600; margin-right: auto; }
 
-/* =============================================
-   OPTIONS
-   ============================================= */
+
 .options-section { margin-top: 16px; }
 .options-section > label { font-size: 14px; font-weight: 800; color: var(--edn-ink); display: block; margin-bottom: 12px; }
 .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -743,9 +711,7 @@
 .option-input-row input:focus { border-color: var(--edn-teal); box-shadow: 0 0 0 3px rgba(8, 183, 170, 0.12); }
 .option-input-row input::placeholder { color: #aab4c0; }
 
-/* =============================================
-   CORRECT ANSWER
-   ============================================= */
+
 .correct-answer-section {
   margin-top: 20px;
   background: rgba(8, 183, 170, 0.05);
@@ -775,9 +741,7 @@
 .correct-btn--active { background: var(--edn-teal); border-color: var(--edn-teal); color: #fff; box-shadow: 0 4px 14px rgba(8, 183, 170, 0.35); }
 .correct-btn--active:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(8, 183, 170, 0.4); }
 
-/* =============================================
-   ADD QUESTION BUTTON
-   ============================================= */
+
 .btn-add-question {
   display: flex; align-items: center; justify-content: center;
   gap: 8px;
@@ -795,9 +759,7 @@
 
 .btn-add-question:hover { border-color: var(--edn-teal); color: var(--edn-teal); background: rgba(8, 183, 170, 0.04); }
 
-/* =============================================
-   FORM ACTIONS
-   ============================================= */
+
 .form-actions-ex { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
 .btn-cancel-ex {
@@ -816,9 +778,7 @@
 .btn-cancel-ex:hover:not(:disabled) { border-color: #b0bec5; color: var(--edn-ink); }
 .btn-cancel-ex:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* =============================================
-   DELETE MODAL
-   ============================================= */
+
 .modal-overlay-ex {
   position: fixed; inset: 0;
   background: rgba(10, 20, 35, 0.48);
@@ -867,9 +827,7 @@
 .btn-danger-ex:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(239, 68, 68, 0.38); }
 .btn-danger-ex:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* =============================================
-   ANIMATIONS
-   ============================================= */
+
 @keyframes fadeIn   { from { opacity: 0; }                           to { opacity: 1; } }
 @keyframes slideUp  { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
@@ -877,9 +835,7 @@
 
 .animate-spin { animation: spin 0.8s linear infinite; }
 
-/* =============================================
-   RESPONSIVE
-   ============================================= */
+
 @media (max-width: 1100px) {
   .table-header-ex { flex-direction: column; align-items: stretch; }
   .table-controls-ex { flex-wrap: wrap; }
@@ -908,3 +864,4 @@
   .type-tab-ex { flex: 1; justify-content: center; }
   .pagination-ex { flex-direction: column; align-items: center; }
 }
+

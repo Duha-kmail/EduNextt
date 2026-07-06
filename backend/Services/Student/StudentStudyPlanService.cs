@@ -116,12 +116,41 @@ public class StudentStudyPlanService : IStudentStudyPlanService
                 TotalLessons = s.TotalLessons,
                 RemainingLessons = Math.Max(0, s.TotalLessons - s.CompletedLessons),
                 NextLessonId = s.NextLessonId,
-                NextLessonTitle = s.NextLessonTitle
+                NextLessonTitle = s.NextLessonTitle,
+                LessonPerformances = s.LessonPerformances
+                    .OrderBy(l => l.AverageScore <= 0 ? 100 : l.AverageScore)
+                    .ThenBy(l => l.IsCompleted)
+                    .ThenByDescending(l => l.Attempts)
+                    .Take(8)
+                    .Select(l => new AiLessonPerformanceDto
+                    {
+                        LessonId = l.LessonId,
+                        LessonTitle = l.LessonTitle,
+                        AverageScore = l.AverageScore,
+                        LastScore = l.LastScore,
+                        Attempts = l.Attempts,
+                        IsCompleted = l.IsCompleted
+                    })
+                    .ToList(),
+                SuggestedExams = s.SuggestedExams
+                    .Where(e => e.LessonId != null || string.Equals(e.ExamType, "short", StringComparison.OrdinalIgnoreCase))
+                    .Take(10)
+                    .Select(e => new AiSuggestedExamDto
+                    {
+                        ExamId = e.ExamId,
+                        ExamTitle = e.ExamTitle,
+                        ExamType = e.ExamType,
+                        LessonId = e.LessonId,
+                        LessonTitle = e.LessonTitle
+                    })
+                    .ToList()
             }).ToList()
         });
 
         var subjectsWithRemainingLessons = subjectProgress
-            .Where(s => s.TotalLessons > s.CompletedLessons)
+            .Where(s =>
+                s.TotalLessons > s.CompletedLessons ||
+                s.LessonPerformances.Any(l => l.Attempts > 0 && l.AverageScore > 0 && l.AverageScore < 70))
             .ToList();
 
         var orderedSubjectProgress = subjectsWithRemainingLessons
@@ -161,16 +190,17 @@ public class StudentStudyPlanService : IStudentStudyPlanService
             }
 
             var lessonTitlesById = subjectLessons.ToDictionary(l => l.LessonId, l => l.LessonTitle);
+            foreach (var lesson in subject.LessonPerformances)
+            {
+                lessonTitlesById.TryAdd(lesson.LessonId, lesson.LessonTitle);
+            }
 
             suggestedSubjects.Add(new StudyPlanSuggestedSubjectDto
             {
                 SubjectId = subject.SubjectId,
                 SubjectName = subject.SubjectName,
                 LessonIds = lessonIds,
-                LessonOrder = lessonIds
-                    .Where(id => lessonTitlesById.ContainsKey(id))
-                    .Select(id => lessonTitlesById[id])
-                    .ToList()
+                LessonOrder = BuildSuggestedLessonOrder(subject, lessonIds, lessonTitlesById)
             });
         }
 
@@ -446,6 +476,18 @@ public class StudentStudyPlanService : IStudentStudyPlanService
     {
         var selected = new List<Guid>();
 
+        foreach (var weakLesson in subject.LessonPerformances
+            .Where(l => l.Attempts > 0 && l.AverageScore > 0 && l.AverageScore < 70)
+            .OrderBy(l => l.AverageScore)
+            .ThenBy(l => l.IsCompleted)
+            .Take(2))
+        {
+            if (!selected.Contains(weakLesson.LessonId))
+            {
+                selected.Add(weakLesson.LessonId);
+            }
+        }
+
         if (subject.NextLessonId != null && !selected.Contains(subject.NextLessonId.Value))
         {
             selected.Add(subject.NextLessonId.Value);
@@ -465,6 +507,46 @@ public class StudentStudyPlanService : IStudentStudyPlanService
         }
 
         return selected;
+    }
+
+    private static List<string> BuildSuggestedLessonOrder(
+        StudentStudyPlanSubjectProgressData subject,
+        List<Guid> lessonIds,
+        Dictionary<Guid, string> lessonTitlesById
+    )
+    {
+        var lines = new List<string>();
+
+        foreach (var lessonId in lessonIds)
+        {
+            if (!lessonTitlesById.TryGetValue(lessonId, out var lessonTitle))
+            {
+                continue;
+            }
+
+            var performance = subject.LessonPerformances.FirstOrDefault(l => l.LessonId == lessonId);
+            var suggestedExam = subject.SuggestedExams.FirstOrDefault(e => e.LessonId == lessonId);
+
+            if (performance?.Attempts > 0 && performance.AverageScore > 0 && performance.AverageScore < 70)
+            {
+                lines.Add($"راجع درس {lessonTitle} لأن نتيجتك فيه {performance.AverageScore:0}%.");
+            }
+            else if (subject.NextLessonId == lessonId)
+            {
+                lines.Add($"أكمل الدرس التالي: {lessonTitle}.");
+            }
+            else
+            {
+                lines.Add($"ادرس {lessonTitle} ضمن ترتيب الخطة.");
+            }
+
+            if (suggestedExam != null)
+            {
+                lines.Add($"اختبار مقترح بعد الدرس: {suggestedExam.ExamTitle}.");
+            }
+        }
+
+        return lines;
     }
 
     private static bool LessonNamesMatch(string? aiText, string? lessonTitle)

@@ -156,8 +156,71 @@ public class StudentStudyPlanRepository : IStudentStudyPlanRepository
             })
             .ToDictionaryAsync(x => x.SubjectId, x => Math.Round(x.AverageScore, 2));
 
+        var lessonScoreRows = await _db.exam_results
+            .AsNoTracking()
+            .Where(r => r.user_id == userId && r.exam_id != null)
+            .Join(
+                _db.exams.AsNoTracking().Where(e =>
+                    e.subject_id != null &&
+                    e.lesson_id != null &&
+                    subjectIds.Contains(e.subject_id.Value)),
+                result => result.exam_id!.Value,
+                exam => exam.id,
+                (result, exam) => new
+                {
+                    SubjectId = exam.subject_id!.Value,
+                    LessonId = exam.lesson_id!.Value,
+                    Score = result.score ?? 0,
+                    CreatedAt = result.created_at
+                }
+            )
+            .ToListAsync();
+
+        var lessonScores = lessonScoreRows
+            .GroupBy(x => new { x.SubjectId, x.LessonId })
+            .ToDictionary(
+                g => g.Key,
+                g =>
+                {
+                    var ordered = g
+                        .OrderByDescending(x => x.CreatedAt ?? DateTime.MinValue)
+                        .ToList();
+
+                    return new
+                    {
+                        AverageScore = Math.Round(ordered.Average(x => (double)x.Score), 2),
+                        LastScore = (int?)ordered.FirstOrDefault()?.Score,
+                        Attempts = ordered.Count
+                    };
+                });
+
+        var suggestedExams = await _db.exams
+            .AsNoTracking()
+            .Where(e =>
+                e.is_active &&
+                e.subject_id != null &&
+                subjectIds.Contains(e.subject_id.Value))
+            .OrderBy(e => e.subject_id)
+            .ThenBy(e => e.lesson != null && e.lesson.subject_unit != null ? e.lesson.subject_unit.order_number : int.MaxValue)
+            .ThenBy(e => e.lesson != null ? e.lesson.order_number ?? int.MaxValue : int.MaxValue)
+            .ThenBy(e => e.title)
+            .Select(e => new StudentStudyPlanSuggestedExamData
+            {
+                ExamId = e.id,
+                SubjectId = e.subject_id!.Value,
+                LessonId = e.lesson_id,
+                ExamTitle = e.title,
+                ExamType = e.type,
+                LessonTitle = e.lesson != null ? e.lesson.title : ""
+            })
+            .ToListAsync();
+
         var lessonsBySubject = lessons
             .GroupBy(l => l.SubjectId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var examsBySubject = suggestedExams
+            .GroupBy(e => e.SubjectId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
         return subjects.Select(subject =>
@@ -169,6 +232,27 @@ public class StudentStudyPlanRepository : IStudentStudyPlanRepository
             var nextLesson = subjectLessons.FirstOrDefault(l => !completedSet.Contains(l.LessonId));
             var completedLessons = subjectLessons.Count(l => completedSet.Contains(l.LessonId));
             scores.TryGetValue(subject.id, out var averageScore);
+            examsBySubject.TryGetValue(subject.id, out var subjectExams);
+
+            var lessonPerformances = subjectLessons
+                .Select(lesson =>
+                {
+                    lessonScores.TryGetValue(
+                        new { SubjectId = subject.id, lesson.LessonId },
+                        out var lessonScore);
+
+                    return new StudentStudyPlanLessonPerformanceData
+                    {
+                        LessonId = lesson.LessonId,
+                        SubjectId = subject.id,
+                        LessonTitle = lesson.LessonTitle,
+                        AverageScore = lessonScore?.AverageScore ?? 0,
+                        LastScore = lessonScore?.LastScore,
+                        Attempts = lessonScore?.Attempts ?? 0,
+                        IsCompleted = completedSet.Contains(lesson.LessonId)
+                    };
+                })
+                .ToList();
 
             return new StudentStudyPlanSubjectProgressData
             {
@@ -178,7 +262,9 @@ public class StudentStudyPlanRepository : IStudentStudyPlanRepository
                 CompletedLessons = completedLessons,
                 AverageScore = averageScore,
                 NextLessonId = nextLesson?.LessonId,
-                NextLessonTitle = nextLesson?.LessonTitle
+                NextLessonTitle = nextLesson?.LessonTitle,
+                LessonPerformances = lessonPerformances,
+                SuggestedExams = subjectExams ?? new List<StudentStudyPlanSuggestedExamData>()
             };
         }).ToList();
     }

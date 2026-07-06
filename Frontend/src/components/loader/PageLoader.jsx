@@ -1,4 +1,5 @@
 ﻿import { Box, CircularProgress, Typography } from "@mui/material";
+import './PageLoader.css';
 
 export default function PageLoader({ label = "جاري التحميل..." }) {
   return (

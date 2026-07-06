@@ -51,7 +51,7 @@ public static class ScoreCalculatorHelper
 
         var v = value.Trim().ToUpper();
 
-        // allow only A/B/C/D (optional strict)
+        
         return v is "A" or "B" or "C" or "D" ? v : null;
     }
 }

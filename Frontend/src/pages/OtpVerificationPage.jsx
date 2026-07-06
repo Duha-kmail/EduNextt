@@ -1,32 +1,31 @@
 import React, { useEffect, useState } from "react";
-import "../styles/OtpVerificationPage.css";
+import "./public/auth/password-reset/AuthFlow.css";
 import { motion as Motion } from "framer-motion";
 import { ArrowLeft, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "@/config/api";
 import PublicNavbar from "../components/public-navbar/PublicNavbar.jsx";
+import apiClient, { getApiErrorMessage } from "@/services/apiClient";
 
 async function postJson(path, body) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.message || "تعذر تنفيذ الطلب. حاول مرة أخرى.");
+  try {
+    const response = await apiClient.post(path, body);
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      getApiErrorMessage(error, "تعذر تنفيذ الطلب. حاول مرة أخرى.")
+    );
   }
-
-  return data;
 }
+
+const OTP_EXPIRY_MS = 60 * 1000;
 
 export default function OtpVerificationPage() {
   const [otp, setOtp] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [secondsLeft, setSecondsLeft] = useState(60);
+  const [isResending, setIsResending] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,8 +36,27 @@ export default function OtpVerificationPage() {
       return;
     }
 
+    const expiresAt = Number(sessionStorage.getItem("resetOtpExpiresAt"));
+
     setEmail(storedEmail);
+    setSecondsLeft(Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000)));
   }, [navigate]);
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      const expiresAt = Number(sessionStorage.getItem("resetOtpExpiresAt"));
+      setSecondsLeft(Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000)));
+    }, 1000);
+
+    return () => window.clearInterval(timerId);
+  }, []);
+
+  const formatTimer = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+  };
 
   const handleOtpChange = (event) => {
     const value = event.target.value;
@@ -54,7 +72,12 @@ export default function OtpVerificationPage() {
     setError("");
 
     if (otp.length !== 6) {
-      setError("يرجى إدخال رمز التحقق كاملا من 6 أرقام.");
+      setError("يرجى إدخال رمز التحقق كاملًا من 6 أرقام.");
+      return;
+    }
+
+    if (secondsLeft <= 0) {
+      setError("رمز التحقق انتهت صلاحيته. أعد إرسال رمز جديد.");
       return;
     }
 
@@ -72,25 +95,48 @@ export default function OtpVerificationPage() {
     }
   };
 
+  const resendOtp = async () => {
+    if (!email || isResending || secondsLeft > 0) {
+      return;
+    }
+
+    setError("");
+    setIsResending(true);
+
+    try {
+      await postJson("/api/auth/forgot-password", { email });
+      sessionStorage.setItem("resetOtpExpiresAt", String(Date.now() + OTP_EXPIRY_MS));
+      sessionStorage.removeItem("otpVerified");
+      setOtp("");
+      setSecondsLeft(60);
+    } catch (requestError) {
+      setError(requestError.message || "تعذر إعادة إرسال رمز التحقق.");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <div className="layout-wrapper auth-flow-page" dir="rtl">
       <PublicNavbar compact />
-      <main className="main-content">
+      <main className="auth-flow-main">
         <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="card-container"
+          className="auth-flow-card"
         >
-          <div className="form-section">
+          <div className="auth-flow-form-section">
             <Motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="form-header"
+              className="auth-flow-form-header"
             >
-              <h2 className="form-title">التحقق من الرمز</h2>
-              <p className="form-subtitle">أدخل الرمز الذي تم إرساله إلى {email}</p>
+              <h2 className="auth-flow-form-title">التحقق من الرمز</h2>
+              <p className="auth-flow-form-subtitle">
+                أدخل الرمز الذي تم إرساله إلى {email}
+              </p>
             </Motion.div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -100,13 +146,13 @@ export default function OtpVerificationPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="form-group"
+                className="auth-flow-form-group"
               >
-                <label className="form-label" htmlFor="otp">
+                <label className="auth-flow-form-label" htmlFor="otp">
                   رمز التحقق
                 </label>
-                <div className="input-wrapper">
-                  <span className="input-icon">
+                <div className="auth-flow-input-wrapper">
+                  <span className="auth-flow-input-icon">
                     <Lock size={20} />
                   </span>
                   <input
@@ -115,7 +161,7 @@ export default function OtpVerificationPage() {
                     inputMode="numeric"
                     value={otp}
                     onChange={handleOtpChange}
-                    className="form-input form-input-otp"
+                    className="auth-flow-input auth-flow-input-otp"
                     placeholder="000000"
                     maxLength="6"
                     autoComplete="one-time-code"
@@ -125,43 +171,58 @@ export default function OtpVerificationPage() {
               </Motion.div>
 
               <div className="otp-info">
-                <p className="info-text">الرمز صالح لمدة 3 دقائق فقط.</p>
+                {secondsLeft > 0 ? (
+                  <p className="info-text">
+                    الرمز صالح لمدة دقيقة واحدة: {formatTimer(secondsLeft)}
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    className="auth-flow-resend-btn"
+                    onClick={resendOtp}
+                    disabled={isResending}
+                  >
+                    {isResending ? "جاري إعادة الإرسال..." : "إعادة إرسال الرمز"}
+                  </button>
+                )}
               </div>
 
               <Motion.button
-                whileHover={!isSubmitting && otp.length === 6 ? { scale: 1.01 } : undefined}
-                whileTap={!isSubmitting && otp.length === 6 ? { scale: 0.99 } : undefined}
+                whileHover={!isSubmitting && secondsLeft > 0 && otp.length === 6 ? { scale: 1.01 } : undefined}
+                whileTap={!isSubmitting && secondsLeft > 0 && otp.length === 6 ? { scale: 0.99 } : undefined}
                 type="submit"
-                className="submit-btn"
-                disabled={isSubmitting || otp.length !== 6}
+                className="auth-flow-submit-btn"
+                disabled={isSubmitting || secondsLeft <= 0 || otp.length !== 6}
               >
                 {isSubmitting ? "جاري التحقق..." : "التحقق من الرمز"}
               </Motion.button>
             </form>
 
-            <div className="footer-link-section">
-              <button type="button" className="footer-link" onClick={() => navigate("/forgot-password")}>
+            <div className="auth-flow-footer-link-section">
+              <button type="button" className="auth-flow-footer-link" onClick={() => navigate("/forgot-password")}>
                 <ArrowLeft size={14} className="rotate-180 ml-1" />
-                إرسال رمز جديد
+                تغيير البريد
               </button>
             </div>
           </div>
 
-          <div className="visual-section">
+          <div className="auth-flow-visual-section">
             <div className="bg-blur-1"></div>
             <div className="bg-blur-2"></div>
-            <div className="visual-content">
+            <div className="auth-flow-visual-content">
               <Motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
-                className="robot-image-wrapper"
+                className="auth-flow-robot-image-wrapper"
               >
-                <div className="robot-image"></div>
+                <div className="auth-flow-robot-image"></div>
               </Motion.div>
               <div className="hero-text">
-                <h3 className="hero-title">تحقق من بريدك</h3>
-                <p className="hero-description">استخدم آخر رمز وصل إلى بريدك الإلكتروني.</p>
+                <h3 className="auth-flow-hero-title">تحقق من بريدك</h3>
+                <p className="auth-flow-hero-description">
+                  استخدم آخر رمز وصل إلى بريدك الإلكتروني.
+                </p>
               </div>
             </div>
           </div>

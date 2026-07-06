@@ -1,0 +1,45 @@
+.achievements-state-card {
+  padding: 2rem;
+  text-align: center;
+}
+
+.achievements-state-error {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.achievements-summary-card {
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.achievements-trophy-icon {
+  color: #f59e0b;
+}
+
+.achievements-count {
+  display: inline-block;
+  direction: ltr;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--foreground, #111827);
+}
+
+.achievements-count-label {
+  margin: 0.25rem 0 0;
+  color: var(--muted-foreground, #667085);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.achievements-summary-progress {
+  max-width: 20rem;
+  margin: 1rem auto 0;
+}
+
+.achievements-empty-card {
+  color: var(--muted-foreground, #667085);
+}

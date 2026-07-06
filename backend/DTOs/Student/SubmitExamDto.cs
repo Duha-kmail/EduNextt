@@ -8,5 +8,5 @@ public class SubmitExamDto
 public class QuestionAnswerDto
 {
     public Guid QuestionId { get; set; }
-    public string SelectedAnswer { get; set; } = ""; // A/B/C/D
+    public string SelectedAnswer { get; set; } = ""; 
 }

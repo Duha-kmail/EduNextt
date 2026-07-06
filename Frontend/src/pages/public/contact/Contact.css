@@ -95,13 +95,7 @@
 }
 
 .form-glow {
-  position: absolute;
-  inset: -120px auto auto -120px;
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  background: rgba(8, 183, 170, 0.14);
-  filter: blur(22px);
+  display: none;
 }
 
 .form-title-row {

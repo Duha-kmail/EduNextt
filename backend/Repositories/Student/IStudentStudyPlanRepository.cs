@@ -76,11 +76,34 @@ public class StudentStudyPlanSubjectProgressData
     public double AverageScore { get; set; }
     public Guid? NextLessonId { get; set; }
     public string? NextLessonTitle { get; set; }
+    public List<StudentStudyPlanLessonPerformanceData> LessonPerformances { get; set; } = new();
+    public List<StudentStudyPlanSuggestedExamData> SuggestedExams { get; set; } = new();
 }
 
 public class StudentStudyPlanLessonProgressData
 {
     public Guid LessonId { get; set; }
     public Guid SubjectId { get; set; }
+    public string LessonTitle { get; set; } = "";
+}
+
+public class StudentStudyPlanLessonPerformanceData
+{
+    public Guid LessonId { get; set; }
+    public Guid SubjectId { get; set; }
+    public string LessonTitle { get; set; } = "";
+    public double AverageScore { get; set; }
+    public int? LastScore { get; set; }
+    public int Attempts { get; set; }
+    public bool IsCompleted { get; set; }
+}
+
+public class StudentStudyPlanSuggestedExamData
+{
+    public Guid ExamId { get; set; }
+    public Guid SubjectId { get; set; }
+    public Guid? LessonId { get; set; }
+    public string ExamTitle { get; set; } = "";
+    public string ExamType { get; set; } = "";
     public string LessonTitle { get; set; } = "";
 }

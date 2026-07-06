@@ -16,7 +16,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import { API_BASE_URL } from "@/config/api";
 import "./StudyPlans.css";
 
@@ -63,7 +63,7 @@ const planColors = [
   "hsl(220, 85%, 55%)",
   "hsl(152, 70%, 40%)",
   "hsl(38, 90%, 50%)",
-  "hsl(270, 70%, 55%)",
+  "#08b7aa",
   "hsl(199, 80%, 50%)",
 ];
 
@@ -445,8 +445,8 @@ const StudyPlans = () => {
         lessons: subject.lessonOrder?.length
           ? subject.lessonOrder
           : subject.lessonIds?.length
-          ? subject.lessonIds.map((_, index) => `درس مقترح ${index + 1}`)
-          : [],
+            ? subject.lessonIds.map((_, index) => `درس مقترح ${index + 1}`)
+            : [],
       }));
     }
 
@@ -554,22 +554,22 @@ const StudyPlans = () => {
         const plansToCreate =
           appliedAiSubjects.length > 0
             ? appliedAiSubjects
-                .map((subject) => ({
-                  subjectId: subject.subjectId,
-                  subjectName:
-                    subject.subjectName ||
-                    subjects.find((item) => sameId(item.id, subject.subjectId))?.title ||
-                    "مادة",
-                  lessonIds: subject.lessonIds,
-                }))
-                .filter((subject) => subject.subjectId && subject.lessonIds?.length)
+              .map((subject) => ({
+                subjectId: subject.subjectId,
+                subjectName:
+                  subject.subjectName ||
+                  subjects.find((item) => sameId(item.id, subject.subjectId))?.title ||
+                  "مادة",
+                lessonIds: subject.lessonIds,
+              }))
+              .filter((subject) => subject.subjectId && subject.lessonIds?.length)
             : [
-                {
-                  subjectId: selectedSubject,
-                  subjectName: selectedSubjectName,
-                  lessonIds: selectedLessons,
-                },
-              ];
+              {
+                subjectId: selectedSubject,
+                subjectName: selectedSubjectName,
+                lessonIds: selectedLessons,
+              },
+            ];
 
         const createdPlans = [];
 
@@ -696,46 +696,17 @@ const StudyPlans = () => {
       setDeletingId(null);
     }
   };
-  
+
 
   const toggleItemCompletion = async (planId, item) => {
-  const newCompleted = !item.isCompleted;
+    const newCompleted = !item.isCompleted;
 
-  // تحديث متفائل
-  setPlans((prev) =>
-    prev.map((p) => {
-      if (p.id !== planId) return p;
-      const items = p.items.map((it) =>
-        it.id === item.id ? { ...it, isCompleted: newCompleted } : it
-      );
-      const completedItems = items.filter((it) => it.isCompleted).length;
-      const progressPercent = p.totalItems
-        ? (completedItems / p.totalItems) * 100
-        : 0;
-      return { ...p, items, completedItems, progressPercent };
-    })
-  );
-
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/student/study-plans/${planId}/items/${item.id}/completion?isCompleted=${newCompleted}`,
-      {
-        method: "PUT",
-        headers: {
-          // "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        // body: JSON.stringify({ isCompleted: newCompleted }),
-      }
-    );
-    if (!response.ok) throw new Error("failed");
-  } catch (e) {
-    // تراجع عن التحديث عند الفشل
+    
     setPlans((prev) =>
       prev.map((p) => {
         if (p.id !== planId) return p;
         const items = p.items.map((it) =>
-          it.id === item.id ? { ...it, isCompleted: !newCompleted } : it
+          it.id === item.id ? { ...it, isCompleted: newCompleted } : it
         );
         const completedItems = items.filter((it) => it.isCompleted).length;
         const progressPercent = p.totalItems
@@ -744,13 +715,42 @@ const StudyPlans = () => {
         return { ...p, items, completedItems, progressPercent };
       })
     );
-    setPageError("فشل تحديث حالة الدرس");
-  }
-};
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/student/study-plans/${planId}/items/${item.id}/completion?isCompleted=${newCompleted}`,
+        {
+          method: "PUT",
+          headers: {
+            
+            Authorization: `Bearer ${token}`,
+          },
+          
+        }
+      );
+      if (!response.ok) throw new Error("failed");
+    } catch (e) {
+      
+      setPlans((prev) =>
+        prev.map((p) => {
+          if (p.id !== planId) return p;
+          const items = p.items.map((it) =>
+            it.id === item.id ? { ...it, isCompleted: !newCompleted } : it
+          );
+          const completedItems = items.filter((it) => it.isCompleted).length;
+          const progressPercent = p.totalItems
+            ? (completedItems / p.totalItems) * 100
+            : 0;
+          return { ...p, items, completedItems, progressPercent };
+        })
+      );
+      setPageError("فشل تحديث حالة الدرس");
+    }
+  };
 
 
   return (
-    <DashboardLayout
+    <SideBar
       title="خطط الدراسة"
       subtitle="نظّم جدولك الدراسي وحافظ على استمرارك في التحضير للتوجيهي."
       hideSearch
@@ -827,9 +827,8 @@ const StudyPlans = () => {
                     <button
                       key={d.key}
                       type="button"
-                      className={`sp-day-btn ${
-                        selectedDays.includes(d.key) ? "sp-day-active" : ""
-                      }`}
+                      className={`sp-day-btn ${selectedDays.includes(d.key) ? "sp-day-active" : ""
+                        }`}
                       onClick={() => toggleDay(d.key)}
                       disabled={creating}
                     >
@@ -909,9 +908,8 @@ const StudyPlans = () => {
 
                               <ChevronDown
                                 size={18}
-                                className={`sp-unit-chevron ${
-                                  expanded ? "sp-unit-chevron-open" : ""
-                                }`}
+                                className={`sp-unit-chevron ${expanded ? "sp-unit-chevron-open" : ""
+                                  }`}
                               />
                             </button>
 
@@ -983,10 +981,10 @@ const StudyPlans = () => {
                       ? "جاري حفظ التعديلات..."
                       : "جاري إنشاء الخطة..."
                     : editingPlanId
-                    ? "حفظ التعديلات"
-                    : appliedAiSubjects.length > 1
-                    ? `إنشاء ${appliedAiSubjects.length} خطط`
-                    : "إنشاء الخطة"}
+                      ? "حفظ التعديلات"
+                      : appliedAiSubjects.length > 1
+                        ? `إنشاء ${appliedAiSubjects.length} خطط`
+                        : "إنشاء الخطة"}
                 </motion.button>
 
                 {editingPlanId && (
@@ -1109,40 +1107,40 @@ const StudyPlans = () => {
                           <Clock size={13} /> {getDurationText(plan.dailyDurationMinutes)}
                         </span>
                       </div>
-                      {/* بعد div شريط التقدم */}
-{plan.items && plan.items.length > 0 && (
-  <div className="sp-plan-topics">
-    <div className="sp-plan-topics-title">المواضيع</div>
-    <ul className="sp-plan-topics-list">
-      {plan.items
-        .slice()
-        .sort((a, b) => a.orderNumber - b.orderNumber)
-        .map((item) => (
-          <li key={item.id} className="sp-plan-topic-row">
-            <label className="sp-plan-topic-label">
-              <input
-                type="checkbox"
-                checked={item.isCompleted}
-                onChange={() => toggleItemCompletion(plan.id, item)}
-              />
-              <span
-                className={
-                  item.isCompleted
-                    ? "sp-plan-topic-text sp-plan-topic-text-done"
-                    : "sp-plan-topic-text"
-                }
-              >
-                {item.lessonTitle}
-              </span>
-            </label>
-          </li>
-        ))}
-    </ul>
-  </div>
-)}
+                      
+                      {plan.items && plan.items.length > 0 && (
+                        <div className="sp-plan-topics">
+                          <div className="sp-plan-topics-title">المواضيع</div>
+                          <ul className="sp-plan-topics-list">
+                            {plan.items
+                              .slice()
+                              .sort((a, b) => a.orderNumber - b.orderNumber)
+                              .map((item) => (
+                                <li key={item.id} className="sp-plan-topic-row">
+                                  <label className="sp-plan-topic-label">
+                                    <input
+                                      type="checkbox"
+                                      checked={item.isCompleted}
+                                      onChange={() => toggleItemCompletion(plan.id, item)}
+                                    />
+                                    <span
+                                      className={
+                                        item.isCompleted
+                                          ? "sp-plan-topic-text sp-plan-topic-text-done"
+                                          : "sp-plan-topic-text"
+                                      }
+                                    >
+                                      {item.lessonTitle}
+                                    </span>
+                                  </label>
+                                </li>
+                              ))}
+                          </ul>
+                        </div>
+                      )}
 
                     </motion.div>
-                    
+
                   );
                 })}
               </div>
@@ -1163,8 +1161,8 @@ const StudyPlans = () => {
                 {suggestionLoading
                   ? "جاري التحليل..."
                   : aiSuggestion?.focusSubjects?.length
-                  ? aiSuggestion.focusSubjects.join(" + ")
-                  : "ابدأ باختبار قصير"}
+                    ? aiSuggestion.focusSubjects.join(" + ")
+                    : "ابدأ باختبار قصير"}
               </p>
             </div>
 
@@ -1227,8 +1225,9 @@ const StudyPlans = () => {
       </div>
 
       {pageError && <p className="sp-page-error">{pageError}</p>}
-    </DashboardLayout>
+    </SideBar>
   );
 };
 
 export default StudyPlans;
+

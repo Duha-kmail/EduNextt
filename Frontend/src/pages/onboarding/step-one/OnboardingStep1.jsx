@@ -9,7 +9,7 @@ const branches = ["العلمي", "الأدبي", "الصناعي", "التجا�
 const studyHours = ["أقل من ساعة", "١-٢ ساعة", "٣-٤ ساعات", "أكثر من ٤ ساعات"];
 const goals = ["أعلى من ٩٠٪", "٨٠٪ - ٩٠٪", "٧٠٪ - ٨٠٪", "النجاح فقط"];
 
-/* ── Design tokens (Home palette) ── */
+
 const C = {
   teal: "#08b7aa",
   blue: "#2f9be7",
@@ -22,7 +22,7 @@ const C = {
   tealBg: "rgba(8,183,170,0.08)",
   blueBg: "rgba(47,155,231,0.08)",
 };
-const grad = `linear-gradient(135deg, ${C.blue}, ${C.teal})`;
+const grad = "#08b7aa";
 const font = "'Tajawal', system-ui, sans-serif";
 
 const Chip = ({ label, selected, onClick, disabled = false }) => (
@@ -151,7 +151,7 @@ const OnboardingStep1 = () => {
       alignItems: "center", justifyContent: "center",
       padding: "2rem 1rem", fontFamily: font, direction: "rtl",
     }}>
-      {/* subtle background blobs */}
+      
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 0 }}>
         <div style={{ position: "absolute", top: "-10%", right: "-8%", width: 420, height: 420, borderRadius: "50%", background: "rgba(8,183,170,0.07)", filter: "blur(60px)" }} />
         <div style={{ position: "absolute", bottom: "-10%", left: "-8%", width: 380, height: 380, borderRadius: "50%", background: "rgba(47,155,231,0.07)", filter: "blur(60px)" }} />
@@ -163,7 +163,7 @@ const OnboardingStep1 = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* ── Header ── */}
+        
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: "8px", marginBottom: "1.75rem", textDecoration: "none" }}>
             <div style={{ width: "2rem", height: "2rem" }}>
@@ -177,7 +177,7 @@ const OnboardingStep1 = () => {
             }}>EduNext</span>
           </Link>
 
-          {/* progress bars */}
+          
           <div style={{ display: "flex", gap: "8px", justifyContent: "center", marginBottom: "1.5rem" }}>
             {[true, false].map((active, i) => (
               <div key={i} style={{
@@ -199,7 +199,7 @@ const OnboardingStep1 = () => {
           </p>
         </div>
 
-        {/* ── Card ── */}
+        
         <div style={{
           background: C.card, borderRadius: "22px",
           border: `1px solid ${C.border}`,
@@ -208,7 +208,7 @@ const OnboardingStep1 = () => {
           display: "flex", flexDirection: "column", gap: "1.75rem",
         }}>
 
-          {/* Branch */}
+          
           <div>
             <SectionHeader icon={GraduationCap} label="ما هو فرعك الدراسي؟" />
             <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
@@ -218,7 +218,7 @@ const OnboardingStep1 = () => {
             </div>
           </div>
 
-          {/* Difficult subjects */}
+          
           <div>
             <SectionHeader icon={Target} label="ما المواد التي تجدها صعبة؟" />
             {!branch ? (
@@ -245,7 +245,7 @@ const OnboardingStep1 = () => {
             )}
           </div>
 
-          {/* Study hours */}
+          
           <div>
             <SectionHeader icon={Clock} label="كم ساعة تدرس يوميًا؟" />
             <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
@@ -255,7 +255,7 @@ const OnboardingStep1 = () => {
             </div>
           </div>
 
-          {/* Goal */}
+          
           <div>
             <SectionHeader icon={Target} label="ما هدفك في التوجيهي؟" />
             <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
@@ -265,14 +265,14 @@ const OnboardingStep1 = () => {
             </div>
           </div>
 
-          {/* Error */}
+          
           {error && (
             <p style={{ color: C.danger, textAlign: "center", fontSize: "14px", fontFamily: font, fontWeight: 600, margin: 0 }}>
               {error}
             </p>
           )}
 
-          {/* Next button */}
+          
           <button
             onClick={handleNext}
             style={{

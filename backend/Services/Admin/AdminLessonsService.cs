@@ -31,6 +31,16 @@ public class AdminLessonsService : IAdminLessonsService
         );
     }
 
+    public Task<List<AdminLessonUnitDto>> GetUnitsBySubjectAsync(Guid subjectId)
+    {
+        return _lessonsRepository.GetUnitsBySubjectAsync(subjectId);
+    }
+
+    public Task<AdminLessonUnitDto> CreateUnitAsync(Guid subjectId, CreateAdminLessonUnitDto dto)
+    {
+        return _lessonsRepository.CreateUnitAsync(subjectId, dto);
+    }
+
     public Task<AdminLessonDto?> CreateLessonAsync(CreateAdminLessonDto dto)
     {
         return _lessonsRepository.CreateLessonAsync(dto);

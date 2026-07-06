@@ -1,0 +1,52 @@
+.dashboard-rec-start-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  margin-top: 1rem;
+  border: 0;
+  border-radius: 14px;
+  background: #08b7aa;
+  color: #ffffff;
+  box-shadow: 0 4px 18px rgba(8, 183, 170, 0.3);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-rec-start-btn:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(8, 183, 170, 0.32);
+}
+
+.dashboard-loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 300px;
+  color: var(--muted-foreground, #667085);
+}
+
+.dashboard-error-state {
+  padding: 2rem;
+  text-align: center;
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.dashboard-section-icon {
+  color: var(--primary, #08b7aa);
+}
+
+.dashboard-empty-recommendations {
+  padding: 1.25rem;
+  text-align: center;
+  color: var(--muted-foreground, #667085);
+}

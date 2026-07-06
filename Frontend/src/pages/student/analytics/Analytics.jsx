@@ -10,29 +10,29 @@ import {
   CheckCircle2,
   Loader2,
 } from "lucide-react";
-import DashboardLayout from "../../../components/DashboardLayout";
+import SideBar from "../../../components/SideBar";
 import "./Analytics.css";
 import { API_BASE_URL } from "@/config/api";
 
 const colorMap = {
-  الرياضيات: "hsl(220, 85%, 55%)",
-  الفيزياء: "hsl(152, 70%, 45%)",
+  "الرياضيات": "#08b7aa",
+  "الفيزياء": "hsl(152, 70%, 45%)",
   "اللغة العربية": "hsl(38, 90%, 50%)",
-  الكيمياء: "hsl(270, 70%, 55%)",
+  "الكيمياء": "#08b7aa",
   "اللغة الإنجليزية": "hsl(199, 80%, 50%)",
-  الأحياء: "hsl(152, 55%, 40%)",
+  "الأحياء": "hsl(152, 55%, 40%)",
   "العلوم الحياتية": "hsl(152, 55%, 40%)",
   "التربية الإسلامية": "hsl(152, 70%, 45%)",
-  "تكنولوجيا المعلومات": "hsl(220, 85%, 55%)",
+  "تكنولوجيا المعلومات": "#08b7aa",
 };
 
 const subjectIconMap = {
-  الرياضيات: "📐",
-  الفيزياء: "",
+  "الرياضيات": "📐",
+  "الفيزياء": "",
   "اللغة العربية": "📘",
-  الكيمياء: "",
+  "الكيمياء": "",
   "اللغة الإنجليزية": "🌍",
-  الأحياء: "🧬",
+  "الأحياء": "🧬",
   "العلوم الحياتية": "🧬",
   "التربية الإسلامية": "🕌",
   "تكنولوجيا المعلومات": "💻",
@@ -72,7 +72,7 @@ const getCurrentUserStorageId = () => {
     payload?.nameid ||
     payload?.sub ||
     payload?.[
-      "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
     ] ||
     ""
   );
@@ -127,7 +127,7 @@ const getStudentChatHistoryInsights = () => {
           }
         });
     } catch {
-      // Ignore malformed local history entries.
+      
     }
   }
 
@@ -464,8 +464,8 @@ const RadarChart = ({ subjects }) => {
   const dataPath =
     dataPoints.length > 0
       ? dataPoints
-          .map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`)
-          .join(" ") + " Z"
+        .map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`)
+        .join(" ") + " Z"
       : "";
 
   if (safeSubjects.length === 0) {
@@ -641,8 +641,8 @@ const MonthlyProgressChart = ({ monthlyProgress }) => {
   const areaPath =
     points.length > 1
       ? `M${points[0].x},${bottomY} L${points
-          .map((point) => `${point.x},${point.y}`)
-          .join(" L")} L${points[points.length - 1].x},${bottomY} Z`
+        .map((point) => `${point.x},${point.y}`)
+        .join(" L")} L${points[points.length - 1].x},${bottomY} Z`
       : "";
 
   const linePoints = points.map((point) => `${point.x},${point.y}`).join(" ");
@@ -674,8 +674,8 @@ const MonthlyProgressChart = ({ monthlyProgress }) => {
             {trendValue === null
               ? "قيد التتبع"
               : trendValue > 0
-              ? `+${trendValue}٪`
-              : `${trendValue}٪`}
+                ? `+${trendValue}٪`
+                : `${trendValue}٪`}
           </strong>
           <small>{trendValue === null ? "أضف شهرا آخر للمقارنة" : "عن الشهر السابق"}</small>
         </div>
@@ -918,18 +918,18 @@ const Analytics = () => {
         color: "green",
       },
       {
-       icon: Target,
-       label: "الاختبارات المقدمة",
-       value: `${analytics.overview.totalExams}`,
-       color: "purple",
+        icon: Target,
+        label: "الاختبارات المقدمة",
+        value: `${analytics.overview.totalExams}`,
+        color: "purple",
       },
-      
+
 
     ];
   }, [analytics]);
 
   return (
-    <DashboardLayout
+    <SideBar
       title="تحليل الأداء"
       subtitle="تابع مستواك واكتشف نقاط القوة والضعف"
     >
@@ -971,7 +971,7 @@ const Analytics = () => {
                 <div className="stat-info">
                   <p className="stat-label">{stat.label}</p>
                   <p className="stat-value" dir="ltr">
-                  {stat.value}
+                    {stat.value}
                   </p>
                 </div>
               </motion.div>
@@ -1067,7 +1067,7 @@ const Analytics = () => {
                   display: "none",
                   padding: "1.5rem",
                   background: "var(--hero-gradient-soft)",
-                  border: "1px solid hsla(220, 85%, 55%, 0.15)",
+                  border: "1px solid rgba(8, 183, 170, 0.15)",
                 }}
               >
                 <div
@@ -1148,8 +1148,9 @@ const Analytics = () => {
           </motion.div>
         </>
       )}
-    </DashboardLayout>
+    </SideBar>
   );
 };
 
 export default Analytics;
+

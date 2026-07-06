@@ -1,6 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
 
-/* ===== Design Tokens (from Home page) ===== */
+
 :root {
   --edn-bg: #f8fbfd;
   --edn-card: #ffffff;
@@ -9,11 +9,11 @@
   --edn-border: #dfe7ef;
   --edn-teal: #08b7aa;
   --edn-blue: #2f9be7;
-  --edn-purple: #9b75f6;
+  --edn-purple: #08b7aa;
   --edn-shadow: 0 20px 50px rgba(34, 62, 88, 0.08);
 }
 
-/* ========== Sidebar Header ========== */
+
 .aa-sidebar-header {
   display: flex;
   align-items: center;
@@ -26,7 +26,7 @@
   width: 40px;
   height: 40px;
   border-radius: 14px;
-  background: linear-gradient(135deg, var(--edn-blue), var(--edn-teal));
+  background: var(--edn-teal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,7 +37,7 @@
 .aa-logo-text {
   font-size: 18px;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--edn-blue), var(--edn-teal));
+  background: var(--edn-teal);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -51,7 +51,7 @@
   font-weight: 500;
 }
 
-/* ========== Nav ========== */
+
 .aa-nav {
   flex: 1;
   padding: 16px 12px;
@@ -84,13 +84,13 @@
 }
 
 .aa-nav-item.active {
-  background: linear-gradient(135deg, var(--edn-blue), var(--edn-teal));
+  background: var(--edn-teal);
   color: #fff;
   font-weight: 800;
   box-shadow: 0 8px 20px rgba(8, 183, 170, 0.25);
 }
 
-/* ========== Sidebar Footer ========== */
+
 .aa-sidebar-footer {
   display: flex;
   align-items: center;
@@ -124,19 +124,19 @@
   font-weight: 500;
 }
 
-/* ========== Main ========== */
+
 .aa-main {
   flex: 1;
   padding: 28px 32px;
   overflow-y: auto;
   background:
     radial-gradient(circle at 90% 8%, rgba(8, 183, 170, 0.07), transparent 30rem),
-    radial-gradient(circle at 5%, rgba(155, 117, 246, 0.06), transparent 26rem),
+    radial-gradient(circle at 5%, rgba(8, 183, 170, 0.06), transparent 26rem),
     var(--edn-bg);
   font-family: "Tajawal", system-ui, -apple-system, sans-serif;
 }
 
-/* ========== Top Bar ========== */
+
 .aa-topbar {
   display: flex;
   justify-content: space-between;
@@ -150,7 +150,7 @@
   font-size: 26px;
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(135deg, var(--edn-blue), var(--edn-teal));
+  background: var(--edn-teal);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -209,7 +209,7 @@
   flex-shrink: 0;
 }
 
-/* ========== Buttons ========== */
+
 .aa-btn-primary {
   display: flex;
   align-items: center;
@@ -281,7 +281,7 @@
   border-color: var(--edn-blue);
 }
 
-/* ========== Filters ========== */
+
 .aa-filters {
   display: flex;
   align-items: center;
@@ -321,7 +321,7 @@
   box-shadow: 0 0 0 3px rgba(8, 183, 170, 0.08);
 }
 
-/* ========== Form Card ========== */
+
 .aa-form-card {
   background: var(--edn-card);
   border-radius: 22px;
@@ -394,7 +394,7 @@
   min-height: 70px;
 }
 
-/* ========== Toggle ========== */
+
 .aa-toggle-wrap {
   display: flex;
   align-items: center;
@@ -445,7 +445,7 @@
   padding-top: 8px;
 }
 
-/* ========== Preview ========== */
+
 .aa-preview-section {
   margin-bottom: 24px;
 }
@@ -562,7 +562,7 @@
   color: var(--edn-teal);
 }
 
-/* ========== Table Card ========== */
+
 .aa-table-card {
   background: var(--edn-card);
   border-radius: 22px;
@@ -637,7 +637,7 @@
   border-bottom: none;
 }
 
-/* ========== Cell styles ========== */
+
 .aa-cell-achievement {
   display: flex;
   align-items: center;
@@ -718,7 +718,7 @@
   font-weight: 500;
 }
 
-/* ========== Actions ========== */
+
 .aa-actions {
   display: flex;
   gap: 6px;
@@ -774,7 +774,7 @@
   transform: none;
 }
 
-/* ========== Pagination ========== */
+
 .aa-pagination {
   display: flex;
   justify-content: space-between;
@@ -833,7 +833,7 @@
   transform: none;
 }
 
-/* ========== Analytics Card ========== */
+
 .aa-analytics-card {
   background: var(--edn-card);
   border-radius: 22px;
@@ -885,7 +885,7 @@
   text-align: left;
 }
 
-/* ========== Responsive ========== */
+
 @media (max-width: 1024px) {
   .aa-sidebar {
     width: 220px;

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/EDU.svg';
 import './PublicNavbar.css';
 
-export default function PublicNavbar({ compact = false }) {
+export default function PublicNavbar() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -22,12 +22,6 @@ export default function PublicNavbar({ compact = false }) {
 
         <nav className={`edn-links ${mobileOpen ? 'open' : ''}`}>
           <button type="button" onClick={() => go('/')}>الرئيسية</button>
-          {!compact && (
-            <>
-              <button type="button" onClick={() => go('/#subjects')}>المواد الدراسية</button>
-              <button type="button" onClick={() => go('/#faq')}>الأسئلة الشائعة</button>
-            </>
-          )}
           <button type="button" onClick={() => go('/contact')}>تواصل معنا</button>
         </nav>
 

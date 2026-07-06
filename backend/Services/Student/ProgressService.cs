@@ -13,7 +13,7 @@ public class ProgressService
         _db = db;
     }
 
-    // ✅ Overall progress (MVP)
+    
     public async Task<LessonProgressDto> GetProgressAsync(Guid userId)
     {
         var totalLessons = await _db.lessons
@@ -39,17 +39,17 @@ public class ProgressService
         };
     }
 
-    // ✅ Progress by subject (EF-translatable version)
+    
     public async Task<List<SubjectProgressDto>> GetProgressBySubjectAsync(Guid userId)
     {
-        // 1) Total lessons per subject
+        
         var totals = await _db.lessons.AsNoTracking()
             .Where(l => l.subject_id != null)
             .GroupBy(l => l.subject_id!.Value)
             .Select(g => new { SubjectId = g.Key, Total = g.Count() })
             .ToListAsync();
 
-        // 2) Completed lessons per subject for this user
+        
         var completed = await _db.lesson_progresses.AsNoTracking()
             .Where(lp => lp.user_id == userId && lp.completed == true && lp.lesson_id != null)
             .Join(_db.lessons.AsNoTracking(),
@@ -61,7 +61,7 @@ public class ProgressService
             .Select(g => new { SubjectId = g.Key, Completed = g.Count() })
             .ToListAsync();
 
-        // 3) Subjects list
+        
         var subjects = await _db.subjects.AsNoTracking()
             .OrderBy(s => s.name)
             .Select(s => new { s.id, s.name })
@@ -70,7 +70,7 @@ public class ProgressService
         var totalDict = totals.ToDictionary(x => x.SubjectId, x => x.Total);
         var completedDict = completed.ToDictionary(x => x.SubjectId, x => x.Completed);
 
-        // 4) Merge in memory
+        
         var result = subjects.Select(s =>
         {
             totalDict.TryGetValue(s.id, out var total);

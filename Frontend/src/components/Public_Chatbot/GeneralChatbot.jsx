@@ -81,10 +81,10 @@ export default function GeneralChatbot({ compact = false }) {
       current.map((message) =>
         message.id === id
           ? {
-              ...message,
-              content,
-              pending: false,
-            }
+            ...message,
+            content,
+            pending: false,
+          }
           : message,
       ),
     );
@@ -179,6 +179,7 @@ export default function GeneralChatbot({ compact = false }) {
 
           <div className="general-chatbot-suggestions" aria-label="اقتراحات">
             {EDIT_THIS_CONTENT.suggestions.map((suggestion) => (
+              // eslint-disable-next-line react-hooks/rules-of-hooks
               <button type="button" key={suggestion} onClick={() => useSuggestion(suggestion)}>
                 {suggestion}
               </button>

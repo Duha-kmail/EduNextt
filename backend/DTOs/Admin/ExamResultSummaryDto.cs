@@ -6,5 +6,5 @@ public record ExamResultSummaryDto(
     string ExamTitle,
     double Score,
     DateTime Date,
-    string PerformanceLevel // ممتاز، جيد، ضعيف
+    string PerformanceLevel 
 );

@@ -178,16 +178,98 @@ public class AdminLessonsRepository : IAdminLessonsRepository
         };
     }
 
+    public async Task<List<AdminLessonUnitDto>> GetUnitsBySubjectAsync(Guid subjectId)
+    {
+        if (subjectId == Guid.Empty)
+        {
+            return new List<AdminLessonUnitDto>();
+        }
+
+        return await _context.subject_units
+            .AsNoTracking()
+            .Where(u => u.subject_id == subjectId)
+            .OrderBy(u => u.order_number)
+            .ThenBy(u => u.title)
+            .Select(u => new AdminLessonUnitDto
+            {
+                Id = u.id,
+                Title = u.title ?? "",
+                OrderNumber = u.order_number
+            })
+            .ToListAsync();
+    }
+
+    public async Task<AdminLessonUnitDto> CreateUnitAsync(Guid subjectId, CreateAdminLessonUnitDto dto)
+    {
+        if (subjectId == Guid.Empty)
+        {
+            throw new ArgumentException("يجب اختيار المادة.");
+        }
+
+        if (dto == null || string.IsNullOrWhiteSpace(dto.Title))
+        {
+            throw new ArgumentException("عنوان الوحدة مطلوب.");
+        }
+
+        var subjectExists = await _context.subjects
+            .AsNoTracking()
+            .AnyAsync(s => s.id == subjectId);
+
+        if (!subjectExists)
+        {
+            throw new ArgumentException("المادة غير موجودة.");
+        }
+
+        var title = dto.Title.Trim();
+
+        var duplicateExists = await _context.subject_units
+            .AsNoTracking()
+            .AnyAsync(u =>
+                u.subject_id == subjectId &&
+                u.title.ToLower() == title.ToLower()
+            );
+
+        if (duplicateExists)
+        {
+            throw new ArgumentException("توجد وحدة بنفس الاسم داخل هذه المادة.");
+        }
+
+        var unit = new subject_unit
+        {
+            id = Guid.NewGuid(),
+            subject_id = subjectId,
+            title = title,
+            order_number = dto.OrderNumber <= 0 ? 1 : dto.OrderNumber,
+            created_at = DateTime.Now
+        };
+
+        _context.subject_units.Add(unit);
+        AddAdminLog("create_subject_unit", $"Created unit {title}");
+        await _context.SaveChangesAsync();
+
+        return new AdminLessonUnitDto
+        {
+            Id = unit.id,
+            Title = unit.title ?? "",
+            OrderNumber = unit.order_number
+        };
+    }
+
     public async Task<AdminLessonDto?> CreateLessonAsync(CreateAdminLessonDto dto)
     {
         if (dto.SubjectId == Guid.Empty)
         {
-            return null;
+            throw new ArgumentException("اختيار المادة مطلوب.");
+        }
+
+        if (dto.UnitId == Guid.Empty)
+        {
+            throw new ArgumentException("اختيار الوحدة مطلوب قبل إضافة الدرس.");
         }
 
         if (string.IsNullOrWhiteSpace(dto.Title))
         {
-            return null;
+            throw new ArgumentException("عنوان الدرس مطلوب.");
         }
 
         var subjectExists = await _context.subjects
@@ -196,7 +278,16 @@ public class AdminLessonsRepository : IAdminLessonsRepository
 
         if (!subjectExists)
         {
-            return null;
+            throw new ArgumentException("المادة غير موجودة.");
+        }
+
+        var unitExists = await _context.subject_units
+            .AsNoTracking()
+            .AnyAsync(u => u.id == dto.UnitId && u.subject_id == dto.SubjectId);
+
+        if (!unitExists)
+        {
+            throw new ArgumentException("الوحدة غير موجودة أو لا تنتمي لهذه المادة.");
         }
 
         var title = dto.Title.Trim();
@@ -205,18 +296,20 @@ public class AdminLessonsRepository : IAdminLessonsRepository
             .AsNoTracking()
             .AnyAsync(l =>
                 l.subject_id == dto.SubjectId &&
+                l.subject_unit_id == dto.UnitId &&
                 l.title.ToLower() == title.ToLower()
             );
 
         if (duplicateExists)
         {
-            return null;
+            throw new ArgumentException("يوجد درس بنفس الاسم داخل نفس الوحدة.");
         }
 
         var lesson = new lesson
         {
             id = Guid.NewGuid(),
             subject_id = dto.SubjectId,
+            subject_unit_id = dto.UnitId,
             title = title,
             summary = string.IsNullOrWhiteSpace(dto.Description)
                 ? null
@@ -241,12 +334,17 @@ public class AdminLessonsRepository : IAdminLessonsRepository
     {
         if (dto.SubjectId == Guid.Empty)
         {
-            return null;
+            throw new ArgumentException("اختيار المادة مطلوب.");
+        }
+
+        if (dto.UnitId == Guid.Empty)
+        {
+            throw new ArgumentException("اختيار الوحدة مطلوب قبل تعديل الدرس.");
         }
 
         if (string.IsNullOrWhiteSpace(dto.Title))
         {
-            return null;
+            throw new ArgumentException("عنوان الدرس مطلوب.");
         }
 
         var lesson = await _context.lessons
@@ -263,7 +361,16 @@ public class AdminLessonsRepository : IAdminLessonsRepository
 
         if (!subjectExists)
         {
-            return null;
+            throw new ArgumentException("المادة غير موجودة.");
+        }
+
+        var unitExists = await _context.subject_units
+            .AsNoTracking()
+            .AnyAsync(u => u.id == dto.UnitId && u.subject_id == dto.SubjectId);
+
+        if (!unitExists)
+        {
+            throw new ArgumentException("الوحدة غير موجودة أو لا تنتمي لهذه المادة.");
         }
 
         var title = dto.Title.Trim();
@@ -273,15 +380,17 @@ public class AdminLessonsRepository : IAdminLessonsRepository
             .AnyAsync(l =>
                 l.id != id &&
                 l.subject_id == dto.SubjectId &&
+                l.subject_unit_id == dto.UnitId &&
                 l.title.ToLower() == title.ToLower()
             );
 
         if (duplicateExists)
         {
-            return null;
+            throw new ArgumentException("يوجد درس بنفس الاسم داخل نفس الوحدة.");
         }
 
         lesson.subject_id = dto.SubjectId;
+        lesson.subject_unit_id = dto.UnitId;
         lesson.title = title;
         lesson.summary = string.IsNullOrWhiteSpace(dto.Description)
             ? null
@@ -293,8 +402,8 @@ public class AdminLessonsRepository : IAdminLessonsRepository
         lesson.video_url = string.IsNullOrWhiteSpace(dto.VideoUrl)
             ? null
             : dto.VideoUrl.Trim();
-        AddAdminLog("update_lesson", $"Updated lesson {title}");
 
+        AddAdminLog("update_lesson", $"Updated lesson {title}");
         await _context.SaveChangesAsync();
 
         return await GetLessonDtoByIdAsync(lesson.id);

@@ -175,7 +175,7 @@ public class AdminProfileRepository : IAdminProfileRepository
         }
         catch
         {
-            // Try legacy hash formats below.
+            
         }
 
         try
@@ -194,7 +194,7 @@ public class AdminProfileRepository : IAdminProfileRepository
         }
         catch
         {
-            // Try legacy PBKDF2 format below.
+            
         }
 
         if (VerifyPbkdf2Password(password, passwordHash))

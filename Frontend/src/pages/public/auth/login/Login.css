@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
 
 :root {
-  --primary: hsl(220, 85%, 55%); /* #105bf0; */
-  --primary-hover: #0d4bc5;
-  --primary-light: rgba(16, 91, 240, 0.1);
+  --primary: #08b7aa;
+  --primary-hover: #07998f;
+  --primary-light: rgba(8, 183, 170, 0.1);
   --background-light: #f6f6f8;
   --slate-50: #f8fafc;
   --slate-100: #f1f5f9;
@@ -55,7 +55,7 @@ body {
   align-items: center;
   gap: 0.45rem;
   padding: 0.65rem 0.9rem;
-  border: 1px solid rgba(16, 91, 240, 0.18);
+  border: 1px solid rgba(8, 183, 170, 0.18);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.9);
   color: var(--primary);
@@ -70,7 +70,7 @@ body {
 
 .auth-home-link:hover {
   transform: translateY(-1px);
-  border-color: rgba(16, 91, 240, 0.38);
+  border-color: rgba(8, 183, 170, 0.38);
   background: #ffffff;
 }
 
@@ -177,9 +177,9 @@ body {
 .card-container {
   width: 100%;
   max-width: 80rem;
-  min-height: 700px;
+  
   display: flex;
-  flex-direction: column; /* stack items vertically by default */
+  flex-direction: column; 
   background-color: var(--white);
   border-radius: 1rem;
   overflow: hidden;
@@ -189,7 +189,7 @@ body {
 
 @media (min-width: 1024px) {
   .card-container {
-    flex-direction: row; /* switch to side-by-side layout */
+    flex-direction: row; 
   }
 }
 
@@ -336,7 +336,7 @@ body {
   border: none;
   border-radius: 0.75rem;
   cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(16, 91, 240, 0.2);
+  box-shadow: 0 4px 6px -1px rgba(8, 183, 170, 0.2);
   transition: all 0.2s;
 }
 
@@ -449,7 +449,7 @@ body {
   right: 0;
   width: 16rem;
   height: 16rem;
-  background-color: rgba(16, 91, 240, 0.1);
+  background-color: rgba(8, 183, 170, 0.1);
   border-radius: 50%;
   transform: translate(50%, -50%);
   filter: blur(64px);
@@ -461,7 +461,7 @@ body {
   left: 0;
   width: 12rem;
   height: 12rem;
-  background-color: rgba(59, 130, 246, 0.1);
+  background-color: rgba(8, 183, 170, 0.1);
   border-radius: 50%;
   transform: translate(-50%, 50%);
   filter: blur(64px);
@@ -487,15 +487,15 @@ body {
   padding: 2rem;
   margin-left: auto;
   margin-right: auto;
-  outline: 8px solid rgba(16, 91, 240, 0.05);
+  outline: 8px solid rgba(8, 183, 170, 0.05);
   overflow: hidden;
 }
-/************************************/
+
 .form-section,
 .visual-section {
   flex: 1;
 }
-/***********************************/
+
 
 .robot-image {
   width: 100%;
@@ -570,7 +570,7 @@ body {
   margin-top: 1rem;
 }
 
-/* EduNext public theme alignment */
+
 .layout-wrapper {
   font-family: "Tajawal", "Segoe UI", sans-serif;
   min-height: 100vh;
@@ -609,19 +609,17 @@ select:focus {
 
 .submit-btn {
   border-radius: 16px;
-  background: linear-gradient(135deg, #08b7aa, #1594d1);
+  background: #08b7aa;
   box-shadow: 0 14px 28px rgba(8, 183, 170, 0.2);
 }
 
 .submit-btn:hover {
-  background: linear-gradient(135deg, #07998f, #117fba);
+  background: #07998f;
   transform: translateY(-2px);
 }
 
 .visual-section {
-  background:
-    radial-gradient(circle at 22% 22%, rgba(255, 255, 255, 0.34), transparent 26%),
-    linear-gradient(145deg, #eafaf7 0%, #eef6ff 48%, #f3efff 100%);
+  background: #eafaf7;
 }
 
 .badge {

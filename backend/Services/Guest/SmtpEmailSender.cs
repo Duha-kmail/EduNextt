@@ -88,6 +88,48 @@ public class SmtpEmailSender : IEmailSender
         }
     }
 
+    public async Task SendRegistrationOtpAsync(
+        string recipientEmail,
+        string recipientName,
+        string otp,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            EnsureConfigured();
+
+            using var mailMessage = new MailMessage
+            {
+                From = new MailAddress(_settings.FromEmail, _settings.FromName, Encoding.UTF8),
+                Subject = "رمز التحقق من حساب EduNext",
+                Body = BuildRegistrationBody(recipientName, otp),
+                IsBodyHtml = false,
+                BodyEncoding = Encoding.UTF8,
+                SubjectEncoding = Encoding.UTF8
+            };
+
+            mailMessage.To.Add(new MailAddress(recipientEmail, recipientName, Encoding.UTF8));
+
+            using var smtpClient = new SmtpClient(_settings.Host, _settings.Port)
+            {
+                EnableSsl = _settings.EnableSsl,
+                Credentials = new NetworkCredential(_settings.Username, _settings.Password)
+            };
+
+            await smtpClient.SendMailAsync(mailMessage, cancellationToken);
+        }
+        catch (Exception ex) when (
+            ex is SmtpException or
+            InvalidOperationException or
+            FormatException or
+            ArgumentException
+        )
+        {
+            throw new EmailDeliveryException("Registration email delivery failed.", ex);
+        }
+    }
+
     private void EnsureConfigured()
     {
         if (
@@ -131,7 +173,21 @@ public class SmtpEmailSender : IEmailSender
         builder.AppendLine();
         builder.AppendLine(otp);
         builder.AppendLine();
-        builder.AppendLine("This code is valid for 3 minutes. If you did not request a password reset, ignore this email.");
+        builder.AppendLine("This code is valid for 1 minute. If you did not request a password reset, ignore this email.");
+
+        return builder.ToString();
+    }
+
+    private static string BuildRegistrationBody(string recipientName, string otp)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine($"مرحباً {recipientName},");
+        builder.AppendLine();
+        builder.AppendLine("استخدم رمز التحقق التالي لإكمال إنشاء حسابك على EduNext:");
+        builder.AppendLine();
+        builder.AppendLine(otp);
+        builder.AppendLine();
+        builder.AppendLine("هذا الرمز صالح لمدة دقيقة واحدة فقط. إذا لم تطلب إنشاء حساب جديد، يرجى تجاهل هذه الرسالة.");
 
         return builder.ToString();
     }
