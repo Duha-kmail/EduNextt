@@ -4301,11 +4301,13 @@ img {
   bottom: 1rem;
   left: 1.5rem;
   right: calc(320px + 1.5rem);
-  max-width: 7rem;
+  width: min(100% - 3rem, 48rem);
+  max-width: 75rem;
   margin-inline: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 2rem;
   padding: 1rem 1rem;
   background: var(--card);
   border: 1px solid var(--border);
@@ -4319,6 +4321,9 @@ img {
 }
 
 .ec-cancel-btn {
+  flex: 0 0 auto;
+  min-height: 3rem;
+  padding: 0.75rem 1rem;
   background: none;
   border: none;
   font-family: inherit;
@@ -4327,6 +4332,7 @@ img {
   color: var(--muted-foreground);
   cursor: pointer;
   transition: color 0.2s;
+  white-space: nowrap;
 }
 
 .ec-cancel-btn:hover {
@@ -4336,7 +4342,11 @@ img {
 .ec-start-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
   gap: 0.5rem;
+  min-width: 11.75rem;
+  min-height: 3rem;
   padding: 0.75rem 2rem;
   border-radius: 0.75rem;
   border: none;
@@ -4348,6 +4358,7 @@ img {
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   box-shadow: 0 4px 16px rgba(8, 183, 170, 0.3);
+  white-space: nowrap;
 }
 
 .ec-start-btn:hover:not(:disabled) {
@@ -4406,6 +4417,8 @@ img {
     bottom: 0.75rem;
     left: 0.75rem;
     right: 0.75rem;
+    width: auto;
+    max-width: none;
     padding: 0.875rem 1rem;
     gap: 0.75rem;
   }
@@ -4413,6 +4426,7 @@ img {
   .ec-start-btn {
     flex: 1;
     justify-content: center;
+    min-width: 0;
     padding-inline: 1rem;
   }
 }
