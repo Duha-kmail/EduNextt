@@ -4,13 +4,16 @@ from typing import Iterable
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
+from app.core.config import HF_TOKEN
+
 
 MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
 
 @lru_cache(maxsize=1)
 def get_model() -> SentenceTransformer:
-    return SentenceTransformer(MODEL_NAME)
+    kwargs = {"token": HF_TOKEN} if HF_TOKEN else {}
+    return SentenceTransformer(MODEL_NAME, **kwargs)
 
 
 def embed_texts(texts: Iterable[str]) -> np.ndarray:
@@ -20,7 +23,7 @@ def embed_texts(texts: Iterable[str]) -> np.ndarray:
 
     return get_model().encode(
         texts,
-        show_progress_bar=True,
+        show_progress_bar=False,
         normalize_embeddings=True,
     ).astype("float32")
 
@@ -28,5 +31,6 @@ def embed_texts(texts: Iterable[str]) -> np.ndarray:
 def embed_query(question: str) -> np.ndarray:
     return get_model().encode(
         question,
+        show_progress_bar=False,
         normalize_embeddings=True,
     ).astype("float32")

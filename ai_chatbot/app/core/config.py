@@ -14,3 +14,4 @@ VECTOR_DB_DIR = STORAGE_DIR / "vector_db"
 load_dotenv(BASE_DIR / ".env")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+HF_TOKEN = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACEHUB_API_TOKEN")

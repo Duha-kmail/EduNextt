@@ -45,6 +45,9 @@ def save_index(subject: str) -> None:
 
 
 def load_index(subject: str) -> bool:
+    if subject in indexes and subject in chunks_store:
+        return True
+
     target = _subject_dir(subject)
     index_path = target / INDEX_FILE
     chunks_path = target / CHUNKS_FILE
